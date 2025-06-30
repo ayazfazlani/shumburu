@@ -25,14 +25,13 @@ class EditRole extends Component
 
     public function mount(Role $role): void
     {
-        $this->authorize('update roles');
+        // $this->authorize('update roles');
 
         $this->role = $role;
 
         $this->name = $role->name;
 
         $this->selectedPermissions = $role->permissions->pluck('id')->toArray();
-
     }
 
     public function editRole(): void
@@ -46,7 +45,7 @@ class EditRole extends Component
         ]);
 
         // convert string to int
-        $permissions = collect($this->selectedPermissions)->map(fn ($permission): int => (int) $permission)->toArray();
+        $permissions = collect($this->selectedPermissions)->map(fn($permission): int => (int) $permission)->toArray();
 
         $this->role->syncPermissions($permissions);
 

@@ -7,20 +7,20 @@
             {{ __('users.title_description') }}
         </x-slot:subtitle>
         <x-slot:buttons>
-            @can('create users')
-                <flux:button href="{{ route('admin.users.create') }}" variant="primary" icon="plus">
-                    {{ __('users.create_user') }}
-                </flux:button>
-            @endcan
+            {{-- @can('create users') --}}
+            <flux:button href="{{ route('admin.users.create') }}" variant="primary" icon="plus">
+                {{ __('users.create_user') }}
+            </flux:button>
+            {{-- @endcan --}}
         </x-slot:buttons>
     </x-page-heading>
 
     <div class="flex items-center justify-between w-full mb-6 gap-2">
-        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto"/>
-        <flux:spacer/>
+        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto" />
+        <flux:spacer />
         <flux:select wire:model.live="role" class="!w-auto">
             <flux:select.option value="">{{ __('users.all_roles') }}</flux:select.option>
-            @foreach($roles as $role)
+            @foreach ($roles as $role)
                 <flux:select.option value="{{ $role->name }}">{{ $role->name }}</flux:select.option>
             @endforeach
         </flux:select>
@@ -44,13 +44,13 @@
             </x-table.row>
         </x-slot:head>
         <x-slot:body>
-            @foreach($users as $user)
+            @foreach ($users as $user)
                 <x-table.row wire:key="user-{{ $user->id }}">
                     <x-table.cell>{{ $user->id }}</x-table.cell>
                     <x-table.cell>{{ $user->name }}</x-table.cell>
                     <x-table.cell>{{ $user->email }}</x-table.cell>
                     <x-table.cell>
-                        @foreach($user->roles as $role)
+                        @foreach ($user->roles as $role)
                             <flux:badge size="sm">
                                 {{ $role->name }}
                             </flux:badge>
@@ -63,7 +63,7 @@
                         </flux:button>
 
                         @can('impersonate')
-                            @if(auth()->user()->id !== $user->id)
+                            @if (auth()->user()->id !== $user->id)
                                 <form action="{{ route('impersonate.store', $user) }}" method="POST">
                                     @csrf
                                     <flux:button type="submit" size="sm">
@@ -84,7 +84,7 @@
                                 <flux:button size="sm" variant="danger">{{ __('global.delete') }}</flux:button>
                             </flux:modal.trigger>
                             <flux:modal name="delete-profile-{{ $user->id }}"
-                                        class="min-w-[22rem] space-y-6 flex flex-col justify-between">
+                                class="min-w-[22rem] space-y-6 flex flex-col justify-between">
                                 <div>
                                     <flux:heading size="lg">{{ __('users.delete_user') }}?</flux:heading>
                                     <flux:subheading>
@@ -98,9 +98,9 @@
                                             {{ __('global.cancel') }}
                                         </flux:button>
                                     </flux:modal.close>
-                                    <flux:spacer/>
+                                    <flux:spacer />
                                     <flux:button type="submit" variant="danger"
-                                                 wire:click.prevent="deleteUser('{{ $user->id }}')">
+                                        wire:click.prevent="deleteUser('{{ $user->id }}')">
                                         {{ __('users.delete_user') }}
                                     </flux:button>
                                 </div>

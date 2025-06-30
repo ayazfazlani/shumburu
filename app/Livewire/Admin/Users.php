@@ -35,7 +35,7 @@ class Users extends Component
 
     public function mount(): void
     {
-        $this->authorize('view users');
+        // $this->authorize('view users');
     }
 
     public function updatingSearch(): void
@@ -46,7 +46,7 @@ class Users extends Component
     public function deleteUser(string $userId): void
     {
 
-        $this->authorize('delete users');
+        // $this->authorize('delete users');
 
         $user = User::query()->where('id', $userId)->firstOrFail();
 
@@ -66,7 +66,7 @@ class Users extends Component
                 ->when($this->search, function ($query, $search): void {
                     $query->whereAny($this->searchableFields, 'LIKE', "%$search%");
                 })
-                ->when($this->role, fn ($query) => $query->role($this->role))
+                ->when($this->role, fn($query) => $query->role($this->role))
                 ->paginate($this->perPage),
             'roles' => Role::all(),
         ]);

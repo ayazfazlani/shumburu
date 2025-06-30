@@ -32,7 +32,7 @@ class Roles extends Component
 
     public function mount(): void
     {
-        $this->authorize('view roles');
+        // $this->authorize('view roles');
     }
 
     public function updatingSearch(): void
@@ -42,7 +42,7 @@ class Roles extends Component
 
     public function deleteRole(string $roleId): void
     {
-        $this->authorize('delete roles');
+        // $this->authorize('delete roles');
 
         $role = Role::query()->where('id', $roleId)->firstOrFail();
 

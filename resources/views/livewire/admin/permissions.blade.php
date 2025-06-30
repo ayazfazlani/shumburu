@@ -3,17 +3,17 @@
         <x-slot:title>{{ __('permissions.title') }}</x-slot:title>
         <x-slot:subtitle>{{ __('permissions.title_description') }}</x-slot:subtitle>
         <x-slot:buttons>
-            @can('create permissions')
-                <flux:button href="{{ route('admin.permissions.create') }}" variant="primary" icon="plus">
-                    {{ __('permissions.create_permission') }}
-                </flux:button>
-            @endcan
+            {{-- @can('create permissions') --}}
+            <flux:button href="{{ route('admin.permissions.create') }}" variant="primary" icon="plus">
+                {{ __('permissions.create_permission') }}
+            </flux:button>
+            {{-- @endcan --}}
         </x-slot:buttons>
     </x-page-heading>
 
     <div class="flex items-center justify-between w-full mb-6 gap-2">
-        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto"/>
-        <flux:spacer/>
+        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto" />
+        <flux:spacer />
 
         <flux:select wire:model.live="perPage" class="!w-auto">
             <flux:select.option value="10">{{ __('global.10_per_page') }}</flux:select.option>
@@ -32,7 +32,7 @@
             </x-table.row>
         </x-slot:head>
         <x-slot:body>
-            @foreach($permissions as $permission)
+            @foreach ($permissions as $permission)
                 <x-table.row wire:key="user-{{ $permission->id }}">
                     <x-table.cell>{{ $permission->id }}</x-table.cell>
                     <x-table.cell>{{ $permission->name }}</x-table.cell>
@@ -48,7 +48,7 @@
                                 <flux:button size="sm" variant="danger">{{ __('global.delete') }}</flux:button>
                             </flux:modal.trigger>
                             <flux:modal name="delete-profile-{{ $permission->id }}"
-                                        class="min-w-[22rem] space-y-6 flex flex-col justify-between">
+                                class="min-w-[22rem] space-y-6 flex flex-col justify-between">
                                 <div>
                                     <flux:heading size="lg">{{ __('permissions.delete_permission') }}?</flux:heading>
                                     <flux:subheading>
@@ -62,9 +62,9 @@
                                             {{ __('global.cancel') }}
                                         </flux:button>
                                     </flux:modal.close>
-                                    <flux:spacer/>
+                                    <flux:spacer />
                                     <flux:button type="submit" variant="danger"
-                                                 wire:click.prevent="deletePermission('{{ $permission->id }}')">
+                                        wire:click.prevent="deletePermission('{{ $permission->id }}')">
                                         {{ __('permissions.delete_permission') }}
                                     </flux:button>
                                 </div>

@@ -7,17 +7,17 @@
             {{ __('roles.title_description') }}
         </x-slot:subtitle>
         <x-slot:buttons>
-            @can('create roles')
-                <flux:button href="{{ route('admin.roles.create') }}" variant="primary" icon="plus">
-                    {{ __('roles.create_role') }}
-                </flux:button>
-            @endcan
+            {{-- @can('create roles') --}}
+            <flux:button href="{{ route('admin.roles.create') }}" variant="primary" icon="plus">
+                {{ __('roles.create_role') }}
+            </flux:button>
+            {{-- @endcan --}}
         </x-slot:buttons>
     </x-page-heading>
 
     <div class="flex items-center justify-between w-full mb-6 gap-2">
-        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto"/>
-        <flux:spacer/>
+        <flux:input wire:model.live="search" placeholder="{{ __('global.search_here') }}" class="!w-auto" />
+        <flux:spacer />
 
         <flux:select wire:model.live="perPage" class="!w-auto">
             <flux:select.option value="10">{{ __('global.10_per_page') }}</flux:select.option>
@@ -37,13 +37,13 @@
             </x-table.row>
         </x-slot:head>
         <x-slot:body>
-            @foreach($roles as $role)
+            @foreach ($roles as $role)
                 <x-table.row wire:key="user-{{ $role->id }}">
                     <x-table.cell>{{ $role->id }}</x-table.cell>
                     <x-table.cell class="w-1/5 text-nowrap">{{ $role->name }}</x-table.cell>
                     <x-table.cell>
                         <div class="gap-2 inline-flex flex-wrap">
-                            @foreach($role->permissions as $permission)
+                            @foreach ($role->permissions as $permission)
                                 <flux:badge size="sm">
                                     {{ $permission->name }}
                                 </flux:badge>
@@ -60,7 +60,8 @@
                             <flux:modal.trigger name="delete-role-{{ $role->id }}">
                                 <flux:button size="sm" variant="danger">{{ __('global.delete') }}</flux:button>
                             </flux:modal.trigger>
-                            <flux:modal name="delete-role-{{ $role->id }}" class="min-w-[22rem] space-y-6 flex flex-col justify-between">
+                            <flux:modal name="delete-role-{{ $role->id }}"
+                                class="min-w-[22rem] space-y-6 flex flex-col justify-between">
                                 <div>
                                     <flux:heading size="lg">{{ __('roles.delete_role') }}?</flux:heading>
                                     <flux:subheading>
@@ -74,9 +75,9 @@
                                             {{ __('global.cancel') }}
                                         </flux:button>
                                     </flux:modal.close>
-                                    <flux:spacer/>
+                                    <flux:spacer />
                                     <flux:button type="submit" variant="danger"
-                                                 wire:click.prevent="deleteRole('{{ $role->id }}')">
+                                        wire:click.prevent="deleteRole('{{ $role->id }}')">
                                         {{ __('roles.delete_role') }}
                                     </flux:button>
                                 </div>

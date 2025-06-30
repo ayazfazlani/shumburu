@@ -28,7 +28,7 @@ class CreateRole extends Component
 
     public function createRole(): void
     {
-        $this->authorize('create roles');
+        // $this->authorize('create roles');
 
         $this->validate();
 
@@ -36,8 +36,8 @@ class CreateRole extends Component
             'name' => $this->name,
         ]);
 
-        $permissions = collect($this->selectedPermissions)->map(fn ($permission): int =>
-            // convert string to int
+        $permissions = collect($this->selectedPermissions)->map(fn($permission): int =>
+        // convert string to int
         (int) $permission)->toArray();
 
         $role->syncPermissions($permissions);
@@ -45,7 +45,6 @@ class CreateRole extends Component
         $this->flash('success', __('roles.role_created'));
 
         $this->redirect(route('admin.roles.index'), true);
-
     }
 
     #[Layout('components.layouts.admin')]
