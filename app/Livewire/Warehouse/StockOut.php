@@ -27,21 +27,17 @@ class StockOut extends Component
   public function mount()
   {
     $this->issued_date = now()->format('Y-m-d');
-    $this->stockOuts = MaterialStockOut::with('RawMaterial')->get();
+    $this->stockOuts = MaterialStockOut::with(['rawMaterial', 'issuedBy'])->get();
     // dd($this->stockOuts);
   }
 
   public function save()
   {
+
     $this->validate();
 
     $user = Auth::user();
 
-    // Check if user has warehouse manager or admin role
-    // if (!$user->hasRole(['admin', 'warehouse_manager'])) {
-    //   session()->flash('error', 'Unauthorized to perform stock-out operations.');
-    //   return;
-    // }
 
     MaterialStockOut::create([
       'raw_material_id' => $this->raw_material_id,
@@ -60,8 +56,8 @@ class StockOut extends Component
 
   public function render()
   {
-    $rawMaterials = RawMaterial::where('is_active', true)->get();
-
+    $rawMaterials = RawMaterial::get();
+    $this->stockOuts = MaterialStockOut::with(['rawMaterial', 'issuedBy'])->get();
     return view('livewire.warehouse.stock-out', [
       'rawMaterials' => $rawMaterials,
     ]);

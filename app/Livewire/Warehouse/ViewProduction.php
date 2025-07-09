@@ -2,24 +2,27 @@
 
 namespace App\Livewire\Warehouse;
 
-use App\Models\MaterialStockOutLine;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use App\Models\MaterialStockOutLine;
+
+use function Pest\Laravel\json;
 
 class ViewProduction extends Component
 {
-  public MaterialStockOutLine $production;
   public $productionId;
+  public  $production = [];
 
   public function mount($id)
   {
     $this->productionId = $id;
     $this->production = MaterialStockOutLine::with([
-      'materialStockOut.product',
+      'materialStockOut.rawMaterial',
+      'finishedGoods.product',
+      'scrapWastes',
       'productionLine',
-      'productionLengths',
-      'scrapWastes'
     ])->findOrFail($id);
+    // return dd($this->production)->tojson();
   }
 
   public function goBack()
@@ -35,6 +38,8 @@ class ViewProduction extends Component
   #[Layout('components.layouts.app')]
   public function render()
   {
-    return view('livewire.warehouse.view-production');
+    return view('livewire.warehouse.view-production', [
+      'production' => $this->production,
+    ]);
   }
 }

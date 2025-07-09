@@ -53,7 +53,7 @@
                                     class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                                 <option value="">{{ __('Select Stock Out') }}</option>
                                 @foreach($stockOuts as $stockOut)
-                                    <option value="{{ $stockOut->id }}">{{ $stockOut->reference_number }}</option>
+                                    <option value="{{ $stockOut->id }}">{{ $stockOut->batch_number }}</option>
                                 @endforeach
                             </select>
                             @error('material_stock_out_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -131,57 +131,104 @@
                         </button>
                     </div>
 
-                    @foreach($finishedGoods as $index => $finishedGood)
-                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                            <div class="flex justify-between items-center mb-4">
-                                <h4 class="text-md font-medium text-gray-700">{{ __('Finished Good') }} #{{ $index + 1 }}</h4>
-                                @if(count($finishedGoods) > 1)
-                                    <button type="button" wire:click="removeFinishedGood({{ $index }})"
-                                            class="text-red-600 hover:text-red-900">
-                                        {{ __('Remove') }}
-                                    </button>
-                                @endif
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Type') }} *
-                                    </label>
-                                    <select wire:model="finishedGoods.{{ $index }}.type" required
-                                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="roll">{{ __('Roll') }}</option>
-                                        <option value="cut">{{ __('Cut') }}</option>
-                                    </select>
-                                    @error("finishedGoods.{$index}.type") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Length (m)') }} *
-                                    </label>
-                                    <input wire:model="finishedGoods.{{ $index }}.length_m" type="number" step="0.01" required
-                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="{{ __('Length in meters') }}">
-                                    @error("finishedGoods.{$index}.length_m") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Quantity') }} *
-                                    </label>
-                                    <input wire:model="finishedGoods.{{ $index }}.quantity" type="number" required
-                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="{{ __('Number of pieces') }}">
-                                    @error("finishedGoods.{$index}.quantity") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 mb-4">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Type') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Length (m)') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Quantity') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Batch Number') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Size') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Surface') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Thickness') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Outer Diameter') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Ovality') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Production Date') }}</th>
+                                    <th class="px-2 py-1"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($finishedGoods as $index => $finishedGood)
+                                <tr>
+                                    <td class="px-2 py-1">
+                                        <select wire:model="finishedGoods.{{ $index }}.type" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="roll">{{ __('Roll') }}</option>
+                                            <option value="cut">{{ __('Cut') }}</option>
+                                        </select>
+                                        @error("finishedGoods.{$index}.type") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.length_m" type="number" step="0.01" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Length') }}">
+                                        @error("finishedGoods.{$index}.length_m") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.quantity" type="number" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Quantity') }}">
+                                        @error("finishedGoods.{$index}.quantity") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.batch_number" type="text" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Batch') }}">
+                                        @error("finishedGoods.{$index}.batch_number") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.size" type="text"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Size') }}">
+                                        @error("finishedGoods.{$index}.size") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.surface" type="text"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Surface') }}">
+                                        @error("finishedGoods.{$index}.surface") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.thickness" type="number" step="0.001"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Thickness') }}">
+                                        @error("finishedGoods.{$index}.thickness") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.outer_diameter" type="number" step="0.001"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Outer Diameter') }}">
+                                        @error("finishedGoods.{$index}.outer_diameter") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.ovality" type="number" step="0.001"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Ovality') }}">
+                                        @error("finishedGoods.{$index}.ovality") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="finishedGoods.{{ $index }}.production_date" type="date" required
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                                        @error("finishedGoods.{$index}.production_date") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        @if(count($finishedGoods) > 1)
+                                            <button type="button" wire:click="removeFinishedGood({{ $index }})"
+                                                class="text-red-600 hover:text-red-900 text-xs">
+                                                {{ __('Remove') }}
+                                            </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Scraps -->
-                <div class="bg-white shadow-sm rounded-lg p-6">
+                <div class="bg-white shadow-sm rounded-lg p-6 mt-6">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900">{{ __('Scrap/Waste') }}</h3>
                         <button type="button" wire:click="addScrap"
@@ -189,52 +236,50 @@
                             {{ __('Add Scrap') }}
                         </button>
                     </div>
-
-                    @foreach($scraps as $index => $scrap)
-                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
-                            <div class="flex justify-between items-center mb-4">
-                                <h4 class="text-md font-medium text-gray-700">{{ __('Scrap') }} #{{ $index + 1 }}</h4>
-                                @if(count($scraps) > 1)
-                                    <button type="button" wire:click="removeScrap({{ $index }})"
-                                            class="text-red-600 hover:text-red-900">
-                                        {{ __('Remove') }}
-                                    </button>
-                                @endif
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Quantity (kg)') }}
-                                    </label>
-                                    <input wire:model="scraps.{{ $index }}.quantity" type="number" step="0.01"
-                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="{{ __('Weight in kg') }}">
-                                    @error("scraps.{$index}.quantity") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Reason') }}
-                                    </label>
-                                    <input wire:model="scraps.{{ $index }}.reason" type="text"
-                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="{{ __('Reason for scrap') }}">
-                                    @error("scraps.{$index}.reason") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        {{ __('Notes') }}
-                                    </label>
-                                    <input wire:model="scraps.{{ $index }}.notes" type="text"
-                                           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="{{ __('Additional notes') }}">
-                                    @error("scraps.{$index}.notes") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 mb-4">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Quantity (kg)') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Reason') }}</th>
+                                    <th class="px-2 py-1 text-xs font-medium text-gray-500 uppercase">{{ __('Notes') }}</th>
+                                    <th class="px-2 py-1"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($scraps as $index => $scrap)
+                                <tr>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="scraps.{{ $index }}.quantity" type="number" step="0.01"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Quantity (kg)') }}">
+                                        @error("scraps.{$index}.quantity") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="scraps.{{ $index }}.reason" type="text"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Reason') }}">
+                                        @error("scraps.{$index}.reason") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        <input wire:model="scraps.{{ $index }}.notes" type="text"
+                                            class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                                            placeholder="{{ __('Notes') }}">
+                                        @error("scraps.{$index}.notes") <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    </td>
+                                    <td class="px-2 py-1">
+                                        @if(count($scraps) > 1)
+                                            <button type="button" wire:click="removeScrap({{ $index }})"
+                                                class="text-red-600 hover:text-red-900 text-xs">
+                                                {{ __('Remove') }}
+                                            </button>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Submit Button -->

@@ -8,7 +8,7 @@
                         {{ __('Production Details') }}
                     </h2>
                     <p class="text-sm text-gray-600 mt-1">
-                        {{ __('Reference') }}: {{ $production->materialStockOut->reference_number ?? 'N/A' }}
+                        {{ __('Reference') }}: {{ $production->materialStockOut->batch_number ?? 'N/A' }}
                     </p>
                 </div>
                 <div class="flex space-x-3">
@@ -23,112 +23,73 @@
                 </div>
             </div>
 
-            <!-- Production Information -->
-            <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+            <!-- Raw Materials Used -->
+            <div class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">{{ __('Production Information') }}</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Raw Materials Used</h3>
                 </div>
-                
-                <div class="px-6 py-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Production Line') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->productionLine->name ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Product') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->materialStockOut->product->name ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Shift') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->shift }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Size') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->size }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Surface') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->surface ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Thickness') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->thickness ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Outer Diameter') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->outer_diameter ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Ovality') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->ovality ?? 'N/A' }}</p>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">{{ __('Created At') }}</label>
-                            <p class="mt-1 text-sm text-gray-900">{{ $production->created_at->format('M d, Y H:i:s') }}</p>
-                        </div>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Used (kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $production->materialStockOut->batch_number ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $production->materialStockOut->rawMaterial->name ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {{ number_format($production->quantity_consumed, 3) }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
             <!-- Finished Goods -->
             <div class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">{{ __('Finished Goods') }}</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Finished Goods</h3>
                 </div>
-                
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Type') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Length (m)') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Quantity') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Total Weight (kg)') }}
-                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Weight (kg)</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($production->productionLengths as $length)
+                            @foreach($production->finishedGoods as $fg)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                   {{ $length->type === 'roll' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
-                                            {{ ucfirst($length->type) }}
-                                        </span>
+                                        {{ $fg->batch_number }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ number_format($length->length_m, 2) }}
+                                        {{ $fg->product->name ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $length->quantity }}
+                                        {{ ucfirst($fg->type) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ number_format($length->total_weight, 2) }}
+                                        {{ $fg->quantity }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ number_format($fg->total_weight, 3) }}
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        {{ __('No finished goods recorded.') }}
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -137,50 +98,35 @@
             <!-- Scrap/Waste -->
             <div class="mt-6 bg-white shadow-sm rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
-                    <h3 class="text-lg font-medium text-gray-900">{{ __('Scrap/Waste') }}</h3>
+                    <h3 class="text-lg font-medium text-gray-900">Scrap/Waste</h3>
                 </div>
-                
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Quantity (kg)') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Reason') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Notes') }}
-                                </th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    {{ __('Date') }}
-                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch #</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scrap Quantity (kg)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($production->scrapWastes as $scrap)
+                            @foreach($production->scrapWastes as $scrap)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ number_format($scrap->quantity, 2) }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $scrap->reason }}
-                                    </td>
-                                    <td class="px-6 py-4 text-sm text-gray-900">
-                                        {{ $scrap->notes ?? 'N/A' }}
+                                        {{ $production->materialStockOut->batch_number ?? '-' }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {{ $scrap->waste_date ? \Carbon\Carbon::parse($scrap->waste_date)->format('M d, Y') : 'N/A' }}
+                                        {{ $production->materialStockOut->rawMaterial->name ?? '-' }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ number_format($scrap->quantity, 3) }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {{ $scrap->waste_date ? \Carbon\Carbon::parse($scrap->waste_date)->format('M d, Y') : '-' }}
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        {{ __('No scrap/waste recorded.') }}
-                                    </td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

@@ -43,7 +43,6 @@ class ProductionCrud extends Component
     $line = MaterialStockOutLine::findOrFail($id);
 
     // Delete related records
-    $line->productionLengths()->delete();
     $line->scrapWastes()->delete();
     $line->delete();
 

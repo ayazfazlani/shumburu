@@ -30,10 +30,12 @@ class ProductsCrud extends Component
 
   protected function rules()
   {
-    $uniqueCode = $this->isEdit && $this->productId ? ',code,' . $this->productId : '';
+    $uniqueCode = $this->isEdit && $this->productId
+      ? 'unique:products,code,' . $this->productId
+      : 'unique:products,code';
     return [
       'name' => 'required|string|max:255',
-      'code' => 'required|string|max:255|unique:products,code' . $uniqueCode,
+      'code' => ['required', 'string', 'max:255', $uniqueCode],
       'size' => 'required|string|max:255',
       'pn' => 'required|string|max:255',
       'WeightPerMeter' => 'required|numeric|min:0',
@@ -81,9 +83,13 @@ class ProductsCrud extends Component
 
   public function saveProduct()
   {
-    $this->validate();
+
+
+
     if ($this->isEdit && $this->productId) {
+
       $product = Product::findOrFail($this->productId);
+      $this->validate();
       $product->update([
         'name' => $this->name,
         'code' => $this->code,
@@ -95,6 +101,7 @@ class ProductsCrud extends Component
         'is_active' => $this->is_active,
       ]);
     } else {
+      $this->validate();
       Product::create([
         'name' => $this->name,
         'code' => $this->code,

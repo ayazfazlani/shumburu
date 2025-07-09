@@ -24,7 +24,6 @@ class EditProduction extends Component
   public $thickness;
   public $outer_diameter;
   public $ovality;
-  public $notes;
 
   public $finishedGoods = [];
   public $scraps = [];
@@ -33,34 +32,38 @@ class EditProduction extends Component
   {
     $this->productionId = $id;
     $production = MaterialStockOutLine::with([
-      'materialStockOut',
-      'productionLengths',
-      'scrapWastes'
+      'materialStockOut.rawMaterial',
+      'finishedGoods.product',
+      'scrapWastes',
+      'productionLine'
     ])->findOrFail($id);
 
     $this->production_line_id = $production->production_line_id;
-    $this->product_id = $production->materialStockOut->product_id;
     $this->material_stock_out_id = $production->material_stock_out_id;
     $this->shift = $production->shift;
-    $this->size = $production->size;
-    $this->surface = $production->surface;
-    $this->thickness = $production->thickness;
-    $this->outer_diameter = $production->outer_diameter;
-    $this->ovality = $production->ovality;
 
-    $this->finishedGoods = $production->productionLengths->map(function ($length) {
+    // Load all finished goods
+    $this->finishedGoods = $production->finishedGoods->map(function ($fg) {
       return [
-        'id' => $length->id,
-        'type' => $length->type,
-        'length_m' => $length->length_m,
-        'quantity' => $length->quantity
+        'id' => $fg->id,
+        'product_id' => $fg->product_id,
+        'type' => $fg->type,
+        'length_m' => $fg->length_m,
+        'quantity' => $fg->quantity,
+        'batch_number' => $fg->batch_number,
+        'size' => $fg->size,
+        'surface' => $fg->surface,
+        'thickness' => $fg->thickness,
+        'outer_diameter' => $fg->outer_diameter,
+        'ovality' => $fg->ovality,
+        'production_date' => $fg->production_date,
       ];
     })->toArray();
 
-    if (empty($this->finishedGoods)) {
-      $this->finishedGoods = [['type' => 'roll', 'length_m' => '', 'quantity' => '']];
-    }
+    // Set product_id from the first finished good if not set
+    $this->product_id = $this->finishedGoods[0]['product_id'] ?? null;
 
+    // Load all scraps
     $this->scraps = $production->scrapWastes->map(function ($scrap) {
       return [
         'id' => $scrap->id,
@@ -104,10 +107,10 @@ class EditProduction extends Component
       'product_id' => 'required|exists:products,id',
       'material_stock_out_id' => 'required|exists:material_stock_outs,id',
       'shift' => 'required|string|max:10',
-      'size' => 'required|string|max:50',
       'finishedGoods.*.type' => 'required|in:roll,cut',
       'finishedGoods.*.length_m' => 'required|numeric|min:1',
       'finishedGoods.*.quantity' => 'required|integer|min:1',
+      'finishedGoods.*.batch_number' => 'required|string|max:255',
       'scraps.*.quantity' => 'nullable|numeric|min:0',
       'scraps.*.reason' => 'nullable|string|max:255',
     ]);
@@ -118,14 +121,9 @@ class EditProduction extends Component
       $production->update([
         'production_line_id' => $this->production_line_id,
         'shift' => $this->shift,
-        'size' => $this->size,
-        'surface' => $this->surface,
-        'thickness' => $this->thickness,
-        'outer_diameter' => $this->outer_diameter,
-        'ovality' => $this->ovality,
       ]);
 
-      $production->productionLengths()->delete();
+      $production->finishedGoods()->delete();
       $production->scrapWastes()->delete();
 
       foreach ($this->finishedGoods as $fg) {
@@ -133,11 +131,20 @@ class EditProduction extends Component
         $weight_per_meter = $product->weight_per_meter ?? 0;
         $total_weight = $fg['quantity'] * $fg['length_m'] * $weight_per_meter;
 
-        $production->productionLengths()->create([
+        $production->finishedGoods()->create([
+          'product_id' => $this->product_id,
           'type' => $fg['type'],
           'length_m' => $fg['length_m'],
           'quantity' => $fg['quantity'],
           'total_weight' => $total_weight,
+          'size' => $fg['size'] ?? null,
+          'surface' => $fg['surface'] ?? null,
+          'thickness' => $fg['thickness'] ?? null,
+          'outer_diameter' => $fg['outer_diameter'] ?? null,
+          'ovality' => $fg['ovality'] ?? null,
+          'batch_number' => $fg['batch_number'] ?? $this->generateBatchNumber(),
+          'production_date' => $fg['production_date'] ?? now(),
+          'produced_by' => Auth::id(),
         ]);
       }
 

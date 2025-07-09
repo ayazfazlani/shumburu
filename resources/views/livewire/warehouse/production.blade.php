@@ -20,15 +20,6 @@
                     @endforeach
                 </select>
             </div>
-            <div>
-                <label>Material Stock Out</label>
-                <select wire:model="material_stock_out_id" class="input">
-                    <option value="">Select Batch</option>
-                    @foreach ($stockOuts as $out)
-                        <option value="{{ $out->id }}">Batch #{{ $out->batch_number }}</option>
-                    @endforeach
-                </select>
-            </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div><label>Shift</label><input type="text" wire:model="shift" class="input"></div>
@@ -36,6 +27,41 @@
         <div>
             <label>Notes</label>
             <textarea wire:model="notes" class="input w-full"></textarea>
+        </div>
+        <div>
+            <h2 class="font-semibold mb-2">Raw Materials Used</h2>
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Stock Out Batch</th>
+                        <th>Quantity Used</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($stockOutUsages as $index => $usage)
+                        <tr>
+                            <td>
+                                <select wire:model="stockOutUsages.{{ $index }}.stock_out_line_id" class="input">
+                                    <option value="">Select Batch</option>
+                                    @foreach ($stockOutLines as $line)
+                                        <option value="{{ $line->id }}">
+                                            Batch #{{ $line->materialStockOut->batch_number }} | {{ $line->materialStockOut->rawMaterial->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <input type="number" min="0.001" step="0.001" wire:model="stockOutUsages.{{ $index }}.quantity_used" class="input">
+                            </td>
+                            <td>
+                                <button type="button" wire:click="removeStockOutUsage({{ $index }})" class="btn btn-danger">Remove</button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            <button type="button" wire:click="addStockOutUsage" class="btn btn-primary mt-2">Add More</button>
         </div>
         <div>
             <h2 class="font-semibold mb-2">Finished Goods (Rolls/Cuts)</h2>
@@ -105,30 +131,35 @@
             <table class="table w-full">
                 <thead>
                     <tr>
-                        <th>Quantity (kg)</th>
-                        <th>Reason</th>
-                        <th>Notes</th>
+                        <th>Stock Out Batch</th>
+                        <th>Scrap Quantity</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($scraps as $index => $scrap)
+                    @foreach ($stockOutScraps as $index => $scrap)
                         <tr>
-                            <td><input type="number" wire:model="scraps.{{ $index }}.quantity" class="input">
-                            </td>
-                            <td><input type="text" wire:model="scraps.{{ $index }}.reason" class="input">
-                            </td>
-                            <td><input type="text" wire:model="scraps.{{ $index }}.notes" class="input">
+                            <td>
+                                <select wire:model="stockOutScraps.{{ $index }}.stock_out_line_id" class="input">
+                                    <option value="">Select Batch</option>
+                                    @foreach ($stockOutLines as $line)
+                                        <option value="{{ $line->id }}">
+                                            Batch #{{ $line->materialStockOut->batch_number }} | {{ $line->materialStockOut->rawMaterial->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </td>
                             <td>
-                                <button type="button" wire:click="removeScrap({{ $index }})"
-                                    class="btn btn-danger">Remove</button>
+                                <input type="number" min="0.001" step="0.001" wire:model="stockOutScraps.{{ $index }}.quantity_scrapped" class="input">
+                            </td>
+                            <td>
+                                <button type="button" wire:click="removeStockOutScrap({{ $index }})" class="btn btn-danger">Remove</button>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
-            <button type="button" wire:click="addScrap" class="btn btn-primary mt-2">Add Scrap</button>
+            <button type="button" wire:click="addStockOutScrap" class="btn btn-primary mt-2">Add More Scrap</button>
         </div>
         <div>
             <button type="submit" class="btn btn-success">Save Production Entry</button>

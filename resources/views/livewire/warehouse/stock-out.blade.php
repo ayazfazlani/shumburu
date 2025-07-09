@@ -233,7 +233,7 @@
                         <th>Quantity</th>
                         <th>Batch No</th>
                         <th>Received Date</th>
-                        <th>Received By</th>
+                        <th>Issued By</th>
                         <th>note</th>
                     </tr>
                 </thead>

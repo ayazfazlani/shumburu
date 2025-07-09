@@ -41,4 +41,9 @@ class MaterialStockOut extends Model
       ->withPivot('quantity_consumed')
       ->withTimestamps();
   }
+
+  public function MaterialStockOutLine()
+  {
+    return $this->hasMany(MaterialStockOutLine::class);
+  }
 }
