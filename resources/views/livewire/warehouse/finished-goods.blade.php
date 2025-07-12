@@ -41,54 +41,6 @@
                         <form wire:submit.prevent="save" class="space-y-6">
                             <div class="form-control">
                                 <label class="label">
-                                    <span class="label-text font-semibold">Stock Out Batch *</span>
-                                </label>
-                                <select wire:model="material_stock_out_id"
-                                    class="select select-bordered w-full @error('material_stock_out_id') select-error @enderror">
-                                    <option value="">Select Stock Out Batch</option>
-                                    @foreach ($stockOuts as $stockOut)
-                                        <option value="{{ $stockOut->id }}">Batch #{{ $stockOut->batch_number }}
-                                            ({{ $stockOut->quantity }}kg)</option>
-                                    @endforeach
-                                </select>
-                                @error('material_stock_out_id')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
-                                @enderror
-                            </div>
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text font-semibold">Production Line *</span>
-                                </label>
-                                <select wire:model="production_line_id"
-                                    class="select select-bordered w-full @error('production_line_id') select-error @enderror">
-                                    <option value="">Select Production Line</option>
-                                    @foreach ($lines as $line)
-                                        <option value="{{ $line->id }}">{{ $line->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('production_line_id')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
-                                @enderror
-                            </div>
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text font-semibold">Quantity Used (kg) *</span>
-                                </label>
-                                <input type="number" wire:model="quantity_used" min="0.001" step="0.001"
-                                    class="input input-bordered w-full @error('quantity_used') input-error @enderror"
-                                    placeholder="Quantity used (kg)" />
-                                @error('quantity_used')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
-                                @enderror
-                            </div>
-                            <div class="form-control">
-                                <label class="label">
                                     <span class="label-text font-semibold">Product *</span>
                                 </label>
                                 <select wire:model="product_id"
@@ -103,6 +55,35 @@
                                         <span class="label-text-alt text-error">{{ $message }}</span>
                                     </label>
                                 @enderror
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Type *</span>
+                                    </label>
+                                    <select wire:model="type" class="select select-bordered w-full @error('type') select-error @enderror">
+                                        <option value="roll">Roll</option>
+                                        <option value="cut">Cut</option>
+                                    </select>
+                                    @error('type')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Length (m) *</span>
+                                    </label>
+                                    <input type="number" wire:model="length_m" min="0.01" step="0.01"
+                                        class="input input-bordered w-full @error('length_m') input-error @enderror"
+                                        placeholder="Length in meters" />
+                                    @error('length_m')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="form-control">
@@ -132,34 +113,32 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="form-control">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Production Date *</span>
+                                </label>
+                                <input type="date" wire:model="production_date"
+                                    class="input input-bordered w-full @error('production_date') input-error @enderror" />
+                                @error('production_date')
                                     <label class="label">
-                                        <span class="label-text font-semibold">Production Date *</span>
+                                        <span class="label-text-alt text-error">{{ $message }}</span>
                                     </label>
-                                    <input type="date" wire:model="production_date"
-                                        class="input input-bordered w-full @error('production_date') input-error @enderror" />
-                                    @error('production_date')
-                                        <label class="label">
-                                            <span class="label-text-alt text-error">{{ $message }}</span>
-                                        </label>
-                                    @enderror
-                                </div>
-                                <div class="form-control">
+                                @enderror
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-semibold">Purpose *</span>
+                                </label>
+                                <select wire:model="purpose"
+                                    class="select select-bordered w-full @error('purpose') select-error @enderror">
+                                    <option value="for_stock">For Stock</option>
+                                    <option value="for_customer_order">For Customer Order</option>
+                                </select>
+                                @error('purpose')
                                     <label class="label">
-                                        <span class="label-text font-semibold">Purpose *</span>
+                                        <span class="label-text-alt text-error">{{ $message }}</span>
                                     </label>
-                                    <select wire:model="purpose"
-                                        class="select select-bordered w-full @error('purpose') select-error @enderror">
-                                        <option value="for_stock">For Stock</option>
-                                        <option value="for_customer_order">For Customer Order</option>
-                                    </select>
-                                    @error('purpose')
-                                        <label class="label">
-                                            <span class="label-text-alt text-error">{{ $message }}</span>
-                                        </label>
-                                    @enderror
-                                </div>
+                                @enderror
                             </div>
                             @if ($purpose === 'for_customer_order')
                                 <div class="form-control">
@@ -260,6 +239,8 @@
                 <thead>
                     <tr>
                         <th>Product Name</th>
+                        <th>Type</th>
+                        <th>Length (m)</th>
                         <th>Quantity</th>
                         <th>Batch No</th>
                         <th>Production Date</th>
@@ -271,6 +252,8 @@
                     @foreach ($finishedGoods as $item)
                         <tr>
                             <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->type }}</td>
+                            <td>{{ $item->length_m }}</td>
                             <td>{{ $item->quantity }} pieces</td>
                             <td>{{ $item->batch_number }}</td>
                             <td>{{ $item->production_date }}</td>

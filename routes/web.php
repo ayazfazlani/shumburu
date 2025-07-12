@@ -30,6 +30,9 @@ use App\Livewire\Admin\ProductsCrud;
 use App\Livewire\Admin\RawMaterialsCrud;
 use App\Livewire\Warehouse\Production;
 use App\Livewire\WareHouse\ProductionMachine;
+use App\Livewire\Warehouse\FinishedGoodMaterialStockOutLineCrud;
+use App\Livewire\Warehouse\ScrapWasteCrud;
+use App\Livewire\Warehouse\MaterialStockOutLineCrud;
 
 Route::get('/', \App\Livewire\Home::class)->name('home');
 
@@ -61,6 +64,9 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/stock-out', \App\Livewire\Warehouse\StockOut::class)->name('stock-out');
         Route::get('/finished-goods', \App\Livewire\Warehouse\FinishedGoods::class)->name('finished-goods');
         Route::get('/scrap-waste', ScrapWasteRecord::class)->name('scrap-waste');
+        Route::get('/finished-good-material-stock-out', FinishedGoodMaterialStockOutLineCrud::class)->name('finished-good-material');
+        Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
+        Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');
     });
 
     // Operations Management

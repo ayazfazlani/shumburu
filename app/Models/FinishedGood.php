@@ -56,4 +56,12 @@ class FinishedGood extends Model
   {
     return $this->belongsTo(MaterialStockOutLine::class, 'material_stock_out_line_id');
   }
+
+  public function materialStockOutLines()
+{
+    return $this->belongsToMany(
+        MaterialStockOutLine::class,
+        'finished_good_material_stock_out_line'
+    )->withPivot('quantity_used')->withTimestamps();
+}
 }

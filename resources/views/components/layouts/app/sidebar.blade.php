@@ -56,9 +56,15 @@
                 <flux:navlist.item icon="shield" href="{{ route('warehouse.finished-goods') }}">
                     Finished Goods
                 </flux:navlist.item>
-                {{-- <flux:navlist.item icon="shield" href="{{ route('warehouse.scrap-waste') }}">
+                <flux:navlist.item icon="shield-user" href="{{ route('warehouse.finished-good-material') }}">
+                    FG Material Stock Out Links
+                </flux:navlist.item>
+                <flux:navlist.item icon="shield" href="{{ route('warehouse.scrap-wastes') }}">
                     Scrap/Waste
-                </flux:navlist.item> --}}
+                </flux:navlist.item>
+                <flux:navlist.item icon="layout-grid" href="{{ route('warehouse.material-stock-out-lines') }}">
+                    Material Stock Out Lines
+                </flux:navlist.item>
             </flux:navlist.group>
 
             <flux:navlist.group heading="Operations" class="grid">

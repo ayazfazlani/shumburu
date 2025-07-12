@@ -11,9 +11,6 @@ return new class extends Migration
     Schema::create('finished_goods', function (Blueprint $table) {
       $table->id();
       $table->foreignId('product_id')->constrained()->onDelete('cascade');
-      // $table->foreignId('raw_material_id')->constrained()->onDelete('cascade');
-      // $table->foreignId('production_line_id')->constrained('production_lines');
-      $table->foreignId('material_stock_out_line_id')->constrained('material_stock_out_lines');
       $table->enum('type', ['roll', 'cut']);
       $table->decimal('length_m', 6, 2);
       $table->decimal('outer_diameter', 8, 3)->nullable();
