@@ -20,7 +20,9 @@
                 <label class="block font-semibold mb-1">Production Line</label>
                 <select wire:model="production_line_id" class="form-select w-full">
                     <option value="">Select Production Line</option>
+                    
                     @foreach($lines as $line)
+                   
                         <option value="{{ $line->id }}">{{ $line->name ?? ('Line #' . $line->id) }}</option>
                     @endforeach
                 </select>
@@ -33,6 +35,20 @@
                 <input type="number" wire:model="quantity_consumed" class="form-input w-full" step="0.01" min="0.01" />
                 @error('quantity_consumed') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
+
+             <div>
+                <label class="block font-semibold mb-1">Shift</label>
+                <select wire:model="shift" class="form-select w-full">
+                    <option value="">Select Shift</option>
+                    
+
+                   
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+
+                </select>
+                @error('shift') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            </div>
         </div>
         <div class="mt-4 flex gap-2">
             <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Update' : 'Create' }}</button>
@@ -43,14 +59,15 @@
     </form>
     <div class="mt-8">
         <h3 class="text-lg font-bold mb-2">Material Stock Out Lines</h3>
-        <table class="table-auto w-full text-sm">
+        <table class="table-zebra w-full text-sm">
             <thead>
                 <tr>
-                    <th class="px-2 py-1">Raw Material</th>
-                    <th class="px-2 py-1">Batch</th>
-                    <th class="px-2 py-1">Production Line</th>
-                    <th class="px-2 py-1">Quantity Consumed</th>
-                    <th class="px-2 py-1">Actions</th>
+                    <th class="px-1 py-1">Raw Material</th>
+                    <th class="px-1 py-1">Batch</th>
+                    <th class="px-1 py-1">Production Line</th>
+                    <th class="px-1 py-1">Quantity Consumed</th>
+                    <th class="px-1 py-1">Shift</th>
+                    <th class="px-1 py-1">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,7 +76,9 @@
                         <td>{{ $line->materialStockOut && $line->materialStockOut->rawMaterial ? $line->materialStockOut->rawMaterial->name : 'N/A' }}</td>
                         <td>{{ $line->materialStockOut ? $line->materialStockOut->batch_number : '-' }}</td>
                         <td>{{ $line->productionLine ? $line->productionLine->name : '-' }}</td>
+                      
                         <td>{{ $line->quantity_consumed }}</td>
+                          <td>{{ $line->shift ? $line->shift : '-' }}</td>
                         <td>
                             <button wire:click="edit({{ $line->id }})" class="btn btn-xs btn-info">Edit</button>
                             <button wire:click="delete({{ $line->id }})" class="btn btn-xs btn-error ml-2">Delete</button>

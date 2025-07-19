@@ -24,6 +24,16 @@ class FinishedGoods extends Component
   public $customer_id;
   public $notes;
   public $finishedGoods;
+
+  // remaining fields 
+
+  public $size;
+  public $totalWeight;
+  public $outerDiameter;
+  public $Surface;
+  public $thickness;
+  public $ovality;
+
   // Removed: material_stock_out_id, production_line_id, quantity_used
 
   protected $rules = [
@@ -36,6 +46,11 @@ class FinishedGoods extends Component
     'purpose' => 'required|in:for_stock,for_customer_order',
     'customer_id' => 'nullable|required_if:purpose,for_customer_order|exists:customers,id',
     'notes' => 'nullable|string',
+    'size' => 'nullable|numeric',
+    'outerDiameter' => 'nullable|numeric',
+    'Surface' => 'nullable|string',
+    'thickness' => 'nullable|string',
+    'ovality' => 'nullable|string'
   ];
 
   public function mount()
@@ -56,6 +71,13 @@ class FinishedGoods extends Component
   {
     $this->validate();
     $user = Auth::user();
+    if($this->product_id){
+    $weightPerMeter = Product::where('id', $this->product_id)->pluck('weight_per_meter');
+    $totalweight = $weightPerMeter[0] * $this->quantity;
+    // dd($total_weight);
+    // return;
+    }
+  
     FinishedGood::create([
       'product_id' => $this->product_id,
       'type' => $this->type,
@@ -67,6 +89,12 @@ class FinishedGoods extends Component
       'customer_id' => $this->customer_id,
       'produced_by' => $user->id,
       'notes' => $this->notes,
+      'size' => $this->size,
+      'total_weight'=> $totalweight,
+      'outer_diameter'=> $this->outerDiameter,
+      'surface' => $this->Surface,
+      'thickness' => $this->thickness,
+      'ovality' => $this->ovality
     ]);
     session()->flash('message', 'Finished goods recorded successfully.');
     $this->reset(['product_id', 'type', 'length_m', 'quantity', 'batch_number', 'customer_id', 'notes']);

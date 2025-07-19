@@ -85,6 +85,35 @@
                                     @enderror
                                 </div>
                             </div>
+                             <div class="grid grid-cols-2 gap-4">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Surface</span>
+                                    </label>
+                                    <select wire:model="Surface" class="select select-bordered w-full @error('Surface') select-error @enderror">
+                                        <option value="smooth">Smooth</option>
+                                        <option value="rough">Rough</option>
+                                    </select>
+                                    @error('Surface')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Outer Diameter</span>
+                                    </label>
+                                    <input type="number" wire:model="outerDiameter" min="0.01" step="0.01"
+                                        class="input input-bordered w-full @error('length_m') input-error @enderror"
+                                        placeholder="Length in meters" />
+                                    @error('length_m')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                            </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="form-control">
                                     <label class="label">
@@ -241,7 +270,10 @@
                         <th>Product Name</th>
                         <th>Type</th>
                         <th>Length (m)</th>
+                        <th>Surface</th>
+                        <th>Outer Diameter</th>
                         <th>Quantity</th>
+                        <th>Toal Weight</th>
                         <th>Batch No</th>
                         <th>Production Date</th>
                         <th>Purpose</th>
@@ -254,7 +286,10 @@
                             <td>{{ $item->product->name }}</td>
                             <td>{{ $item->type }}</td>
                             <td>{{ $item->length_m }}</td>
+                            <td>{{ $item->surface }}</td>
+                            <td>{{ $item->outer_diameter}}</td>
                             <td>{{ $item->quantity }} pieces</td>
+                             <td>{{ $item->total_weight }}</td>
                             <td>{{ $item->batch_number }}</td>
                             <td>{{ $item->production_date }}</td>
                             <td>{{ $item->purpose }}</td>

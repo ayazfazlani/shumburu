@@ -10,12 +10,15 @@ use App\Models\ProductionLine;
 class MaterialStockOutLineCrud extends Component
 {
     public $lines, $material_stock_out_id, $production_line_id, $quantity_consumed, $line_id;
+    public $shift;
+    public $materialStockOutLines = [];
     public $isEdit = false;
 
     protected $rules = [
         'material_stock_out_id' => 'required|exists:material_stock_outs,id',
         'production_line_id' => 'required|exists:production_lines,id',
         'quantity_consumed' => 'required|numeric|min:0.01',
+        'shift' => 'required|in:A,B'
     ];
 
     public function mount()
@@ -25,7 +28,7 @@ class MaterialStockOutLineCrud extends Component
 
     public function fetch()
     {
-        $this->lines = MaterialStockOutLine::with([
+        $this->materialStockOutLines = MaterialStockOutLine::with([
             'materialStockOut.rawMaterial',
             'productionLine'
         ])->get();
@@ -38,6 +41,7 @@ class MaterialStockOutLineCrud extends Component
             'material_stock_out_id' => $this->material_stock_out_id,
             'production_line_id' => $this->production_line_id,
             'quantity_consumed' => $this->quantity_consumed,
+            'shift' => $this->shift
         ]);
         $this->reset(['material_stock_out_id', 'production_line_id', 'quantity_consumed']);
         $this->fetch();
@@ -51,6 +55,7 @@ class MaterialStockOutLineCrud extends Component
         $this->production_line_id = $line->production_line_id;
         $this->quantity_consumed = $line->quantity_consumed;
         $this->isEdit = true;
+        $this->shift = $line->shift;
     }
 
     public function update()
@@ -61,6 +66,7 @@ class MaterialStockOutLineCrud extends Component
             'material_stock_out_id' => $this->material_stock_out_id,
             'production_line_id' => $this->production_line_id,
             'quantity_consumed' => $this->quantity_consumed,
+            'shift' => $this->shift
         ]);
         $this->reset(['material_stock_out_id', 'production_line_id', 'quantity_consumed', 'line_id', 'isEdit']);
         $this->fetch();
@@ -74,12 +80,13 @@ class MaterialStockOutLineCrud extends Component
 
     public function render()
     {
+        $this->mount();
         $stockOuts = MaterialStockOut::with('rawMaterial')->get();
-        $lines = ProductionLine::all();
+        $this->lines = ProductionLine::all();
         return view('livewire.warehouse.material-stock-out-line-crud', [
             'stockOuts' => $stockOuts,
-            'lines' => $lines,
-            'materialStockOutLines' => $this->lines,
+            'lines' => $this->lines,
+            'materialStockOutLines' => $this->materialStockOutLines,
         ]);
     }
 } 

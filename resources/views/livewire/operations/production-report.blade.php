@@ -12,111 +12,94 @@
             <div><span class="font-semibold">Effective date:</span> 17/06/2025</div>
         </div>
     </div>
-    <div class="flex justify-between text-xs mb-2">
-        <div><span class="font-semibold">Raw material used</span></div>
+    <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
+        <div class="flex items-center gap-2">
+            <span class="font-semibold">Raw material used</span>
+            <input type="date" wire:model.live="date" class="border rounded px-2 py-1 text-xs" />
+            <select wire:model.live="shift" class="border rounded px-2 py-1 text-xs">
+                <option value="">All Shifts</option>
+                @foreach($shifts as $s)
+                    <option value="{{ $s }}">{{ $s }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="product_id" class="border rounded px-2 py-1 text-xs">
+                <option value="">All Products</option>
+                @foreach($products as $product)
+                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                @endforeach
+            </select>
+        </div>
         <div><span class="font-semibold">page 1 of 1</span></div>
     </div>
     <div class="overflow-x-auto">
         <table class="w-full text-xs border border-collapse border-black">
             <thead>
                 <tr class="bg-gray-200">
-                    <th rowspan="2" class="border border-black align-middle">Raw material used<br>Name</th>
-                    <th rowspan="2" class="border border-black align-middle">KG</th>
+                    <th rowspan="2" class="border border-black align-middle">R-M Name</th>
+                     <th rowspan="2" class="border border-black align-middle">Quantity consumed</th>
                     <th rowspan="2" class="border border-black align-middle">Shift</th>
                     <th rowspan="2" class="border border-black align-middle">Size</th>
-                    <th colspan="4" class="border border-black align-middle">Roll per meter</th>
+                    @foreach($lengths as $length)
+                        <th class="border border-black">{{ $length }}m</th>
+                    @endforeach
                     <th rowspan="2" class="border border-black align-middle">Total Weight (kg)</th>
                     <th rowspan="2" class="border border-black align-middle">Average Weight (kg/roll)</th>
-                    <th rowspan="2" class="border border-black align-middle">Waste</th>
-                    <th rowspan="2" class="border border-black align-middle">Gross</th>
-                    <th rowspan="2" class="border border-black align-middle">Difference</th>
-                    <th rowspan="2" class="border border-black align-middle">Ovality</th>
-                    <th rowspan="2" class="border border-black align-middle">Surface</th>
-                    <th rowspan="2" class="border border-black align-middle">Thickness (mm)</th>
-                    <th rowspan="2" class="border border-black align-middle">Outer Diameter (mm)</th>
+                    <!-- Add more columns as needed -->
                 </tr>
                 <tr class="bg-gray-100">
-                    <th class="border border-black">6m</th>
-                    <th class="border border-black">50m</th>
-                    <th class="border border-black">50m</th>
-                    <th class="border border-black">100m</th>
+                    @foreach($lengths as $length)
+                        <th class="border border-black">{{ $length }}m</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
-                <!-- Example static data rows, matching the image -->
-                <tr class="bg-gray-50">
-                    <td class="border border-black">Virgin</td>
-                    <td class="border border-black">2822.28</td>
-                    <td class="border border-black" rowspan="8">A</td>
-                    <td class="border border-black">25mm PN16</td>
-                    <td class="border border-black">24</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">446.06</td>
-                    <td class="border border-black">18.58</td>
-                    <td class="border border-black">15.76</td>
-                    <td class="border border-black">461.82</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">0.2</td>
-                    <td class="border border-black">Smooth</td>
-                    <td class="border border-black">2.62</td>
-                    <td class="border border-black">25.725</td>
-                </tr>
-                <tr>
-                    <td class="border border-black">Double</td>
-                    <td class="border border-black">1543.48</td>
-                    <td class="border border-black">32mm PN10</td>
-                    <td class="border border-black">1</td>
-                    <td class="border border-black">18</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">421</td>
-                    <td class="border border-black">22.75</td>
-                    <td class="border border-black">112.39</td>
-                    <td class="border border-black">533.39</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">0.325</td>
-                    <td class="border border-black">Smooth</td>
-                    <td class="border border-black">2.425</td>
-                    <td class="border border-black">32.8</td>
-                </tr>
-                <tr class="bg-gray-50">
-                    <td class="border border-black">BlackMB</td>
-                    <td class="border border-black">9.44</td>
-                    <td class="border border-black">125mm PN20</td>
-                    <td class="border border-black">59</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">1786.18</td>
-                    <td class="border border-black">30.27</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">1786.18</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">0.6</td>
-                    <td class="border border-black">Smooth</td>
-                    <td class="border border-black">15.225</td>
-                    <td class="border border-black">125.3</td>
-                </tr>
-                <!-- ... (continue for all rows in the image, including B section, totals, etc.) -->
+                @php
+                    $totals = array_fill_keys($lengths->toArray(), 0);
+                    $grandTotalWeight = 0;
+                @endphp
+                @foreach($grouped as $rawMaterial => $byShift)
+                    @foreach($byShift as $shift => $byProduct)
+                        @foreach($byProduct as $productName => $bySize)
+                            @foreach($bySize as $size => $records)
+                                <tr>
+                                    <td class="border border-black">{{ $rawMaterial }}</td>
+                                    <td class="border border-black">{{ $records->first()->materialStockOutLines->first()->quantity_consumed ?? '' }}</td>
+                                    <td class="border border-black">{{ $shift }}</td>
+                                    <td class="border border-black">{{ $productName }}</td>
+                                    <td class="border border-black">{{ $size }}</td>
+                                    @foreach($lengths as $length)
+                                        @php
+                                            $qty = $records->where('length_m', $length)->sum('quantity');
+                                            $totals[$length] += $qty;
+                                        @endphp
+                                        <td class="border border-black">{{ $qty > 0 ? $qty : '' }}</td>
+                                    @endforeach
+                                    @php
+                                        $totalWeight = $records->sum(function($rec) {
+                                            return $rec->quantity * $rec->length_m * ($rec->product->weight_per_meter ?? 0);
+                                        });
+                                        $grandTotalWeight += $totalWeight;
+                                    @endphp
+                                    <td class="border border-black">{{ number_format($totalWeight, 2) }}</td>
+                                    <td class="border border-black">
+                                        {{ $records->count() > 0 ? number_format($totalWeight / $records->count(), 2) : '' }}
+                                    </td>
+                                    <!-- Add more fields/calculations as needed -->
+                                </tr>
+                            @endforeach
+                        @endforeach
+                    @endforeach
+                @endforeach
                 <tr class="font-bold bg-gray-200">
                     <td class="border border-black">Total</td>
-                    <td class="border border-black">6896.6</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">124</td>
-                    <td class="border border-black">1</td>
-                    <td class="border border-black">78</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">5624.84</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black">212.91</td>
-                    <td class="border border-black">5837.75</td>
-                    <td class="border border-black">1058.85</td>
                     <td class="border border-black"></td>
                     <td class="border border-black"></td>
                     <td class="border border-black"></td>
+                    <td class="border border-black"></td>
+                    @foreach($lengths as $length)
+                        <td class="border border-black">{{ $totals[$length] }}</td>
+                    @endforeach
+                    <td class="border border-black">{{ number_format($grandTotalWeight, 2) }}</td>
                     <td class="border border-black"></td>
                 </tr>
             </tbody>

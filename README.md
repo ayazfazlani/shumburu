@@ -7,29 +7,35 @@
 <a href="https://herd.laravel.com/new?starter-kit=mortenebak/tallstarter"><img src="https://img.shields.io/badge/Install%20with%20Herd-f55247?logo=laravel&logoColor=white"></a>
 
 This Starter kit contains my starting point when developing a new Laravel project. Its based on the official Livewire Starter kit, and includes the following features:
-- ✅ **User Management**, 
-- ✅ **Role Management**,
-- ✅ **Permissions Management**,
-- ✅ **Localization** options
-- ✅ Separate **Dashboard for Super Admins**
-- ✅ Updated for Laravel 12.0 **and** Livewire 3.0
 
+-   ✅ **User Management**,
+-   ✅ **Role Management**,
+-   ✅ **Permissions Management**,
+-   ✅ **Localization** options
+-   ✅ Separate **Dashboard for Super Admins**
+-   ✅ Updated for Laravel 12.0 **and** Livewire 3.0
 
 ### Admin dashboard view:
+
 ![alt text](docs/backend.png "Backend View")
+
 ### Supporting multiple languages:
+
 ![alt text](docs/locale.png "Localization View")
 
-
 ## TALL stack
+
 It uses the TALL stack, which stands for:
+
 -   [Tailwind CSS](https://tailwindcss.com)
 -   [Alpine.js](https://alpinejs.dev)
 -   [Laravel](https://laravel.com)
 -   [Laravel Livewire](https://livewire.laravel.com) using the components.
 
 ## Further it includes:
+
 Among other things, it also includes:
+
 -   [Flux UI](https://fluxui.dev) for flexible UI components (free version)
 -   [Laravel Pint](https://github.com/laravel/pint) for code style fixes
 -   [PestPHP](https://pestphp.com) for testing
@@ -41,7 +47,9 @@ Among other things, it also includes:
 -   [Laravel IDE helper](https://github.com/barryvdh/laravel-ide-helper) for IDE support
 
 ## Upcoming features
+
 I'm considering adding the following features, depending on my clients' most common requirements:
+
 -   [Wire Elements / Modals](https://github.com/wire-elements/modal) for modals (still deciding - for now I'm using Flux UI for this)
 -   [Laravel Cashier](https://laravel.com/docs/10.x/billing) for Stripe integration
 
@@ -131,6 +139,7 @@ I'd like to thank all the people who have contributed to the packages used in th
 Especially [Spatie](https://spatie.be) for their great packages, Livewire and Alpinejs for their awesome framework and the Laravel community for their great work. And of course [Laravel](https://laravel.com) for their awesome framework, and their [Livewire Starter Kit](https://github.com/laravel/livewire-starter-kit), which this kit is based on.
 
 ### Contributers
+
 Take a look at the [contributors](https://github.com/mortenebak/tallstarter/graphs/contributors) who have helped make this project better. Many thanks!
 
 # Donate
@@ -138,4 +147,5 @@ Take a look at the [contributors](https://github.com/mortenebak/tallstarter/grap
 If you like this project, please consider [donating to support it](https://github.com/sponsors/mortenebak).
 
 Thanks to:
-- [Grazulex](https://github.com/Grazulex)
+
+-   [Grazulex](https://github.com/Grazulex)

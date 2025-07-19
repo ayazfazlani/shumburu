@@ -19,7 +19,7 @@ class FinishedGood extends Model
     'customer_id',
     'produced_by',
     'notes',
-    'material_stock_out_line_id',
+    // 'material_stock_out_line_id',
     'type',
     'length_m',
     'outer_diameter',

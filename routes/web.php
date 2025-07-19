@@ -28,11 +28,15 @@ use App\Http\Controllers\ImpersonationController;
 use Livewire\Livewire;
 use App\Livewire\Admin\ProductsCrud;
 use App\Livewire\Admin\RawMaterialsCrud;
+use App\Livewire\TestReportComponent;
 use App\Livewire\Warehouse\Production;
 use App\Livewire\WareHouse\ProductionMachine;
 use App\Livewire\Warehouse\FinishedGoodMaterialStockOutLineCrud;
 use App\Livewire\Warehouse\ScrapWasteCrud;
 use App\Livewire\Warehouse\MaterialStockOutLineCrud;
+use App\Livewire\Reports\WeeklyProductionReport;
+use App\Livewire\Reports\MonthlyProductionReport;
+use App\Livewire\Reports\RawMaterialStockBalanceReport;
 
 Route::get('/', \App\Livewire\Home::class)->name('home');
 
@@ -116,5 +120,12 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/raw-materials', RawMaterialsCrud::class)->name('admin.raw-materials.index');
     });
 });
+
+
+
+Route::get('test',TestReportComponent::class);
+Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
+Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
+Route::get('/reports/raw-material-stock-balance', RawMaterialStockBalanceReport::class)->name('reports.raw-material-stock-balance');
 
 require __DIR__ . '/auth.php';
