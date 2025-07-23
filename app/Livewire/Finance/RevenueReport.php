@@ -16,9 +16,9 @@ class RevenueReport extends Component
   {
     $user = Auth::user();
 
-    if (!$user->hasRole(['admin', 'finance'])) {
-      abort(403, 'Unauthorized access to revenue reports.');
-    }
+    // if (!$user->hasRole(['admin', 'finance'])) {
+    //   abort(403, 'Unauthorized access to revenue reports.');
+    // }
 
     $payments = Payment::with(['customer', 'delivery'])
       ->latest()

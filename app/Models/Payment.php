@@ -21,15 +21,15 @@ class Payment extends Model
     'recorded_by',
     'notes',
   ];
-
+protected $gaurded = [];
   protected $casts = [
     'amount' => 'decimal:2',
     'payment_date' => 'date',
   ];
 
-  public function delivery(): BelongsTo
+  public function order(): BelongsTo
   {
-    return $this->belongsTo(Delivery::class);
+    return $this->belongsTo(ProductionOrder::class,'order_id');
   }
 
   public function customer(): BelongsTo

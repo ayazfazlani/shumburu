@@ -10,7 +10,7 @@ return new class extends Migration
   {
     Schema::create('payments', function (Blueprint $table) {
       $table->id();
-      $table->foreignId('delivery_id')->constrained()->onDelete('cascade');
+      $table->foreignId('production_order_id')->constrained()->onDelete('cascade');
       $table->foreignId('customer_id')->constrained()->onDelete('cascade');
       $table->decimal('amount', 12, 2);
       $table->string('payment_method')->nullable();

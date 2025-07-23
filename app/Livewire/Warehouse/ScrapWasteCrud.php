@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Warehouse;
 
+use App\Models\MaterialStockOutLine;
 use Livewire\Component;
 use App\Models\ScrapWaste;
 
@@ -9,6 +10,7 @@ class ScrapWasteCrud extends Component
 {
     public $scrapWastes, $material_stock_out_line_id, $reason, $waste_date, $recorded_by, $notes, $scrap_waste_id;
     public $isEdit = false;
+    public $materialStockOutLines;
 
     protected $rules = [
         'material_stock_out_line_id' => 'required|exists:material_stock_out_lines,id',
@@ -25,6 +27,8 @@ class ScrapWasteCrud extends Component
 
     public function fetch()
     {
+
+
         $this->scrapWastes = ScrapWaste::with('materialStockOutLine')->get();
     }
 
@@ -77,6 +81,7 @@ class ScrapWasteCrud extends Component
 
     public function render()
     {
+        $this->materialStockOutLines = MaterialStockOutLine::all();
         return view('livewire.warehouse.scrap-waste-crud');
     }
 } 

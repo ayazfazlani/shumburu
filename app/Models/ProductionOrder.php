@@ -60,8 +60,8 @@ class ProductionOrder extends Model
     return $this->belongsTo(User::class, 'plant_manager_id');
   }
 
-  public function deliveries(): HasMany
+  public function payments(): HasMany
   {
-    return $this->hasMany(Delivery::class);
+    return $this->hasMany(Payment::class);
   }
 }

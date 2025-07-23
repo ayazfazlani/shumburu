@@ -35,6 +35,9 @@
                 <flux:navlist.item icon="shield-check" href="{{ route('admin.permissions-crud') }}">
                     {{ __('permissions.title') }}
                 </flux:navlist.item>
+                <flux:navlist.item icon="shield-check" href="{{ route('admin.admin.raw-materials.index') }}">
+                    {{ __('Raw materials') }}
+                </flux:navlist.item>
             </flux:navlist.group>
 
             <flux:navlist.group heading="Warehouse" class="grid">

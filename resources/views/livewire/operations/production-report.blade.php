@@ -1,4 +1,7 @@
+
 <div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
+
+  
     <div class="flex items-center justify-between mb-2">
         <div class="flex items-center space-x-2">
             <x-app-logo class="w-16 h-16" />
@@ -12,6 +15,8 @@
             <div><span class="font-semibold">Effective date:</span> 17/06/2025</div>
         </div>
     </div>
+
+   
     <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
         <div class="flex items-center gap-2">
             <span class="font-semibold">Raw material used</span>

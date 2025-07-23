@@ -99,7 +99,7 @@ class ProductionReport extends Component
         'size'
     ]);
 
-    dd($grouped);
+    // dd($grouped);
 
     $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
     $products = Product::select('id', 'name')->orderBy('name')->get();

@@ -67,9 +67,9 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/production/{id}/edit', \App\Livewire\Warehouse\EditProduction::class)->name('production.edit');
         Route::get('/stock-out', \App\Livewire\Warehouse\StockOut::class)->name('stock-out');
         Route::get('/finished-goods', \App\Livewire\Warehouse\FinishedGoods::class)->name('finished-goods');
-        Route::get('/scrap-waste', ScrapWasteRecord::class)->name('scrap-waste');
+        Route::get('/scrap-waste', ScrapWasteRecord::class)->name('scrap-wastes');
         Route::get('/finished-good-material-stock-out', FinishedGoodMaterialStockOutLineCrud::class)->name('finished-good-material');
-        Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
+        // Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
         Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');
     });
 
@@ -116,6 +116,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/roles-crud', \App\Livewire\Admin\RolesCrud::class)->name('roles-crud');
         Route::get('/permissions-crud', \App\Livewire\Admin\PermissionsCrud::class)->name('permissions-crud');
         Route::get('/users-crud', \App\Livewire\Admin\UsersCrud::class)->name('users-crud');
+        Route::get('/customers-crud', \App\Livewire\Admin\CustomersCrud::class)->name('customers-crud');
 
         Route::get('/raw-materials', RawMaterialsCrud::class)->name('admin.raw-materials.index');
     });

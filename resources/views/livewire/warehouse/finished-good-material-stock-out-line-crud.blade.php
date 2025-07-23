@@ -45,10 +45,10 @@
     </form>
     <div class="mt-8">
         <h3 class="text-lg font-bold mb-2">Links</h3>
-        <table class="table-auto w-full text-sm">
+        <table class="table-zebra w-full text-sm">
             <thead>
                 <tr>
-                    <th class="px-2 py-1">Finished Good</th>
+                    <th class="p-2 py-1">Finished Good</th>
                     <th class="px-2 py-1">Material Stock Out Line</th>
                     <th class="px-2 py-1">Quantity Used</th>
                     <th class="px-2 py-1">Actions</th>
