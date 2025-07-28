@@ -3,12 +3,13 @@
 namespace App\Livewire\Sales;
 
 use App\Models\Payment;
-use App\Models\Delivery;
-use App\Models\Customer;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\Customer;
+use App\Models\Delivery;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use App\Models\ProductionOrder;
+use Illuminate\Support\Facades\Auth;
 
 class Payments extends Component
 {
@@ -18,11 +19,11 @@ class Payments extends Component
     public $showPaymentModal = false;
     public $isPaymentEdit = false;
     public $paymentId = null;
-    public $delivery_id = '';
+    public $order_id = '';
     public $customer_id = '';
     public $amount = '';
     public $payment_method = '';
-    public $bank_slip_reference = '';
+    public $bank_slip_reference ;
     public $proforma_invoice_number = '';
     public $payment_date = '';
     public $notes = '';
@@ -36,15 +37,15 @@ class Payments extends Component
     protected function rules()
     {
         return [
-            'delivery_id' => 'required|exists:deliveries,id',
+            'order_id' => 'required|exists:production_orders,id',
             'customer_id' => 'required|exists:customers,id',
             'amount' => 'required|numeric|min:0',
             'payment_method' => 'nullable|string|max:255',
-            'bank_slip_reference' => 'nullable|string|max:255',
+            // 'bank_slip_reference' => 'nullable|string|max:255',
             'proforma_invoice_number' => 'nullable|string|max:255',
             'payment_date' => 'required|date',
             'notes' => 'nullable|string',
-            'slip_file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'bank_slip_reference' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
     }
 
@@ -65,7 +66,7 @@ class Payments extends Component
     {
         $payment = Payment::findOrFail($id);
         $this->paymentId = $payment->id;
-        $this->delivery_id = $payment->delivery_id;
+        $this->order_id = $payment->production_order_id;
         $this->customer_id = $payment->customer_id;
         $this->amount = $payment->amount;
         $this->payment_method = $payment->payment_method;
@@ -73,7 +74,7 @@ class Payments extends Component
         $this->proforma_invoice_number = $payment->proforma_invoice_number;
         $this->payment_date = $payment->payment_date ? $payment->payment_date->format('Y-m-d') : '';
         $this->notes = $payment->notes;
-        $this->existing_slip_file = $payment->slip_file ?? null;
+        $this->existing_slip_file = $payment->bank_slip_reference ?? null;
         $this->isPaymentEdit = true;
         $this->showPaymentModal = true;
     }
@@ -83,13 +84,13 @@ class Payments extends Component
         $this->validate();
         $user = Auth::user();
         $slipPath = $this->existing_slip_file;
-        if ($this->slip_file) {
-            $slipPath = $this->slip_file->store('payment_slips', 'public');
+        if ($this->bank_slip_reference) {
+            $slipPath = $this->bank_slip_reference->store('payment_slips', 'public');
         }
         if ($this->isPaymentEdit && $this->paymentId) {
             $payment = Payment::findOrFail($this->paymentId);
             $payment->update([
-                'delivery_id' => $this->delivery_id,
+                'production_order_id' => $this->order_id,
                 'customer_id' => $this->customer_id,
                 'amount' => $this->amount,
                 'payment_method' => $this->payment_method,
@@ -103,16 +104,15 @@ class Payments extends Component
             session()->flash('message', 'Payment updated.');
         } else {
             Payment::create([
-                'delivery_id' => $this->delivery_id,
+                'production_order_id' => $this->order_id,
                 'customer_id' => $this->customer_id,
                 'amount' => $this->amount,
                 'payment_method' => $this->payment_method,
-                'bank_slip_reference' => $this->bank_slip_reference,
+                'bank_slip_reference' => $slipPath,
                 'proforma_invoice_number' => $this->proforma_invoice_number,
                 'payment_date' => $this->payment_date,
                 'recorded_by' => $user ? $user->id : null,
                 'notes' => $this->notes,
-                'slip_file' => $slipPath,
             ]);
             session()->flash('message', 'Payment recorded.');
         }
@@ -138,7 +138,7 @@ class Payments extends Component
     public function resetPaymentForm()
     {
         $this->paymentId = null;
-        $this->delivery_id = '';
+        $this->order_id = '';
         $this->customer_id = '';
         $this->amount = '';
         $this->payment_method = '';
@@ -152,17 +152,17 @@ class Payments extends Component
 
     public function render()
     {
-        $payments = Payment::with(['delivery', 'customer'])
+        $payments = Payment::with(['order', 'customer'])
             ->when($this->paymentSearch, function ($q) {
                 $q->where('bank_slip_reference', 'like', "%{$this->paymentSearch}%");
             })
             ->latest()
             ->paginate($this->paymentPerPage);
-        $deliveries = Delivery::with(['customer', 'product'])->get();
+        $orders = ProductionOrder::with(['customer', 'product'])->get();
         $customers = Customer::where('is_active', true)->get();
         return view('livewire.sales.payments', [
             'payments' => $payments,
-            'deliveries' => $deliveries,
+            'orders' => $orders,
             'customers' => $customers,
         ]);
     }

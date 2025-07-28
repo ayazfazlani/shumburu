@@ -10,6 +10,7 @@ class FinishedGoodMaterialStockOutLine extends Model
     use HasFactory;
 
     protected $table = 'finished_good_material_stock_out_line';
+    // protected $table = 'finished_good_stock_out_line';
 
     protected $fillable = [
         'finished_good_id',

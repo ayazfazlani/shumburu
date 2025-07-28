@@ -176,7 +176,7 @@ class Index extends Component
         $deliveries = Delivery::with(['customer', 'product', 'productionOrder', 'deliveredBy'])
             ->latest()
             ->paginate(10);
-        $payments = Payment::with(['customer', 'delivery', 'recordedBy'])
+        $payments = Payment::with(['customer', 'order', 'recordedBy'])
             ->latest()
             ->paginate(10);
         $customers = Customer::where('is_active', true)->get();

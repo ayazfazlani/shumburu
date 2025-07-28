@@ -16,46 +16,35 @@ use App\Models\Customer;
 
 class Production extends Component
 {
-
-
+    public $material_stock_out_id;
     public $production_line_id;
-    public $product_id;
-    public $material_stock_out_line_ids = [];
+    public $quantity_consumed;
     public $shift;
-    public $size;
-    public $surface;
-    public $thickness;
-    public $outer_diameter;
-    public $ovality;
-    public $notes;
-
-    // Dynamic arrays for finished goods and scraps
     public $finishedGoods = [];
     public $scraps = [];
-
     public $customers;
-
-    public $stockOutUsages = [
-        // ['stock_out_line_id' => null, 'quantity_used' => null]
-    ];
-
-    public $stockOutScraps = [
-        // ['stock_out_line_id' => null, 'quantity_scrapped' => null]
-    ];
+    public $stockOutUsages = [];
+    public $stockOutScraps = [];
+    public $showModal = false;
+    public $isEdit = false;
+    public $editingId = null;
+    public $productions;
 
     public function mount()
     {
         $this->finishedGoods = [
-            ['type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => '']
+            ['product_id' => '', 'type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => '']
         ];
         $this->scraps = [
             ['quantity' => '', 'reason' => '', 'notes' => '']
         ];
+        $this->stockOutUsages = [];
+        $this->stockOutScraps = [];
     }
 
     public function addFinishedGood()
     {
-        $this->finishedGoods[] = ['type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => ''];
+        $this->finishedGoods[] = ['product_id' => '', 'type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => ''];
     }
 
     public function removeFinishedGood($index)
@@ -103,73 +92,115 @@ class Production extends Component
         $this->stockOutScraps = array_values($this->stockOutScraps);
     }
 
+    public function create()
+    {
+        $this->resetForm();
+        $this->isEdit = false;
+        $this->showModal = true;
+    }
+
+    public function edit($id)
+    {
+        $entry = MaterialStockOutLine::with(['productionLine', 'materialStockOut', 'finishedGoods'])->findOrFail($id);
+        $this->editingId = $id;
+        $this->material_stock_out_id = $entry->material_stock_out_id;
+        $this->production_line_id = $entry->production_line_id;
+        $this->quantity_consumed = $entry->quantity_consumed;
+        $this->shift = $entry->shift;
+        // TODO: Load finishedGoods, stockOutUsages, stockOutScraps from $entry if needed
+        $this->isEdit = true;
+        $this->showModal = true;
+    }
+
+    public function delete($id)
+    {
+        $entry = MaterialStockOutLine::findOrFail($id);
+        $entry->delete();
+        session()->flash('success', 'Production entry deleted successfully!');
+    }
+
+    public function resetForm()
+    {
+        $this->editingId = null;
+        $this->material_stock_out_id = null;
+        $this->production_line_id = null;
+        $this->quantity_consumed = null;
+        $this->shift = null;
+        $this->finishedGoods = [
+            ['product_id' => '', 'type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => '']
+        ];
+        $this->stockOutUsages = [];
+        $this->stockOutScraps = [];
+    }
+
     public function save()
     {
         $this->validate([
+            'material_stock_out_id' => 'required|exists:material_stock_outs,id',
             'production_line_id' => 'required|exists:production_lines,id',
-            'stockOutUsages' => 'required|array|min:1',
-            'stockOutUsages.*.stock_out_line_id' => 'required|exists:material_stock_out_lines,id',
-            'stockOutUsages.*.quantity_used' => 'required|numeric|min:0.001',
-            'stockOutScraps' => 'nullable|array',
-            'stockOutScraps.*.stock_out_line_id' => 'required_with:stockOutScraps.*.quantity_scrapped|exists:material_stock_out_lines,id',
-            'stockOutScraps.*.quantity_scrapped' => 'required_with:stockOutScraps.*.stock_out_line_id|numeric|min:0.001',
-            'product_id' => 'required|exists:products,id',
+            'quantity_consumed' => 'required|numeric|min:0.001',
             'shift' => 'nullable|string|max:10',
+            'finishedGoods.*.product_id' => 'required|exists:products,id',
             'finishedGoods.*.type' => 'required|in:roll,cut',
             'finishedGoods.*.length_m' => 'required|numeric|min:1',
             'finishedGoods.*.quantity' => 'required|integer|min:1',
         ]);
 
         DB::transaction(function () {
-            // $production =
-            //     \App\Models\Production::create([
-            //         'reference' => 'PROD-' . strtoupper(uniqid()),
-            //         'production_date' => now()->toDateString(),
-            //         'notes' => $this->notes,
-            //     ]);
-
-            foreach ($this->stockOutUsages as $usage) {
-                $line = MaterialStockOutLine::find($usage['stock_out_line_id']);
-                $line->quantity_consumed = $usage['quantity_used'];
-                $line->production_line_id = $this->production_line_id;
-                $line->shift = $this->shift;
-                $line->save();
+            if ($this->isEdit && $this->editingId) {
+                $entry = MaterialStockOutLine::findOrFail($this->editingId);
+                $entry->update([
+                    'material_stock_out_id' => $this->material_stock_out_id,
+                    'production_line_id' => $this->production_line_id,
+                    'quantity_consumed' => $this->quantity_consumed,
+                    // 'shift' => $this->shift,
+                ]);
+            } else {
+                $entry = MaterialStockOutLine::create([
+                    'material_stock_out_id' => $this->material_stock_out_id,
+                    'production_line_id' => $this->production_line_id,
+                    'quantity_consumed' => $this->quantity_consumed,
+                    // 'shift' => $this->shift,
+                ]);
             }
-
-            foreach ($this->stockOutScraps as $scrap) {
-                if ($scrap['stock_out_line_id'] && $scrap['quantity_scrapped']) {
-                    \App\Models\ScrapWaste::create([
-                        'material_stock_out_line_id' => $scrap['stock_out_line_id'],
-                        'quantity' => $scrap['quantity_scrapped'],
-                        'reason' => 'Production Scrap',
-                        'waste_date' => now(),
-                        'recorded_by' => Auth::id(),
-                        'notes' => null,
-                    ]);
-                }
+            // Save finished goods
+            foreach ($this->finishedGoods as $fg) {
+                
+                FinishedGood::create([
+                    'product_id' => $fg['product_id'],
+                    'quantity' => $fg['quantity'],
+                    'batch_number' => $fg['batch_number'],
+                    'production_date' => $fg['production_date'],
+                    'purpose' => $fg['purpose'],
+                    'customer_id' => $fg['customer_id'],
+                    'produced_by' => Auth::id(),
+                    'notes' => $fg['notes'],
+                    'type' => $fg['type'],
+                    'length_m' => $fg['length_m'],
+                    'outer_diameter' => $fg['outer_diameter'],
+                    'size' => $fg['size'],
+                    'surface' => $fg['surface'],
+                    'thickness' => $fg['thickness'],
+                    'ovality' => $fg['ovality'],
+                ]);
             }
-
-            // Optionally, create finished goods as before
-            // ...
         });
 
+        $this->showModal = false;
         session()->flash('success', 'Production entry saved successfully!');
-        return redirect()->route('warehouse.production.index');
-    }
-
-    private function generateBatchNumber()
-    {
-        return 'BATCH-' . strtoupper(uniqid());
     }
 
     #[Layout('components.layouts.app')]
     public function render()
     {
+        $this->productions = MaterialStockOutLine::with(['productionLine', 'materialStockOut', 'finishedGoods'])->get();
         return view('livewire.warehouse.production', [
             'lines' => ProductionLine::all(),
             'products' => Product::all(),
-            'stockOutLines' => \App\Models\MaterialStockOutLine::with(['materialStockOut.rawMaterial', 'productionLine'])->get(),
-            'customers' => Customer::all(),
+            'stockOuts' => MaterialStockOut::all(),
+            'stockOutLines' => MaterialStockOutLine::with(['materialStockOut.rawMaterial', 'productionLine'])->get(),
+            'customers' => $this->customers=Customer::all(),
+            'productions' => $this->productions,
         ]);
     }
 }

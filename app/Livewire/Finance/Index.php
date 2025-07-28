@@ -40,7 +40,7 @@ class Index extends Component
       ->latest()
       ->paginate(10);
 
-    $payments = Payment::with(['customer', 'delivery', 'recordedBy'])
+    $payments = Payment::with(['customer', 'order', 'recordedBy'])
       ->latest()
       ->paginate(10);
 

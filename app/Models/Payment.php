@@ -20,8 +20,9 @@ class Payment extends Model
     'payment_date',
     'recorded_by',
     'notes',
+    'production_order_id',
   ];
-protected $gaurded = [];
+  protected $guarded = [];
   protected $casts = [
     'amount' => 'decimal:2',
     'payment_date' => 'date',
@@ -29,7 +30,7 @@ protected $gaurded = [];
 
   public function order(): BelongsTo
   {
-    return $this->belongsTo(ProductionOrder::class,'order_id');
+    return $this->belongsTo(ProductionOrder::class,'production_order_id');
   }
 
   public function customer(): BelongsTo

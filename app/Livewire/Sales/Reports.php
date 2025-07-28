@@ -29,7 +29,7 @@ class Reports extends Component
       ->latest()
       ->paginate(15);
 
-    $payments = Payment::with(['customer', 'delivery'])
+    $payments = Payment::with(['customer', 'order'])
       ->latest()
       ->paginate(15);
 

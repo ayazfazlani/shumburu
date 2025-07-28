@@ -32,7 +32,7 @@
         <table class="table w-full">
             <thead>
                 <tr>
-                    <th>Delivery</th>
+                    <th>Orders</th>
                     <th>Customer</th>
                     <th>Amount</th>
                     <th>Payment Method</th>
@@ -53,8 +53,9 @@
                         <td>{{ $payment->payment_method }}</td>
                         <td>{{ $payment->bank_slip_reference }}</td>
                         <td>
-                            @if($payment->slip_file)
-                                <a href="{{ Storage::disk('public')->url($payment->slip_file) }}" target="_blank" class="text-blue-600 underline">View</a>
+                            @if ($payment->bank_slip_reference)
+                            
+                                <a href="{{ Storage::disk('public')->url($payment->bank_slip_reference) }}" target="_blank" class="text-blue-600 underline">View</a>
                             @else
                                 <span class="text-gray-400">-</span>
                             @endif
@@ -83,15 +84,15 @@
             <h3 class="font-bold text-lg mb-4">{{ $isPaymentEdit ? 'Edit Payment' : 'Record Payment' }}</h3>
             <div class="mb-4">
                 <label class="label">Delivery</label>
-                <select wire:model.defer="delivery_id" class="select select-bordered w-full">
-                    <option value="">Select Delivery</option>
-                    @foreach ($deliveries as $delivery)
-                        <option value="{{ $delivery->id }}">
-                            {{ $delivery->customer->name ?? '' }} - {{ $delivery->product->name ?? '' }} ({{ $delivery->id }})
+                <select wire:model.defer="order_id" class="select select-bordered w-full">
+                    <option value="">Select order</option>
+                    @foreach ($orders as $order)
+                        <option value="{{ $order->id }}">
+                            {{ $order->customer->name ?? '' }} - {{ $order->product->name ?? '' }} ({{ $order->id }})
                         </option>
                     @endforeach
                 </select>
-                @error('delivery_id')
+                @error('order_id')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
@@ -130,13 +131,13 @@
             </div>
             <div class="mb-4">
                 <label class="label">Slip File (Image/PDF)</label>
-                <input type="file" wire:model="slip_file" class="file-input file-input-bordered w-full" accept=".jpg,.jpeg,.png,.pdf" />
+                <input type="file" wire:model="bank_slip_reference" class="file-input file-input-bordered w-full" accept=".jpg,.jpeg,.png,.pdf" />
                 @if($existing_slip_file)
                     <div class="mt-2">
                         <a href="{{ Storage::disk('public')->url($existing_slip_file) }}" target="_blank" class="text-blue-600 underline">Current File</a>
                     </div>
                 @endif
-                @error('slip_file')
+                @error('bank_slip_reference')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
