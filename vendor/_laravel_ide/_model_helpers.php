@@ -2918,6 +2918,29 @@ namespace App\Models {
   /**
    * App\Models\OrderItem
    *
+   * @property \Illuminate\Support\Carbon|null $updated_at
+   * @property \Illuminate\Support\Carbon|null $created_at
+   * @property decimal:2 $total_price
+   * @property decimal:2 $unit_price
+   * @property string $unit
+   * @property decimal:2 $quantity
+   * @property mixed $product_id
+   * @property mixed $production_order_id
+   * @property int $id
+   * @property-read mixed $formatted_unit_price
+   * @property-read mixed $formatted_total_price
+   * @property-read mixed $formatted_quantity
+   * @property-read \App\Models\ProductionOrder $productionOrder
+   * @property-read \App\Models\Product $product
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereId($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereProductionOrderId($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereProductId($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereQuantity($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereUnit($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereUnitPrice($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereTotalPrice($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereCreatedAt($value)
+   * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem whereUpdatedAt($value)
    * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem newModelQuery()
    * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem newQuery()
    * @method static \Illuminate\Database\Eloquent\Builder<OrderItem>|OrderItem query()
@@ -4198,23 +4221,23 @@ namespace App\Models {
    * @property \Illuminate\Support\Carbon|null $production_start_date
    * @property \Illuminate\Support\Carbon $requested_date
    * @property mixed $status
-   * @property decimal:2 $quantity
-   * @property mixed $product_id
    * @property mixed $customer_id
    * @property string $order_number
    * @property int $id
+   * @property-read mixed $total_price
+   * @property-read mixed $total_quantity
+   * @property-read mixed $formatted_total_price
    * @property-read \App\Models\Customer $customer
-   * @property-read \App\Models\Product $product
    * @property-read \App\Models\User $requestedBy
    * @property-read \App\Models\User $approvedBy
    * @property-read \App\Models\User $plantManager
    * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Payment> $payments
    * @property-read int|null $payments_count
+   * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItem> $items
+   * @property-read int|null $items_count
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereId($value)
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereOrderNumber($value)
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereCustomerId($value)
-   * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereProductId($value)
-   * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereQuantity($value)
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereStatus($value)
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereRequestedDate($value)
    * @method static \Illuminate\Database\Eloquent\Builder<ProductionOrder>|ProductionOrder whereProductionStartDate($value)

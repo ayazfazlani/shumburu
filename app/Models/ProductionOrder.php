@@ -14,8 +14,8 @@ class ProductionOrder extends Model
   protected $fillable = [
     'order_number',
     'customer_id',
-    'product_id',
-    'quantity',
+    // 'product_id',
+    // 'quantity',
     'status',
     'requested_date',
     'production_start_date',
@@ -40,10 +40,10 @@ class ProductionOrder extends Model
     return $this->belongsTo(Customer::class);
   }
 
-  public function product(): BelongsTo
-  {
-    return $this->belongsTo(Product::class);
-  }
+  // public function product(): BelongsTo
+  // {
+  //   return $this->belongsTo(Product::class);
+  // }
 
   public function requestedBy(): BelongsTo
   {
@@ -63,5 +63,34 @@ class ProductionOrder extends Model
   public function payments(): HasMany
   {
     return $this->hasMany(Payment::class);
+  }
+
+  public function items(): HasMany
+  {
+    return $this->hasMany(OrderItem::class, 'production_order_id');
+  }
+
+  /**
+   * Get the total price of all items in this order.
+   */
+  public function getTotalPriceAttribute(): float
+  {
+    return $this->items->sum('total_price');
+  }
+
+  /**
+   * Get the total quantity of all items in this order.
+   */
+  public function getTotalQuantityAttribute(): float
+  {
+    return $this->items->sum('quantity');
+  }
+
+  /**
+   * Get formatted total price.
+   */
+  public function getFormattedTotalPriceAttribute(): string
+  {
+    return number_format($this->total_price, 2);
   }
 }

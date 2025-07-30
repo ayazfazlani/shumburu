@@ -101,6 +101,9 @@
                 <flux:navlist.item icon="save" href="{{ route('sales.reports') }}">
                     Reports
                 </flux:navlist.item>
+                <flux:navlist.item icon="save" href="{{ route('sales.orders') }}">
+                    Orders
+                </flux:navlist.item>
             </flux:navlist.group>
 
             <flux:navlist.group heading="Finance" class="grid">

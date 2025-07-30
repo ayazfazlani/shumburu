@@ -34,11 +34,12 @@
                 <tr>
                     <th>Order #</th>
                     <th>Customer</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
+                    {{-- <th>Product</th>
+                    <th>Quantity</th> --}}
                     <th>Status</th>
                     <th>Requested Date</th>
                     <th>Notes</th>
+                    <th>View Details</th>
                     <th class="text-right">Actions</th>
                 </tr>
             </thead>
@@ -47,8 +48,8 @@
                     <tr>
                         <td>{{ $order->order_number }}</td>
                         <td>{{ $order->customer->name ?? '-' }}</td>
-                        <td>{{ $order->product->name ?? '-' }}</td>
-                        <td>{{ $order->quantity }}</td>
+                        {{-- <td>{{ $order->product->name ?? '-' }}</td>
+                        <td>{{ $order->quantity }}</td> --}}
                         <td>
                             @if ($order->status === 'pending')
                                 <span class="badge badge-warning">Pending</span>
@@ -64,6 +65,7 @@
                         </td>
                         <td>{{ $order->requested_date ? $order->requested_date->format('Y-m-d') : '' }}</td>
                         <td>{{ $order->notes }}</td>
+                        <td><a href="{{ route('order-items',$order->id) }}">view</a></td>
                         <td class="text-right flex gap-2 justify-end">
                             <button class="btn btn-xs btn-outline" wire:click="openOrderEditModal({{ $order->id }})">Edit</button>
                             <button class="btn btn-xs btn-error" wire:click="confirmOrderDelete({{ $order->id }})">Delete</button>
@@ -102,7 +104,7 @@
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
-            <div class="mb-4">
+            {{-- <div class="mb-4">
                 <label class="label">Product</label>
                 <select wire:model.defer="product_id" class="select select-bordered w-full">
                     <option value="">Select Product</option>
@@ -120,7 +122,7 @@
                 @error('quantity')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
-            </div>
+            </div> --}}
             <div class="mb-4">
                 <label class="label">Status</label>
                 <select wire:model.defer="status" class="select select-bordered w-full">

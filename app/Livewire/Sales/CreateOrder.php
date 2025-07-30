@@ -19,8 +19,8 @@ class CreateOrder extends Component
     public $orderId = null;
     public $order_number = '';
     public $customer_id = '';
-    public $product_id = '';
-    public $quantity = '';
+    // public $product_id = '';
+    // public $quantity = '';
     public $status = 'pending';
     public $requested_date = '';
     public $requested_by = '';
@@ -35,8 +35,8 @@ class CreateOrder extends Component
         return [
             'order_number' => 'required|string|max:255',
             'customer_id' => 'required|exists:customers,id',
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:1',
+            // 'product_id' => 'required|exists:products,id',
+            // 'quantity' => 'required|numeric|min:1',
             'status' => 'required|string',
             'requested_date' => 'required|date',
             'requested_by' => 'nullable|exists:users,id',
@@ -59,8 +59,8 @@ class CreateOrder extends Component
         $this->orderId = $order->id;
         $this->order_number = $order->order_number;
         $this->customer_id = $order->customer_id;
-        $this->product_id = $order->product_id;
-        $this->quantity = $order->quantity;
+        // $this->product_id = $order->product_id;
+        // $this->quantity = $order->quantity;
         $this->status = $order->status;
         $this->requested_date = $order->requested_date ? $order->requested_date->format('Y-m-d') : '';
         $this->requested_by = $order->requested_by;
@@ -78,8 +78,8 @@ class CreateOrder extends Component
             $order->update([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                'product_id' => $this->product_id,
-                'quantity' => $this->quantity,
+                // 'product_id' => $this->product_id,
+                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'requested_by' => $user ? $user->id : null,
@@ -90,8 +90,8 @@ class CreateOrder extends Component
             ProductionOrder::create([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                'product_id' => $this->product_id,
-                'quantity' => $this->quantity,
+                // 'product_id' => $this->product_id,
+                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'requested_by' => $user ? $user->id : null,
@@ -123,8 +123,8 @@ class CreateOrder extends Component
         $this->orderId = null;
         $this->order_number = '';
         $this->customer_id = '';
-        $this->product_id = '';
-        $this->quantity = '';
+        // $this->product_id = '';
+        // $this->quantity = '';
         $this->status = 'pending';
         $this->requested_date = '';
         $this->requested_by = '';
@@ -133,7 +133,9 @@ class CreateOrder extends Component
 
     public function render()
     {
-        $orders = ProductionOrder::with(['customer', 'product'])
+        $orders = ProductionOrder::with(['customer'
+        // , 'product'
+        ])
             ->when($this->orderSearch, function ($q) {
                 $q->where('order_number', 'like', "%{$this->orderSearch}%");
             })

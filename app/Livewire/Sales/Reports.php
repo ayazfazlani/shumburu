@@ -21,11 +21,15 @@ class Reports extends Component
     //   abort(403, 'Unauthorized access to sales reports.');
     // }
 
-    $productionOrders = ProductionOrder::with(['customer', 'product', 'requestedBy'])
+    $productionOrders = ProductionOrder::with(['customer',
+    // , 'product',
+     'requestedBy'])
       ->latest()
       ->paginate(15);
 
-    $deliveries = Delivery::with(['customer', 'product', 'productionOrder'])
+    $deliveries = Delivery::with(['customer', 
+    // 'product',
+     'productionOrder'])
       ->latest()
       ->paginate(15);
 

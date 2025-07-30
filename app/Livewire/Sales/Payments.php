@@ -158,7 +158,7 @@ class Payments extends Component
             })
             ->latest()
             ->paginate($this->paymentPerPage);
-        $orders = ProductionOrder::with(['customer', 'product'])->get();
+        $orders = ProductionOrder::with(['customer'])->get();
         $customers = Customer::where('is_active', true)->get();
         return view('livewire.sales.payments', [
             'payments' => $payments,
