@@ -132,8 +132,8 @@
                                 <tr>
                                     <th>Order Number</th>
                                     <th>Customer</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
+                                    {{-- <th>Product</th>
+                                    <th>Quantity</th> --}}
                                     <th>Status</th>
                                     <th>Requested Date</th>
                                     <th>Actions</th>
@@ -151,11 +151,18 @@
                                         </td>
                                         <td>
                                             <div class="flex items-center space-x-2">
-                                                <span class="font-medium">{{ $order->product->name }}</span>
-                                                <span class="badge badge-sm">{{ $order->product->code }}</span>
+                                                @if($order->items->count() > 0)
+                                                    {{-- <span class="font-medium">{{ $order->items->first()->product->name }}</span>
+                                                    <span class="badge badge-sm">{{ $order->items->first()->product->code }}</span> --}}
+                                                    @if($order->items->count() > 1)
+                                                        <span class="badge badge-info">+{{ $order->items->count() - 1 }} more</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-base-content/50">No items</span>
+                                                @endif
                                             </div>
                                         </td>
-                                        <td class="font-mono">{{ number_format($order->quantity) }}</td>
+                                        {{-- <td class="font-mono">{{ number_format($order->items->sum('quantity')) }}</td> --}}
                                         <td>
                                             @if ($order->status === 'pending')
                                                 <span class="badge badge-warning">Pending</span>
@@ -216,8 +223,8 @@
                                 <tr>
                                     <th>Order Number</th>
                                     <th>Customer</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
+                                    {{-- <th>Product</th>
+                                    <th>Quantity</th> --}}
                                     <th>Total Amount</th>
                                     <th>Delivery Date</th>
                                     <th>Delivered By</th>
@@ -236,11 +243,11 @@
                                         </td>
                                         <td>
                                             <div class="flex items-center space-x-2">
-                                                <span class="font-medium">{{ $delivery->product->name }}</span>
-                                                <span class="badge badge-sm">{{ $delivery->product->code }}</span>
+                                                {{-- <span class="font-medium">{{ $delivery->product->name }}</span>
+                                                <span class="badge badge-sm">{{ $delivery->product->code }}</span> --}}
                                             </div>
                                         </td>
-                                        <td class="font-mono">{{ number_format($delivery->quantity) }}</td>
+                                        {{-- <td class="font-mono">{{ number_format($delivery->quantity) }}</td> --}}       
                                         <td class="font-mono font-bold text-success">
                                             ${{ number_format($delivery->total_amount, 2) }}</td>
                                         <td>{{ $delivery->delivery_date->format('M d, Y') }}</td>

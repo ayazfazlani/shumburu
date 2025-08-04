@@ -70,8 +70,8 @@ class Index extends Component
         $this->orderId = $order->id;
         $this->order_number = $order->order_number;
         $this->customer_id = $order->customer_id;
-        $this->product_id = $order->product_id;
-        $this->quantity = $order->quantity;
+        // $this->product_id = $order->product_id;
+        // $this->quantity = $order->quantity;
         $this->status = $order->status;
         $this->requested_date = $order->requested_date ? $order->requested_date->format('Y-m-d') : '';
         $this->production_start_date = $order->production_start_date ? $order->production_start_date->format('Y-m-d') : '';
@@ -93,8 +93,8 @@ class Index extends Component
             $order->update([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                'product_id' => $this->product_id,
-                'quantity' => $this->quantity,
+                // 'product_id' => $this->product_id,
+                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'production_start_date' => $this->production_start_date,
@@ -110,8 +110,8 @@ class Index extends Component
             ProductionOrder::create([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                'product_id' => $this->product_id,
-                'quantity' => $this->quantity,
+                // 'product_id' => $this->product_id,
+                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'production_start_date' => $this->production_start_date,
@@ -148,8 +148,8 @@ class Index extends Component
         $this->orderId = null;
         $this->order_number = '';
         $this->customer_id = '';
-        $this->product_id = '';
-        $this->quantity = '';
+        // $this->product_id = '';
+        // $this->quantity = '';
         $this->status = 'pending';
         $this->requested_date = '';
         $this->production_start_date = '';
@@ -167,27 +167,31 @@ class Index extends Component
         // if (!$user->hasRole(['Admin', 'Sales'])) {
         //     abort(403, 'Unauthorized access to sales.');
         // }
-        $productionOrders = ProductionOrder::with(['customer', 'product', 'requestedBy', 'approvedBy', 'plantManager'])
+        $productionOrders = ProductionOrder::with(['customer',
+        //  'product', 
+         'requestedBy', 'approvedBy', 'plantManager'])
             ->when($this->orderSearch, function ($q) {
                 $q->where('order_number', 'like', "%{$this->orderSearch}%");
             })
             ->latest()
             ->paginate($this->orderPerPage);
-        $deliveries = Delivery::with(['customer', 'product', 'productionOrder', 'deliveredBy'])
+        $deliveries = Delivery::with(['customer', 
+        // 'product', 
+         'productionOrder', 'deliveredBy'])
             ->latest()
             ->paginate(10);
         $payments = Payment::with(['customer', 'order', 'recordedBy'])
             ->latest()
             ->paginate(10);
         $customers = Customer::where('is_active', true)->get();
-        $products = Product::where('is_active', true)->get();
+        // $products = Product::where('is_active', true)->get();
         $users = User::all();
         return view('livewire.sales.index', [
             'productionOrders' => $productionOrders,
             'deliveries' => $deliveries,
             'payments' => $payments,
             'customers' => $customers,
-            'products' => $products,
+            // 'products' => $products,
             'users' => $users,
         ]);
     }

@@ -28,7 +28,7 @@ class Payment extends Model
     'payment_date' => 'date',
   ];
 
-  public function order(): BelongsTo
+  public function productionOrder(): BelongsTo
   {
     return $this->belongsTo(ProductionOrder::class,'production_order_id');
   }

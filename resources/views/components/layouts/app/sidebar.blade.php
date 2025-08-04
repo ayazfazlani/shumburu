@@ -68,6 +68,18 @@
                 <flux:navlist.item icon="layout-grid" href="{{ route('warehouse.material-stock-out-lines') }}">
                     Material Stock Out Lines
                 </flux:navlist.item>
+
+                 <flux:navlist.group heading="Reports" class="grid">
+                <flux:navlist.item icon="layout-grid" href="{{ route('reports.weekly') }}">
+                    Weekly
+                </flux:navlist.item>
+                <flux:navlist.item icon="layout-grid" href="{{ route('reports.monthly') }}">
+                    Monthly
+                </flux:navlist.item>
+                <flux:navlist.item icon="layout-grid" href="{{ route('reports.raw-material-stock-balance') }}">
+                    Raw Material Balance
+                </flux:navlist.item>
+                 </flux:navlist.group>
             </flux:navlist.group>
 
             <flux:navlist.group heading="Operations" class="grid">

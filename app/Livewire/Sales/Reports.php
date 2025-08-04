@@ -8,39 +8,127 @@ use App\Models\Payment;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Carbon\Carbon;
 
 class Reports extends Component
 {
-  use WithPagination;
+    use WithPagination;
 
-  public function render()
-  {
-    $user = Auth::user();
+    public $reportType = 'daily';
+    public $startDate;
+    public $endDate;
 
-    // if (!$user->hasRole(['admin', 'sales'])) {
-    //   abort(403, 'Unauthorized access to sales reports.');
-    // }
+    public function mount()
+    {
+        $this->startDate = now()->format('Y-m-d');
+        $this->endDate = now()->format('Y-m-d');
+    }
 
-    $productionOrders = ProductionOrder::with(['customer',
-    // , 'product',
-     'requestedBy'])
-      ->latest()
-      ->paginate(15);
+    public function render()
+    {
+        $user = Auth::user();
 
-    $deliveries = Delivery::with(['customer', 
-    // 'product',
-     'productionOrder'])
-      ->latest()
-      ->paginate(15);
+        // Get delivered orders only
+        $deliveredOrders = ProductionOrder::with(['customer', 'items.product', 'payments'])
+            ->where('status', 'delivered')
+            ->when($this->reportType === 'daily', function ($query) {
+                $query->whereDate('delivery_date', $this->startDate);
+            })
+            ->when($this->reportType === 'weekly', function ($query) {
+                $query->whereBetween('delivery_date', [
+                    Carbon::parse($this->startDate)->startOfWeek(),
+                    Carbon::parse($this->endDate)->endOfWeek()
+                ]);
+            })
+            ->when($this->reportType === 'monthly', function ($query) {
+                $query->whereYear('delivery_date', Carbon::parse($this->startDate)->year)
+                      ->whereMonth('delivery_date', Carbon::parse($this->startDate)->month);
+            })
+            ->latest()
+            ->paginate(15);
 
-    $payments = Payment::with(['customer', 'order'])
-      ->latest()
-      ->paginate(15);
+        // Get deliveries for the period
+        $deliveries = Delivery::with(['customer', 'productionOrder'])
+            ->when($this->reportType === 'daily', function ($query) {
+                $query->whereDate('delivery_date', $this->startDate);
+            })
+            ->when($this->reportType === 'weekly', function ($query) {
+                $query->whereBetween('delivery_date', [
+                    Carbon::parse($this->startDate)->startOfWeek(),
+                    Carbon::parse($this->endDate)->endOfWeek()
+                ]);
+            })
+            ->when($this->reportType === 'monthly', function ($query) {
+                $query->whereYear('delivery_date', Carbon::parse($this->startDate)->year)
+                      ->whereMonth('delivery_date', Carbon::parse($this->startDate)->month);
+            })
+            ->latest()
+            ->paginate(15);
 
-    return view('livewire.sales.reports', [
-      'productionOrders' => $productionOrders,
-      'deliveries' => $deliveries,
-      'payments' => $payments,
-    ]);
-  }
+        // Get payments for the period
+        $payments = Payment::with(['customer', 'productionOrder'])
+            ->when($this->reportType === 'daily', function ($query) {
+                $query->whereDate('payment_date', $this->startDate);
+            })
+            ->when($this->reportType === 'weekly', function ($query) {
+                $query->whereBetween('payment_date', [
+                    Carbon::parse($this->startDate)->startOfWeek(),
+                    Carbon::parse($this->endDate)->endOfWeek()
+                ]);
+            })
+            ->when($this->reportType === 'monthly', function ($query) {
+                $query->whereYear('payment_date', Carbon::parse($this->startDate)->year)
+                      ->whereMonth('payment_date', Carbon::parse($this->startDate)->month);
+            })
+            ->latest()
+            ->paginate(15);
+
+        // Calculate summary statistics
+        $summary = $this->calculateSummary($deliveredOrders, $deliveries, $payments);
+
+        return view('livewire.sales.reports', [
+            'deliveredOrders' => $deliveredOrders,
+            'deliveries' => $deliveries,
+            'payments' => $payments,
+            'summary' => $summary,
+        ]);
+    }
+
+    private function calculateSummary($orders, $deliveries, $payments)
+    {
+        $totalOrders = $orders->total();
+        $totalDeliveries = $deliveries->total();
+        $totalPayments = $payments->total();
+
+        $totalOrderValue = $orders->getCollection()->sum(function ($order) {
+            return $order->items->sum('total_price');
+        });
+
+        $totalDeliveryValue = $deliveries->getCollection()->sum('total_amount');
+        $totalPaymentValue = $payments->getCollection()->sum('amount');
+
+        return [
+            'total_orders' => $totalOrders,
+            'total_deliveries' => $totalDeliveries,
+            'total_payments' => $totalPayments,
+            'total_order_value' => $totalOrderValue,
+            'total_delivery_value' => $totalDeliveryValue,
+            'total_payment_value' => $totalPaymentValue,
+        ];
+    }
+
+    public function updatedReportType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedStartDate()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedEndDate()
+    {
+        $this->resetPage();
+    }
 }

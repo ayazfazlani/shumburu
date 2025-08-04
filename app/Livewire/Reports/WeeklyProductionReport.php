@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use App\Models\FinishedGood;
 use App\Models\Product;
 use App\Models\MaterialStockOutLine;
+use App\Models\QualityReport;
 
 class WeeklyProductionReport extends Component
 {
@@ -52,6 +53,9 @@ class WeeklyProductionReport extends Component
         $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
         $products = Product::select('id', 'name')->orderBy('name')->get();
 
+        // Get quality report data for this period
+        $qualityReport = QualityReport::forPeriod($this->startDate, $this->endDate, 'weekly')->first();
+
         return view('livewire.reports.weekly-production-report', [
             'lengths' => $lengths,
             'grouped' => $grouped,
@@ -60,6 +64,7 @@ class WeeklyProductionReport extends Component
             'endDate' => $this->endDate,
             'shifts' => $shifts,
             'products' => $products,
+            'qualityReport' => $qualityReport,
         ]);
     }
 } 

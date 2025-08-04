@@ -27,7 +27,7 @@ use App\Livewire\Operations\DowntimeRecord;
 use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Warehouse\ScrapWasteRecord;
 use App\Livewire\Operations\ProductionReport;
-use App\Livewire\WareHouse\ProductionMachine;
+use App\Livewire\Warehouse\ProductionMachine;
 use App\Livewire\Finance\Index as FinanceIndex;
 use App\Livewire\Reports\WeeklyProductionReport;
 use App\Http\Controllers\ImpersonationController;

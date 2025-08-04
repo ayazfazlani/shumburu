@@ -28,7 +28,6 @@ class ProductionOrder extends Model
   ];
 
   protected $casts = [
-    'quantity' => 'decimal:2',
     'requested_date' => 'date',
     'production_start_date' => 'date',
     'production_end_date' => 'date',
@@ -63,6 +62,11 @@ class ProductionOrder extends Model
   public function payments(): HasMany
   {
     return $this->hasMany(Payment::class);
+  }
+
+  public function deliveries(): HasMany
+  {
+    return $this->hasMany(Delivery::class);
   }
 
   public function items(): HasMany
