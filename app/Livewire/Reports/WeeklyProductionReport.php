@@ -53,8 +53,11 @@ class WeeklyProductionReport extends Component
         $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
         $products = Product::select('id', 'name')->orderBy('name')->get();
 
-        // Get quality report data for this period
-        $qualityReport = QualityReport::forPeriod($this->startDate, $this->endDate, 'weekly')->first();
+        // Get quality report data for this period ONLY if there's production data
+        $qualityReport = null;
+        if ($finishedGoods->count() > 0) {
+            $qualityReport = QualityReport::forPeriod($this->startDate, $this->endDate, 'weekly')->first();
+        }
 
         return view('livewire.reports.weekly-production-report', [
             'lengths' => $lengths,

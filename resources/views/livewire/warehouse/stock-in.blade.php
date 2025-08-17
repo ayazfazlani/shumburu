@@ -220,6 +220,9 @@
     </div>
 
     <div class="container">
+        <div class="mb-4">
+            <h2 class="text-2xl font-bold text-primary">Stock In Records</h2>
+        </div>
         <div class="overflow-x-auto">
             <table class="table table-zebra">
                 <!-- head -->
@@ -241,7 +244,7 @@
                             <td>{{ $item->rawMaterial->name }}</td>
                             <td>{{ round($item->quantity, 2) }} -kg</td>
                             <td>{{ $item->batch_number }}</td>
-                            <td>{{ $item->received_date }}</td>
+                            <td>{{ Carbon\Carbon::parse($item->received_date)->format('d-m-Y') }}</td>
                             <td>{{ $item->receivedBy->name }}</td>
                             <td>{{ $item->notes }}</td>
                         </tr>
@@ -250,11 +253,13 @@
 
                 </tbody>
             </table>
-            <div class="join float-end">
-                <button class="join-item btn">1</button>
-                <button class="join-item btn btn-active">2</button>
-                <button class="join-item btn">3</button>
-                <button class="join-item btn">4</button>
+            <div class="flex justify-between items-center mt-4">
+                <div class="text-sm text-base-content/70">
+                    Showing {{ $stockIns->firstItem() ?? 0 }} to {{ $stockIns->lastItem() ?? 0 }} of {{ $stockIns->total() }} entries
+                </div>
+                <div class="join">
+                    {{ $stockIns->links() }}
+                </div>
             </div>
         </div>
     </div>

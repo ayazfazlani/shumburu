@@ -2,19 +2,24 @@
 
 namespace App\Livewire\Warehouse;
 
-use App\Models\MaterialStockIn;
-use App\Models\RawMaterial;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\RawMaterial;
+use Livewire\WithPagination;
+
+use App\Models\MaterialStockIn;
+use Illuminate\Support\Facades\Auth;
 
 class StockIn extends Component
 {
+  use WithPagination;
+  
+  protected $paginationTheme = 'tailwind';
+  
   public $raw_material_id;
   public $quantity;
   public $batch_number;
   public $received_date;
   public $notes;
-  public $stockIns;
   protected $rules = [
     'raw_material_id' => 'required|exists:raw_materials,id',
     'quantity' => 'required|numeric|min:0.001',
@@ -26,8 +31,7 @@ class StockIn extends Component
   public function mount()
   {
     $this->received_date = now()->format('Y-m-d');
-    $this->stockIns = MaterialStockIn::with('RawMaterial')->get();
-    // dd($this->stockIns);
+    // Remove manual stockIns assignment - let render() handle it
   }
 
   public function save()
@@ -54,14 +58,23 @@ class StockIn extends Component
     session()->flash('message', 'Material stock-in recorded successfully.');
 
     $this->reset(['raw_material_id', 'quantity', 'batch_number', 'notes']);
+    
+    // Reset to first page to show the new record
+    $this->resetPage();
   }
 
   public function render()
   {
+    // Get raw materials for the dropdown (not stock ins)
     $rawMaterials = RawMaterial::where('is_active', true)->get();
-
+    
+    // Get stock ins with pagination (don't call toArray())
+    $stockIns = MaterialStockIn::with('rawMaterial', 'receivedBy')->paginate(10);
+    // dd($stockIns);
+    
     return view('livewire.warehouse.stock-in', [
-      'rawMaterials' => $rawMaterials,
+      'rawMaterials' => $rawMaterials, 
+      'stockIns' => $stockIns,
     ]);
   }
 }

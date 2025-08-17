@@ -70,13 +70,16 @@
                 </flux:navlist.item>
 
                  <flux:navlist.group heading="Reports" class="grid">
-                <flux:navlist.item icon="layout-grid" href="{{ route('reports.weekly') }}">
-                    Weekly
+                <flux:navlist.item icon="calendar-days" href="{{ route('sales.daily-sales-report') }}">
+                    Daily Report
                 </flux:navlist.item>
-                <flux:navlist.item icon="layout-grid" href="{{ route('reports.monthly') }}">
-                    Monthly
+                <flux:navlist.item icon="calendar" href="{{ route('sales.weekly-sales-report') }}">
+                    Weekly Report
                 </flux:navlist.item>
-                <flux:navlist.item icon="layout-grid" href="{{ route('reports.raw-material-stock-balance') }}">
+                <flux:navlist.item icon="calendar" href="{{ route('sales.monthly-sales-report') }}">
+                    Monthly Report
+                </flux:navlist.item>
+                <flux:navlist.item icon="scale" href="{{ route('reports.raw-material-stock-balance') }}">
                     Raw Material Balance
                 </flux:navlist.item>
                  </flux:navlist.group>
@@ -128,6 +131,12 @@
                 {{-- <flux:navlist.item icon="save" href="{{ route('finance.waste-report') }}">
                     Waste Report
                 </flux:navlist.item> --}}
+            </flux:navlist.group>
+
+            <flux:navlist.group heading="Settings" class="grid">
+                <flux:navlist.item icon="clipboard-document-list" href="{{ route('settings.quality-reports') }}">
+                    Quality Reports
+                </flux:navlist.item>
             </flux:navlist.group>
         </flux:navlist>
 

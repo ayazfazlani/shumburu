@@ -127,8 +127,11 @@ class OrdersOverview extends Component
 
     public function addDelivery($orderId)
     {
-        $this->selectedOrder = ProductionOrder::with(['items.product'])->findOrFail($orderId);
-        $this->showDeliveryModal = true;
+        // $this->selectedOrder = ProductionOrder::with(['items.product'])->findOrFail($orderId);
+        $order = ProductionOrder::findOrFail($orderId);
+         $order->update(['status' => 'delivered']);
+         $this->mount();
+        // $this->showDeliveryModal = true;
     }
 
     public function saveDelivery()

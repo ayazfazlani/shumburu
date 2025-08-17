@@ -108,28 +108,48 @@
         </table>
     </div>
     <div class="mt-4 text-xs">
-        <div class="font-semibold underline mb-1">Comment of Quality</div>
-        <div class="mb-2">In this month all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
-        <div class="font-semibold underline mb-1">Problems:</div>
-        <ul class="list-disc pl-5 mb-2">
-            <li>Example: 160mm PN10 products had a problem of weight (over from standard), thickness, high difference between maximum and minimum thickness value, internal roughness, length and fading of blue stripe, power outage.</li>
-            <!-- Add more problems as needed -->
-        </ul>
-        <div class="font-semibold underline mb-1">Corrective action:</div>
-        <div class="mb-2">Most of the problems were solved or minimized by communicating with the shift leader and operator. However, the weight problem was reduced but not eliminated because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products.</div>
-        <div class="font-semibold underline mb-1">Remark:</div>
-        <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
+        @if($qualityReport)
+            <div class="font-semibold underline mb-1">Comment of Quality</div>
+            <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this month all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
+            
+            @if($qualityReport->problems)
+                <div class="font-semibold underline mb-1">Problems:</div>
+                <div class="mb-2">{!! nl2br(e($qualityReport->problems)) !!}</div>
+            @endif
+            
+            @if($qualityReport->corrective_actions)
+                <div class="font-semibold underline mb-1">Corrective action:</div>
+                <div class="mb-2">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
+            @endif
+            
+            @if($qualityReport->remarks)
+                <div class="font-semibold underline mb-1">Remark:</div>
+                <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
+            @endif
+        @else
+            <div class="font-semibold underline mb-1">Comment of Quality</div>
+            <div class="mb-2">In this month all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
+            <div class="font-semibold underline mb-1">Problems:</div>
+            <ul class="list-disc pl-5 mb-2">
+                <li>Example: 160mm PN10 products had a problem of weight (over from standard), thickness, high difference between maximum and minimum thickness value, internal roughness, length and fading of blue stripe, power outage.</li>
+                <!-- Add more problems as needed -->
+            </ul>
+            <div class="font-semibold underline mb-1">Corrective action:</div>
+            <div class="mb-2">Most of the problems were solved or minimized by communicating with the shift leader and operator. However, the weight problem was reduced but not eliminated because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products.</div>
+            <div class="font-semibold underline mb-1">Remark:</div>
+            <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
+        @endif
     </div>
     <div class="mt-6 flex flex-wrap justify-between text-xs">
         <div>
-            <div class="mb-1">Prepared by <span class="underline">Yohannes Choma</span></div>
-            <div>Checked by <span class="underline">Yeshiamb A.</span></div>
-            <div>Approved by <span class="underline">Aschalew</span></div>
+            <div class="mb-1">Prepared by <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
+            <div>Checked by <span class="underline">{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</span></div>
+            <div>Approved by <span class="underline">{{ $qualityReport->approved_by ?? 'Aschalew' }}</span></div>
         </div>
         <div class="text-right">
-            <div>Date <span class="underline">{{ now()->format('d-m-Y') }}</span></div>
-            <div>Date <span class="underline">{{ now()->format('d-m-Y') }}</span></div>
-            <div>Date <span class="underline">{{ now()->format('d-m-Y') }}</span></div>
+            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
+            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
+            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
         </div>
     </div>
 </div> 

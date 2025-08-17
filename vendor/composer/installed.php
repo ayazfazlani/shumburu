@@ -5,7 +5,7 @@
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '9d081d2a63d3c6d433d306f4c865c67c85be4dc1',
+        'reference' => '7a59cc8fab410471992469c70a7940cbbff6d57d',
         'name' => 'mortenebak/tallstarter',
         'dev' => true,
     ),
@@ -18,6 +18,15 @@
             'aliases' => array(),
             'reference' => 'c0667ea91f7185f1e074402c5788195e96bf8106',
             'dev_requirement' => true,
+        ),
+        'barryvdh/laravel-dompdf' => array(
+            'pretty_version' => 'v3.1.1',
+            'version' => '3.1.1.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../barryvdh/laravel-dompdf',
+            'aliases' => array(),
+            'reference' => '8e71b99fc53bb8eb77f316c3c452dd74ab7cb25d',
+            'dev_requirement' => false,
         ),
         'barryvdh/laravel-ide-helper' => array(
             'pretty_version' => 'v3.5.5',
@@ -128,6 +137,33 @@
             'install_path' => __DIR__ . '/../doctrine/lexer',
             'aliases' => array(),
             'reference' => '31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd',
+            'dev_requirement' => false,
+        ),
+        'dompdf/dompdf' => array(
+            'pretty_version' => 'v3.1.0',
+            'version' => '3.1.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../dompdf/dompdf',
+            'aliases' => array(),
+            'reference' => 'a51bd7a063a65499446919286fb18b518177155a',
+            'dev_requirement' => false,
+        ),
+        'dompdf/php-font-lib' => array(
+            'pretty_version' => '1.0.1',
+            'version' => '1.0.1.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../dompdf/php-font-lib',
+            'aliases' => array(),
+            'reference' => '6137b7d4232b7f16c882c75e4ca3991dbcf6fe2d',
+            'dev_requirement' => false,
+        ),
+        'dompdf/php-svg-lib' => array(
+            'pretty_version' => '1.0.0',
+            'version' => '1.0.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../dompdf/php-svg-lib',
+            'aliases' => array(),
+            'reference' => 'eb045e518185298eb6ff8d80d0d0c6b17aecd9af',
             'dev_requirement' => false,
         ),
         'dragonmantank/cron-expression' => array(
@@ -637,6 +673,15 @@
             'reference' => 'ba3e609fd4c71f8b5783f024baf51715e48e93a6',
             'dev_requirement' => false,
         ),
+        'masterminds/html5' => array(
+            'pretty_version' => '2.10.0',
+            'version' => '2.10.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../masterminds/html5',
+            'aliases' => array(),
+            'reference' => 'fcf91eb64359852f00d921887b219479b4f21251',
+            'dev_requirement' => false,
+        ),
         'mockery/mockery' => array(
             'pretty_version' => '1.6.12',
             'version' => '1.6.12.0',
@@ -661,7 +706,7 @@
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '9d081d2a63d3c6d433d306f4c865c67c85be4dc1',
+            'reference' => '7a59cc8fab410471992469c70a7940cbbff6d57d',
             'dev_requirement' => false,
         ),
         'mtdowling/cron-expression' => array(
@@ -1033,8 +1078,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
@@ -1102,6 +1147,15 @@
             'replaced' => array(
                 0 => '4.8.1',
             ),
+        ),
+        'sabberworm/php-css-parser' => array(
+            'pretty_version' => 'v8.9.0',
+            'version' => '8.9.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sabberworm/php-css-parser',
+            'aliases' => array(),
+            'reference' => 'd8e916507b88e389e26d4ab03c904a082aa66bb9',
+            'dev_requirement' => false,
         ),
         'sebastian/cli-parser' => array(
             'pretty_version' => '3.0.2',

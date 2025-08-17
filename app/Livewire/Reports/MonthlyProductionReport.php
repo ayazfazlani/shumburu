@@ -54,8 +54,11 @@ class MonthlyProductionReport extends Component
         $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
         $products = Product::select('id', 'name')->orderBy('name')->get();
 
-        // Get quality report data for this month
-        $qualityReport = QualityReport::forMonth($this->month, 'monthly')->first();
+        // Get quality report data for this month ONLY if there's production data
+        $qualityReport = null;
+        if ($finishedGoods->count() > 0) {
+            $qualityReport = QualityReport::forMonth($this->month, 'monthly')->first();
+        }
 
         return view('livewire.reports.monthly-production-report', [
             'lengths' => $lengths,

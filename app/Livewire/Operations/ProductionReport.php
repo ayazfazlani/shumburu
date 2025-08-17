@@ -6,6 +6,7 @@ use App\Models\FinishedGood;
 use App\Models\MaterialStockOutLine;
 use App\Models\Product;
 use App\Models\ProductionLine;
+use App\Models\QualityReport;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -104,6 +105,12 @@ class ProductionReport extends Component
     $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
     $products = Product::select('id', 'name')->orderBy('name')->get();
 
+    // Get quality report data for this date ONLY if there's production data
+    $qualityReport = null;
+    if ($finishedGoods->count() > 0) {
+        $qualityReport = QualityReport::forDate($this->date, 'daily')->first();
+    }
+
     return view('livewire.operations.production-report', [
         'lengths' => $lengths,
         'grouped' => $grouped,
@@ -113,6 +120,7 @@ class ProductionReport extends Component
         'products' => $products,
         'shift' => $this->shift,
         'product_id' => $this->product_id,
+        'qualityReport' => $qualityReport,
     ]);
 }
 }

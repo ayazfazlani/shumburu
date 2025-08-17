@@ -90,6 +90,10 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/deliveries', \App\Livewire\Sales\Deliveries::class)->name('deliveries');
         Route::get('/payments', \App\Livewire\Sales\Payments::class)->name('payments');
         Route::get('/reports', \App\Livewire\Sales\Reports::class)->name('reports');
+        Route::get('/daily-sales-report', \App\Livewire\Sales\DailySalesReport::class)->name('daily-sales-report');
+        Route::get('/weekly-sales-report', \App\Livewire\Sales\WeeklySalesReport::class)->name('weekly-sales-report');
+        Route::get('/monthly-sales-report', \App\Livewire\Sales\MonthlySalesReport::class)->name('monthly-sales-report');
+        Route::get('/sales-reports-dashboard', \App\Livewire\Sales\SalesReportsDashboard::class)->name('sales-reports-dashboard');
     });
 
     // Finance Management
@@ -130,6 +134,9 @@ Route::get('test',TestReportComponent::class);
 Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
 Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
 Route::get('/reports/raw-material-stock-balance', RawMaterialStockBalanceReport::class)->name('reports.raw-material-stock-balance');
+
+// Quality Report Management
+Route::get('/settings/quality-reports', \App\Livewire\Settings\QualityReportManager::class)->name('settings.quality-reports');
 
 
 // order item route with production order id

@@ -12,7 +12,9 @@ class QualityReportManager extends Component
     use WithPagination;
 
     public $showForm = false;
+    public $showDeleteModal = false;
     public $editingId = null;
+    public $deleteId = null;
     
     // Form fields
     public $report_type = 'weekly';
@@ -102,10 +104,24 @@ class QualityReportManager extends Component
         $this->showForm = false;
     }
 
-    public function delete($id)
+    public function confirmDelete($id)
     {
-        QualityReport::findOrFail($id)->delete();
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteConfirmed()
+    {
+        QualityReport::findOrFail($this->deleteId)->delete();
         session()->flash('message', 'Quality report deleted successfully.');
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+    }
+
+    public function cancelDelete()
+    {
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
     }
 
     public function cancel()
@@ -117,6 +133,8 @@ class QualityReportManager extends Component
     private function resetForm()
     {
         $this->editingId = null;
+        $this->deleteId = null;
+        $this->showDeleteModal = false;
         $this->report_type = 'weekly';
         $this->start_date = Carbon::now()->startOfWeek()->toDateString();
         $this->end_date = Carbon::now()->endOfWeek()->toDateString();

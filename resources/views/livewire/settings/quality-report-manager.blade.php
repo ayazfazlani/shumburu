@@ -14,18 +14,9 @@
 
     <!-- Form Modal -->
     @if($showForm)
-        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg w-full max-w-4xl max-h-screen overflow-y-auto">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-semibold">
-                        {{ $editingId ? 'Edit' : 'Create' }} Quality Report
-                    </h3>
-                    <button wire:click="cancel" class="btn btn-ghost">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <form wire:submit.prevent="save">
+        <dialog id="quality-report-modal" class="modal" open>
+            <form method="dialog" class="modal-box w-full max-w-4xl max-h-screen overflow-y-auto" wire:submit.prevent="save">
+                <h3 class="font-bold text-lg mb-4">{{ $editingId ? 'Edit' : 'Create' }} Quality Report</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <div>
                             <label class="label">Report Type</label>
@@ -104,20 +95,19 @@
                         </label>
                     </div>
 
-                    <div class="flex justify-end gap-2">
+                    <div class="modal-action">
                         <button type="button" wire:click="cancel" class="btn btn-ghost">Cancel</button>
                         <button type="submit" class="btn btn-primary">
                             {{ $editingId ? 'Update' : 'Create' }}
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-    @endif
+            </dialog>
+        @endif
 
     <!-- Quality Reports Table -->
     <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
+        <table class="table w-full">
             <thead>
                 <tr>
                     <th>Report Type</th>
@@ -125,7 +115,7 @@
                     <th>Quality Comment</th>
                     <th>Problems</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="text-right">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -151,24 +141,15 @@
                                 {{ $report->is_active ? 'Active' : 'Inactive' }}
                             </span>
                         </td>
-                        <td>
-                            <div class="flex gap-2">
-                                <button wire:click="edit({{ $report->id }})" class="btn btn-sm btn-info">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button wire:click="delete({{ $report->id }})" 
-                                        class="btn btn-sm btn-error"
-                                        onclick="return confirm('Are you sure you want to delete this quality report?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                        <td class="text-right flex gap-2 justify-end">
+                            <button wire:click="edit({{ $report->id }})" class="btn btn-sm btn-outline">Edit</button>
+                            <button wire:click="confirmDelete({{ $report->id }})" 
+                                    class="btn btn-sm btn-error">Delete</button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center py-4 text-gray-500">
-                            No quality reports found. Click "Add Quality Report" to create one.
-                        </td>
+                        <td colspan="6" class="text-center text-gray-400 py-6">No quality reports found. Click "Add Quality Report" to create one.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -178,4 +159,18 @@
     <div class="mt-4">
         {{ $qualityReports->links() }}
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    @if($showDeleteModal)
+        <dialog id="delete-modal" class="modal" open>
+            <form method="dialog" class="modal-box">
+                <h3 class="font-bold text-lg">Delete Quality Report</h3>
+                <p class="py-4">Are you sure you want to delete this quality report? This action cannot be undone.</p>
+                <div class="modal-action">
+                    <button type="button" wire:click="cancelDelete" class="btn btn-ghost">Cancel</button>
+                    <button type="button" wire:click="deleteConfirmed" class="btn btn-error">Delete</button>
+                </div>
+            </form>
+        </dialog>
+    @endif
 </div> 

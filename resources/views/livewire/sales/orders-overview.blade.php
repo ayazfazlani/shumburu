@@ -95,7 +95,7 @@
                     </thead>
                     <tbody>
                         @forelse($orders as $order)
-                            <tr>
+                            <tr wire:key={$order->id}>
                                 <td>
                                     <div class="font-medium">{{ $order->order_number }}</div>
                                 </td>
@@ -137,7 +137,7 @@
                                         <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
                                             <li><a wire:click="viewOrderDetails({{ $order->id }})">View Details</a></li>
                                             <li><a wire:click="addPayment({{ $order->id }})">Add Payment</a></li>
-                                            <li><a wire:click="addDelivery({{ $order->id }})">Add Delivery</a></li>
+                                            <li><a wire:click="addDelivery({{ $order->id }})">Mark as Delivered</a></li>
                                             @if($order->status === 'pending')
                                                 <li><a wire:click="updateOrderStatus({{ $order->id }}, 'approved')">Approve</a></li>
                                             @endif
@@ -218,7 +218,7 @@
                             <tbody>
                                 @foreach($selectedOrder->items as $item)
                                     <tr>
-                                        <td>{{ $item->product->name }}</td>
+                                        {{-- <td>{{ $item->product->name }}</td> --}}
                                         <td>{{ $item->quantity }} {{ $item->unit }}</td>
                                         <td>{{ number_format($item->unit_price, 2) }}</td>
                                         <td>{{ number_format($item->total_price, 2) }}</td>
@@ -276,7 +276,7 @@
                                     @foreach($selectedOrder->deliveries as $delivery)
                                         <tr>
                                             <td>{{ $delivery->delivery_date->format('M d, Y') }}</td>
-                                            <td>{{ $delivery->product->name }}</td>
+                                            {{-- <td>{{ $delivery->product->name }}</td> --}}
                                             <td>{{ $delivery->quantity }}</td>
                                             <td>{{ number_format($delivery->total_amount, 2) }}</td>
                                         </tr>
@@ -359,7 +359,7 @@
                 <div class="mb-4 p-3 bg-base-200 rounded">
                     <div><strong>Order:</strong> {{ $selectedOrder->order_number }}</div>
                     <div><strong>Customer:</strong> {{ $selectedOrder->customer->name }}</div>
-                    <div><strong>Product:</strong> {{ $selectedOrder->items->first()->product->name ?? 'N/A' }}</div>
+                    {{-- <div><strong>Product:</strong> {{ $selectedOrder->items->first()->product->name ?? 'N/A' }}</div> --}}
                 </div>
             @endif
 
