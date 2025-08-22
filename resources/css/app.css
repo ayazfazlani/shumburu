@@ -73,3 +73,4 @@ select:focus[data-flux-control] {
 @source "../../storage/framework/views/*.php";
 
 @plugin "daisyui";
+

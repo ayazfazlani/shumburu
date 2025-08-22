@@ -20,6 +20,7 @@ return new class extends Migration
       $table->string('surface')->nullable();
       $table->decimal('thickness', 6, 3)->nullable();
       $table->decimal('ovality', 5, 3)->nullable();
+      $table->string('stripe_color')->nullable();
       $table->string('batch_number');
       $table->date('production_date');
       $table->enum('purpose', ['for_stock', 'for_customer_order'])->default('for_stock');

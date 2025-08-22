@@ -28,7 +28,9 @@ class Index extends Component
       ->latest()
       ->paginate(10);
 
-    $wasteRecords = ScrapWaste::with(['rawMaterial', 'recordedBy'])
+    $wasteRecords = ScrapWaste::with([
+      // 'rawMaterial',
+       'recordedBy'])
       ->latest()
       ->paginate(10);
 

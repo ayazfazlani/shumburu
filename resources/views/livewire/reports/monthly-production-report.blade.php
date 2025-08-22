@@ -35,6 +35,14 @@
                 @endforeach
             </select>
         </div>
+         <div class="flex gap-2">
+            <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                Export PDF
+            </button>
+            {{-- <button wire:click="printReport" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">
+                Print
+            </button> --}}
+        </div>
     </div>
     <div class="overflow-x-auto mt-2">
         <table class="w-full text-xs border border-collapse border-black">

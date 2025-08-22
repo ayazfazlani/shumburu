@@ -69,7 +69,7 @@
                                 @foreach ($materialUsage as $index => $item)
                                     <tr>
                                         <td>{{ $materialUsage->firstItem() + $index }}</td>
-                                        <td>{{ $item->rawMaterial->name ?? '-' }}</td>
+                                        {{-- <td>{{ $item->rawMaterial->name ?? '-' }}</td> --}}
                                         <td>{{ $item->issuedBy->name ?? '-' }}</td>
                                         <td>{{ $item->quantity }}</td>
                                         <td><span class="badge badge-info">{{ ucfirst($item->status) }}</span></td>

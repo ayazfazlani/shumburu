@@ -2,12 +2,13 @@
 
 namespace App\Livewire\Reports;
 
-use Livewire\Component;
 use Carbon\Carbon;
-use App\Models\FinishedGood;
 use App\Models\Product;
-use App\Models\MaterialStockOutLine;
+use Livewire\Component;
+use App\Models\FinishedGood;
 use App\Models\QualityReport;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\MaterialStockOutLine;
 
 class WeeklyProductionReport extends Component
 {
@@ -69,5 +70,59 @@ class WeeklyProductionReport extends Component
             'products' => $products,
             'qualityReport' => $qualityReport,
         ]);
+    }
+
+    public function exportToPdf(){
+
+        $finishedGoods = FinishedGood::with(['product', 'materialStockOutLines.materialStockOut.rawMaterial'])
+            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->when($this->shift, function($query) {
+                $query->whereHas('materialStockOutLines', function($q) {
+                    $q->where('shift', $this->shift);
+                });
+            })
+            ->when($this->product_id, function($query) {
+                $query->where('product_id', $this->product_id);
+            })
+            ->when($this->raw_material, function($query) {
+                $query->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($q) {
+                    $q->where('name', $this->raw_material);
+                });
+            })
+            ->get();
+
+        // Grouping and calculations (placeholder)
+        $grouped = $finishedGoods->groupBy([
+            fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown',
+            fn($item) => $item->product->name ?? 'Unknown',
+            'size'
+        ]);
+
+        $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
+        $products = Product::select('id', 'name')->orderBy('name')->get();
+
+        // Get quality report data for this period ONLY if there's production data
+        $qualityReport = null;
+        if ($finishedGoods->count() > 0) {
+            $qualityReport = QualityReport::forPeriod($this->startDate, $this->endDate, 'weekly')->first();
+        }
+
+        $data = [
+            'lengths' => $lengths,
+            'grouped' => $grouped,
+            'finishedGoods' => $finishedGoods,
+            'startDate' => $this->startDate,
+            'endDate' => $this->endDate,
+            'shifts' => $shifts,
+            'products' => $products,
+            'qualityReport' => $qualityReport,
+        ];
+
+        $pdf = Pdf::loadView('livewire.operations.exports.weekly-producton-report',$data)->setPaper('a4','landscape');
+
+        return response()->streamDownload(function ()  use ($pdf){
+            echo $pdf->output();
+        },"weekly-production-report.pdf");
     }
 } 

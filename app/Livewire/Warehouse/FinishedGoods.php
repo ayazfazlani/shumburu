@@ -33,6 +33,7 @@ class FinishedGoods extends Component
   public $Surface;
   public $thickness;
   public $ovality;
+  public $stripeColor;
 
   // Removed: material_stock_out_id, production_line_id, quantity_used
 
@@ -50,14 +51,17 @@ class FinishedGoods extends Component
     'outerDiameter' => 'nullable|numeric',
     'Surface' => 'nullable|string',
     'thickness' => 'nullable|string',
-    'ovality' => 'nullable|string'
+    'ovality' => 'nullable|string',
+    'stripeColor' => 'nullable|string'
   ];
 
   public function mount()
   {
     $this->type = 'roll';
     $this->production_date = now()->format('Y-m-d');
-    $this->finishedGoods = FinishedGood::with('product')->get();
+    $this->finishedGoods = FinishedGood::with([
+      'product'
+      ])->get();
   }
 
   public function updatedPurpose()
@@ -94,7 +98,8 @@ class FinishedGoods extends Component
       'outer_diameter'=> $this->outerDiameter,
       'surface' => $this->Surface,
       'thickness' => $this->thickness,
-      'ovality' => $this->ovality
+      'ovality' => $this->ovality,
+      'stripe_color' => $this->stripeColor
     ]);
     session()->flash('message', 'Finished goods recorded successfully.');
     $this->reset(['product_id', 'type', 'length_m', 'quantity', 'batch_number', 'customer_id', 'notes']);

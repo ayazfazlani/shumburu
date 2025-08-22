@@ -33,6 +33,16 @@
                     <option value="{{ $product->id }}">{{ $product->name }}</option>
                 @endforeach
             </select>
+            {{-- export to pdf  --}}
+            
+        </div>
+         <div class="flex gap-2">
+            <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                Export PDF
+            </button>
+            {{-- <button wire:click="printReport" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">
+                Print
+            </button> --}}
         </div>
         <div><span class="font-semibold">page 1 of 1</span></div>
     </div>

@@ -96,7 +96,13 @@
                     Waste Report
                 </flux:navlist.item>
                 <flux:navlist.item icon="shield" href="{{ route('operations.production-report') }}">
-                    Production Report
+                    Daily Production Report
+                </flux:navlist.item>
+                <flux:navlist.item icon="shield" href="{{ route('operations.reports.weekly') }}">
+                    Weekly Production Report
+                </flux:navlist.item>
+                 <flux:navlist.item icon="shield" href="{{ route('operations.reports.monthly') }}">
+                    Monthly Production Report
                 </flux:navlist.item>
             </flux:navlist.group>
 

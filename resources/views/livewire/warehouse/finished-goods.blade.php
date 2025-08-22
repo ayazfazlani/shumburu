@@ -141,6 +141,32 @@
                                         </label>
                                     @enderror
                                 </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Ovality *</span>
+                                    </label>
+                                    <input type="text" wire:model="ovality"
+                                        class="input input-bordered w-full @error('ovality') input-error @enderror"
+                                        placeholder="Enter Ovality" />
+                                    @error('ovality')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Stripe color</span>
+                                    </label>
+                                    <input type="text" wire:model="stripeColor"
+                                        class="input input-bordered w-full @error('stripeColor') input-error @enderror"
+                                        placeholder="Enter stripe color" />
+                                    @error('stripeColor')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
                             </div>
                             <div class="form-control">
                                 <label class="label">
@@ -275,6 +301,8 @@
                         <th>Quantity</th>
                         <th>Toal Weight</th>
                         <th>Batch No</th>
+                        <th>Ovality</th>
+                        <th>Stripe Color</th>
                         <th>Production Date</th>
                         <th>Purpose</th>
                         <th>Note</th>
@@ -291,6 +319,8 @@
                             <td>{{ $item->quantity }} pieces</td>
                              <td>{{ $item->total_weight }}</td>
                             <td>{{ $item->batch_number }}</td>
+                            <td>{{ $item->ovality }}</td>
+                            <td>{{ $item->stripe_color }}</td>
                             <td>{{ $item->production_date }}</td>
                             <td>{{ $item->purpose }}</td>
                             <td>{{ $item->notes }}</td>

@@ -39,12 +39,12 @@ use App\Livewire\Reports\RawMaterialStockBalanceReport;
 use App\Livewire\Warehouse\FinishedGoodMaterialStockOutLineCrud;
 use App\Livewire\Operations\WasteReport as OperationsWasteReport;
 
-Route::get('/', \App\Livewire\Home::class)->name('home');
 
-Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth'])->group(function (): void {
+    Route::get('/', \App\Livewire\Home::class)->name('home');
 
+    Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
     // Impersonations
     Route::post('/impersonate/{user}', [ImpersonationController::class, 'store'])->name('impersonate.store');
     Route::delete('/impersonate/stop', [ImpersonationController::class, 'destroy'])->name('impersonate.destroy');
@@ -79,7 +79,12 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/', \App\Livewire\Operations\Index::class)->name('index');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');
+        //daily production report
         Route::get('/production-report', \App\Livewire\Operations\ProductionReport::class)->name('production-report');
+        //weekly and monthly production report
+        Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
+        //monthly production report
+        Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
     });
 
     // Sales Management
@@ -131,8 +136,7 @@ Route::middleware(['auth'])->group(function (): void {
 
 
 Route::get('test',TestReportComponent::class);
-Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
-Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
+
 Route::get('/reports/raw-material-stock-balance', RawMaterialStockBalanceReport::class)->name('reports.raw-material-stock-balance');
 
 // Quality Report Management
