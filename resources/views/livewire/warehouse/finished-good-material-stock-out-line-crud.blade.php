@@ -8,9 +8,10 @@
                 <label class="block font-semibold mb-1">Finished Good</label>
                 <select wire:model="finished_good_id" class="form-select w-full">
                     <option value="">Select Finished Good</option>
+                    {{ $count = 1 }}
                     @foreach($finishedGoods as $fg)
                         <option value="{{ $fg->id }}">
-                            #{{ $fg->id }} - {{ $fg->product->name ?? 'N/A' }} | Type: {{ $fg->type ?? '-' }} | Batch: {{ $fg->batch_number ?? '-' }}
+                            #{{ $count++ }} - {{ $fg->product->name ?? 'N/A' }} | Type: {{ $fg->type ?? '-' }} | Batch: {{ $fg->batch_number ?? '-' }}
                         </option>
                     @endforeach
                 </select>
@@ -20,9 +21,10 @@
                 <label class="block font-semibold mb-1">Material Stock Out Line</label>
                 <select wire:model="material_stock_out_line_id" class="form-select w-full">
                     <option value="">Select Stock Out Line</option>
+                    {{ $count2 = 1 }}
                     @foreach($stockOutLines as $line)
                         <option value="{{ $line->id }}">
-                            #{{ $line->id }} - {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }} | Batch: {{ $line->materialStockOut->batch_number ?? '-' }} | Line: {{ $line->productionLine->name ?? '-' }}
+                            #{{ $count2++ }} - {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }} | Batch: {{ $line->materialStockOut->batch_number ?? '-' }} | Line: {{ $line->productionLine->name ?? '-' }}
                         </option>
                     @endforeach
                 </select>
@@ -55,7 +57,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($links as $link)
+                @foreach($records as $link)
                     <tr>
                         <td>
                             @php $fg = $link->finishedGood; @endphp
@@ -86,5 +88,7 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{ $records->links('components.pagination') }}
     </div>
 </div> 

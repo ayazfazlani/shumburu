@@ -81,7 +81,7 @@ class MaterialStockOutLineCrud extends Component
     public function render()
     {
         $this->mount();
-        $stockOuts = MaterialStockOut::with('rawMaterial')->get();
+        $stockOuts = MaterialStockOut::with('rawMaterial')->latest()->take(5)->get();
         $this->lines = ProductionLine::all();
         return view('livewire.warehouse.material-stock-out-line-crud', [
             'stockOuts' => $stockOuts,

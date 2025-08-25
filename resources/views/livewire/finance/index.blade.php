@@ -282,9 +282,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($scrapWaste->take(5) as $scrap)
+                                @forelse($scrapWaste as $scrap)
                                     <tr>
-                                        <td>
+                                        {{-- <td>
                                             <div class="flex items-center space-x-3">
                                                 <div class="avatar placeholder">
                                                     <div class="bg-error text-error-content rounded-full w-8">
@@ -298,11 +298,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        </td>
+                                        </td> --}}
                                         <td class="font-mono">{{ number_format($scrap->quantity, 3) }}</td>
                                         <td><span class="badge badge-error badge-outline">{{ $scrap->reason }}</span>
                                         </td>
-                                        <td>{{ $scrap->waste_date->format('M d, Y') }}</td>
+                                        <td>{{ Carbon\carbon::make($scrap->waste_date)->format('M d, Y') }}</td>
                                         <td>{{ $scrap->recordedBy->name }}</td>
                                     </tr>
                                 @empty

@@ -12,7 +12,7 @@ class RolesCrud extends Component
   use WithPagination;
 
   public $search = '';
-  public $perPage = 10;
+  public $perPage = 5;
 
   public $showModal = false;
   public $isEdit = false;
@@ -32,7 +32,7 @@ class RolesCrud extends Component
   {
     $roles = Role::with('permissions')
       ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-      ->orderBy('id', 'desc')
+      ->orderBy('id', 'asc')
       ->paginate($this->perPage);
     $permissions = Permission::all();
     return view('livewire.admin.roles-crud', [

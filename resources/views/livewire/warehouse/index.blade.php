@@ -76,20 +76,24 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            @can('can perform material stock in')
             <a href="{{ route('warehouse.stock-in') }}" class="btn btn-primary btn-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 Stock In
-            </a>
+            </a>                        
+            @endcan
+            @can('can perform material stock out')
             <a href="{{ route('warehouse.stock-out') }}" class="btn btn-secondary btn-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                 </svg>
                 Stock Out
             </a>
-            <a href="{{ route('warehouse.production.create') }}" class="btn btn-success btn-lg">
+            @endcan
+            {{-- <a href="{{ route('warehouse.production.create') }}" class="btn btn-success btn-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -102,7 +106,8 @@
                         d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
                 Production Records
-            </a>
+            </a> --}}
+            @can('can record finished goods')
             <a href="{{ route('warehouse.finished-goods') }}" class="btn btn-accent btn-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -110,6 +115,8 @@
                 </svg>
                 Finished Goods
             </a>
+            @endcan
+            @can('can see scrap waste')
             <a href="{{ route('warehouse.scrap-wastes') }}" class="btn btn-warning btn-lg">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -118,6 +125,7 @@
                 </svg>
                 Scrap/Waste
             </a>
+            @endcan
         </div>
 
         <!-- Recent Activity Tabs -->

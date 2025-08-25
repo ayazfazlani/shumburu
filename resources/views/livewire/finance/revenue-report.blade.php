@@ -16,9 +16,9 @@
                     @foreach ($payments as $payment)
                         <tr>
                             <td>{{ $payment->customer->name ?? '-' }}</td>
-                            <td>{{ $payment->delivery->id ?? '-' }}</td>
+                            <td>{{ $payment->productionOrder->order_number ?? '-' }}</td>
                             <td>{{ $payment->amount }}</td>
-                            <td>{{ $payment->payment_date }}</td>
+                            <td>{{ Carbon\Carbon::make($payment->payment_date)->format('d M Y') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -36,6 +36,7 @@
                         <th>Customer</th>
                         <th>Product</th>
                         <th>Quantity</th>
+                        {{-- <th>Status</th> --}}
                         <th>Batch</th>
                         <th>Date</th>
                     </tr>
@@ -47,13 +48,14 @@
                             <td>{{ $delivery->customer->name ?? '-' }}</td>
                             <td>{{ $delivery->product->name ?? '-' }}</td>
                             <td>{{ $delivery->quantity }}</td>
+                            {{-- <td>{{ $delivery->status }}</td> --}}
                             <td>{{ $delivery->batch_number }}</td>
-                            <td>{{ $delivery->delivery_date }}</td>
+                            <td>{{ Carbon\Carbon::make($delivery->delivery_date)->format('d M Y') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-        <div class="mt-2">{{ $deliveries->links() }}</div>
+        <div class="mt-2">{{ $deliveries->links('components.pagination') }}</div>
     </div>
 </div>

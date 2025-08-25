@@ -8,9 +8,11 @@
                 <label class="block font-semibold mb-1">Stock Out Batch</label>
                 <select wire:model="material_stock_out_id" class="form-select w-full">
                     <option value="">Select Stock Out Batch</option>
+                    {{ $count = 1 }}
                     @foreach($stockOuts as $stockOut)
+                    
                         <option value="{{ $stockOut->id }}">
-                            #{{ $stockOut->id }} - {{ $stockOut->rawMaterial->name ?? 'N/A' }} | Batch: {{ $stockOut->batch_number ?? '-' }}
+                            #{{ $count++ }} - {{ $stockOut->rawMaterial->name ?? 'N/A' }} | Batch: {{ $stockOut->batch_number ?? '-' }}| qty: {{ round($stockOut->quantity) ?? '-' }}
                         </option>
                     @endforeach
                 </select>

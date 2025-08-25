@@ -31,7 +31,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
+                    <th class="w-64">Name</th>
                     <th>Code</th>
                     <th>Size</th>
                     <th>PN</th>
@@ -46,7 +46,9 @@
                 @forelse($products as $product)
                     <tr>
                         <td>{{ $product->id }}</td>
-                        <td>{{ $product->name }}</td>
+                        <td colspan="3" class="whitespace-nowrap overflow-hidden">
+                        {{ $product->name }}
+                        </td>
                         <td>{{ $product->code }}</td>
                         <td>{{ $product->size }}</td>
                         <td>{{ $product->pn }}</td>
@@ -55,15 +57,15 @@
                         <td>{{ $product->description }}</td>
                         <td>
                             @if ($product->is_active)
-                                <span class="badge badge-success">Yes</span>
+                                <span class="badge badge-sm badge-success">Yes</span>
                             @else
-                                <span class="badge badge-error">No</span>
+                                <span class="badge badge-sm badge-error">No</span>
                             @endif
                         </td>
                         <td class="text-right flex space-x-2">
-                            <button class="btn btn-sm btn-outline"
+                            <button class="btn btn-xs btn-outline"
                                 wire:click="openEditModal({{ $product->id }})">Edit</button>
-                            <button class="btn btn-sm btn-error"
+                            <button class="btn btn-xs btn-error"
                                 wire:click="confirmDelete({{ $product->id }})">Delete</button>
                         </td>
                     </tr>

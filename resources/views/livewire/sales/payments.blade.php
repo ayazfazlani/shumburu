@@ -47,7 +47,7 @@
             <tbody>
                 @forelse($payments as $payment)
                     <tr>
-                        <td>{{ $payment->delivery->id ?? '-' }}</td>
+                        <td>{{ $payment->productionOrder->order_number ?? '-' }}</td>
                         <td>{{ $payment->customer->name ?? '-' }}</td>
                         <td>{{ $payment->amount }}</td>
                         <td>{{ $payment->payment_method }}</td>

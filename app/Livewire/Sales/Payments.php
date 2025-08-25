@@ -153,7 +153,7 @@ class Payments extends Component
     public function render()
     {
         $payments = Payment::with([
-            // 'order', 
+            'productionOrder', 
             'customer'])
             ->when($this->paymentSearch, function ($q) {
                 $q->where('bank_slip_reference', 'like', "%{$this->paymentSearch}%");

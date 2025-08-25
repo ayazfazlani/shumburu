@@ -41,17 +41,31 @@
                     <tr>
                         <td>{{ $role->id }}</td>
                         <td>{{ $role->name }}</td>
-                        <td>
-                            <div class="flex flex-wrap gap-1">
+                        {{-- <td>
+                            <div class="flex flex-wrap  gap-1 overflow-hidden">
                                 @foreach ($role->permissions as $permission)
-                                    <span class="badge badge-outline badge-sm">{{ $permission->name }}</span>
+                                    <span class="badge badge-outline badge-xs">{{ $permission->name }}</span>
                                 @endforeach
                             </div>
-                        </td>
+                        </td> --}}
+                        <td>
+                        <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto p-1">
+                            @foreach ($role->permissions as $permission)
+                                <span 
+                                    class="badge badge-sm rounded-full px-2 py-1 
+                                        bg-blue-100 text-blue-700 border border-blue-300 
+                                        hover:bg-blue-200 transition"
+                                    title="Permission: {{ $permission->name }}">
+                                    {{ ucfirst($permission->name) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </td>
+
                         <td class="text-right flex space-x-2">
-                            <button class="btn btn-sm btn-outline"
+                            <button class="btn btn-xs btn-outline"
                                 wire:click="openEditModal({{ $role->id }})">Edit</button>
-                            <button class="btn btn-sm btn-error"
+                            <button class="btn btn-xs btn-error"
                                 wire:click="confirmDelete({{ $role->id }})">Delete</button>
                         </td>
                     </tr>

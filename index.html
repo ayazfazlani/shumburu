@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnippyDiscount - Find the Best Coupons & Discount Codes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #4a6cfa;
+            --secondary: #ff6b6b;
+            --accent: #ffde59;
+            --dark: #2d3748;
+            --light: #f8f9fa;
+            --gray: #718096;
+            --light-gray: #e2e8f0;
+        }
+
+        body {
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(to right, var(--primary), #6c8eff);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--accent);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .login-btn, .register-btn {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .login-btn {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+        }
+
+        .register-btn {
+            background: var(--accent);
+            border: 2px solid var(--accent);
+            color: var(--dark);
+        }
+
+        .login-btn:hover, .register-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1607082350899-7e105aa886ae?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            padding: 15px 20px;
+            outline: none;
+            font-size: 1.1rem;
+        }
+
+        .search-box button {
+            background: var(--secondary);
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            flex: 0 0 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            align-self: flex-start;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group h4 {
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .filter-options {
+            list-style: none;
+        }
+
+        .filter-options li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .filter-options input {
+            margin-right: 10px;
+        }
+
+        /* Coupon Listings */
+        .coupon-listings {
+            flex: 1;
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+
+        .store-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .store-tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .store-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .store-tab:hover:not(.active) {
+            background: var(--light-gray);
+        }
+
+        .coupon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .coupon-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .coupon-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .store-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .store-info h3 {
+            margin-bottom: 5px;
+        }
+
+        .coupon-body {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .coupon-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .coupon-desc {
+            color: var(--gray);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .coupon-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+
+        .coupon-footer {
+            padding: 15px 20px;
+            background: var(--light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coupon-code {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .copy-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #3a5cea;
+        }
+
+        /* Popular Stores */
+        .popular-stores {
+            margin-bottom: 50px;
+        }
+
+        .stores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .store-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .store-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .store-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            border-radius: 10px;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Newsletter */
+        .newsletter {
+            background: linear-gradient(to right, var(--primary), #6c8eff);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .newsletter h2 {
+            margin-bottom: 20px;
+        }
+
+        .newsletter p {
+            margin-bottom: 30px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            max-width: 300px;
+            padding: 15px;
+            border: none;
+            border-radius: 50px;
+            outline: none;
+        }
+
+        .newsletter-form button {
+            background: var(--accent);
+            color: var(--dark);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 50px 0 20px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-column h3 {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+
+        .footer-column a {
+            color: #cbd5e0;
+            text-decoration: none;
+        }
+
+        .footer-column a:hover {
+            color: white;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transition: background 0.3s;
+        }
+
+        .social-icons a:hover {
+            background: var(--primary);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                flex: 1;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            nav ul {
+                gap: 15px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+            
+            .coupon-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .newsletter-form {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .newsletter-form input {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-tags"></i>
+                    <span>SnippyDiscount</span>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Stores</a></li>
+                        <li><a href="#">Categories</a></li>
+                        <li><a href="#">Today's Deals</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </nav>
+                <div class="user-actions">
+                    <button class="login-btn">Login</button>
+                    <button class="register-btn">Register</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Find the Best Coupons & Discount Codes</h1>
+                <p>Save money with thousands of free coupons and promo codes for your favorite stores</p>
+                <div class="search-box">
+                    <input type="text" placeholder="Search for stores or coupons...">
+                    <button><i class="fas fa-search"></i> Search</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h3>Filter Coupons</h3>
+                
+                <div class="filter-group">
+                    <h4>Categories</h4>
+                    <ul class="filter-options">
+                        <li><input type="checkbox" id="fashion"> <label for="fashion">Fashion</label></li>
+                        <li><input type="checkbox" id="electronics"> <label for="electronics">Electronics</label></li>
+                        <li><input type="checkbox" id="home"> <label for="home">Home & Garden</label></li>
+                        <li><input type="checkbox" id="beauty"> <label for="beauty">Beauty</label></li>
+                        <li><input type="checkbox" id="food"> <label for="food">Food & Grocery</label></li>
+                    </ul>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Discount Type</h4>
+                    <ul class="filter-options">
+                        <li><input type="checkbox" id="code"> <label for="code">Code</label></li>
+                        <li><input type="checkbox" id="deal"> <label for="deal">Deal</label></li>
+                        <li><input type="checkbox" id="free"> <label for="free">Free Shipping</label></li>
+                        <li><input type="checkbox" id="sale"> <label for="sale">Sale</label></li>
+                    </ul>
+                </div>
+                
+                <div class="filter-group">
+                    <h4>Popular Stores</h4>
+                    <ul class="filter-options">
+                        <li><input type="checkbox" id="amazon"> <label for="amazon">Amazon</label></li>
+                        <li><input type="checkbox" id="walmart"> <label for="walmart">Walmart</label></li>
+                        <li><input type="checkbox" id="target"> <label for="target">Target</label></li>
+                        <li><input type="checkbox" id="nike"> <label for="nike">Nike</label></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Coupon Listings -->
+            <main class="coupon-listings">
+                <h2 class="section-title">Latest Coupons</h2>
+                
+                <div class="store-tabs">
+                    <div class="store-tab active">All Stores</div>
+                    <div class="store-tab">Popular</div>
+                    <div class="store-tab">Verified</div>
+                    <div class="store-tab">Today Added</div>
+                </div>
+                
+                <div class="coupon-grid">
+                    <!-- Coupon 1 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fab fa-amazon"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Amazon</h3>
+                                <span>324 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">30% OFF Selected Items</h3>
+                            <p class="coupon-desc">Save on electronics, home goods, and more with this limited time offer.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 2 hours ago</span>
+                                <span>Used 342 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">AMAZ30OFF</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon 2 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fas fa-shopping-bag"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Walmart</h3>
+                                <span>187 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">FREE Shipping on Orders $35+</h3>
+                            <p class="coupon-desc">Get free shipping on thousands of items with no minimum membership required.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 1 day ago</span>
+                                <span>Used 516 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">FREESHIP35</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon 3 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Nike</h3>
+                                <span>96 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">25% OFF Clearance Items</h3>
+                            <p class="coupon-desc">Extra savings on already reduced prices for a limited time.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 5 hours ago</span>
+                                <span>Used 218 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">NIKE25CLEAR</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon 4 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Best Buy</h3>
+                                <span>142 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">$100 OFF MacBook Air</h3>
+                            <p class="coupon-desc">Special student discount on select MacBook Air models.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 3 days ago</span>
+                                <span>Used 127 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">STU100MAC</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon 5 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Uber Eats</h3>
+                                <span>78 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">40% OFF Your First Order</h3>
+                            <p class="coupon-desc">New customers only. Maximum discount of $15.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 12 hours ago</span>
+                                <span>Used 843 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">EATS40NEW</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Coupon 6 -->
+                    <div class="coupon-card">
+                        <div class="coupon-header">
+                            <div class="store-logo">
+                                <i class="fas fa-film"></i>
+                            </div>
+                            <div class="store-info">
+                                <h3>Netflix</h3>
+                                <span>12 offers</span>
+                            </div>
+                        </div>
+                        <div class="coupon-body">
+                            <h3 class="coupon-title">1 Month FREE Trial</h3>
+                            <p class="coupon-desc">New subscribers only. Cancel anytime during trial period.</p>
+                            <div class="coupon-meta">
+                                <span>Added: 1 week ago</span>
+                                <span>Used 1,242 times</span>
+                            </div>
+                        </div>
+                        <div class="coupon-footer">
+                            <span class="coupon-code">NETFLIX1FREE</span>
+                            <button class="copy-btn">Copy Code</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        
+        <!-- Popular Stores -->
+        <section class="popular-stores">
+            <h2 class="section-title">Popular Stores</h2>
+            <div class="stores-grid">
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fab fa-amazon"></i>
+                    </div>
+                    <h3>Amazon</h3>
+                    <p>324 offers</p>
+                </div>
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3>Walmart</h3>
+                    <p>187 offers</p>
+                </div>
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3>Nike</h3>
+                    <p>96 offers</p>
+                </div>
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <h3>Best Buy</h3>
+                    <p>142 offers</p>
+                </div>
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <h3>Wayfair</h3>
+                    <p>87 offers</p>
+                </div>
+                <div class="store-card">
+                    <div class="store-icon">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h3>Uber Eats</h3>
+                    <p>78 offers</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="container">
+            <div class="newsletter-content">
+                <h2>Never Miss a Deal</h2>
+                <p>Subscribe to our newsletter and get the latest coupons and deals delivered to your inbox daily.</p>
+                <form class="newsletter-form">
+                    <input type="email" placeholder="Enter your email address">
+                    <button type="submit">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>SnippyDiscount</h3>
+                    <p>Find the best coupons, promo codes and discounts for your favorite stores.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Top Stores</h3>
+                    <ul>
+                        <li><a href="#">Amazon coupons</a></li>
+                        <li><a href="#">Walmart coupons</a></li>
+                        <li><a href="#">Target coupons</a></li>
+                        <li><a href="#">Best Buy coupons</a></li>
+                        <li><a href="#">Nike coupons</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="#">Fashion</a></li>
+                        <li><a href="#">Electronics</a></li>
+                        <li><a href="#">Home & Garden</a></li>
+                        <li><a href="#">Food & Grocery</a></li>
+                        <li><a href="#">Health & Beauty</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">How It Works</a></li>
+                        <li><a href="#">Submit a Coupon</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 SnippyDiscount. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Store tabs functionality
+            const storeTabs = document.querySelectorAll('.store-tab');
+            
+            storeTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    storeTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Copy button functionality
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const code = this.previousElementSibling.textContent;
+                    navigator.clipboard.writeText(code).then(() => {
+                        const originalText = this.textContent;
+                        this.textContent = 'Copied!';
+                        this.style.background = '#4caf50';
+                        
+                        setTimeout(() => {
+                            this.textContent = originalText;
+                            this.style.background = '';
+                        }, 2000);
+                    });
+                });
+            });
+            
+            // Newsletter form validation
+            const newsletterForm = document.querySelector('.newsletter-form');
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const emailInput = this.querySelector('input');
+                
+                if (emailInput.value && isValidEmail(emailInput.value)) {
+                    alert('Thank you for subscribing to our newsletter!');
+                    emailInput.value = '';
+                } else {
+                    alert('Please enter a valid email address.');
+                }
+            });
+            
+            function isValidEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            }
+        });
+    </script>
+</body>
+</html>

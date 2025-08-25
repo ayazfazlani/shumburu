@@ -68,7 +68,7 @@ class Reports extends Component
             ->paginate(15);
 
         // Get payments for the period
-        $payments = Payment::with(['customer', 'productionOrder'])
+        $payments = Payment::with(['customer','recordedBy', 'productionOrder'])
             ->when($this->reportType === 'daily', function ($query) {
                 $query->whereDate('payment_date', $this->startDate);
             })

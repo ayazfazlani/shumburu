@@ -35,10 +35,10 @@ class ScrapWaste extends Model
 
   ];
 
-  // public function rawMaterial(): BelongsTo
-  // {
-  //   return $this->belongsTo(RawMaterial::class);
-  // }
+  public function rawMaterial(): BelongsTo
+  {
+    return $this->belongsTo(RawMaterial::class);
+  }
 
   public function recordedBy(): BelongsTo
   {

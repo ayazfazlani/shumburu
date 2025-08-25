@@ -38,6 +38,11 @@ class FinishedGood extends Model
     'production_date' => 'date',
   ];
 
+  public function fyaMovements()
+  {
+    return $this->hasMany(FyaWarehouse::class);
+  }
+
   public function product(): BelongsTo
   {
     return $this->belongsTo(Product::class);

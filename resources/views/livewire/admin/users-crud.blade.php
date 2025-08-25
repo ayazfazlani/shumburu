@@ -50,10 +50,10 @@
                                 @endforeach
                             </div>
                         </td>
-                        <td class="text-right space-x-2">
-                            <button class="btn btn-sm btn-outline"
+                        <td class="text-right flex space-x-2">
+                            <button class="btn btn-xs btn-outline"
                                 wire:click="openEditModal({{ $user->id }})">Edit</button>
-                            <button class="btn btn-sm btn-error"
+                            <button class="btn btn-xs btn-error"
                                 wire:click="confirmDelete({{ $user->id }})">Delete</button>
                         </td>
                     </tr>

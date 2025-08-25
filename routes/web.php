@@ -4,6 +4,7 @@ use App\Livewire\Home;
 use Livewire\Livewire;
 use App\Livewire\Dashboard;
 use App\Livewire\Sales\Reports;
+use App\Livewire\FYA\Warehouse2;
 use App\Livewire\Sales\Payments;
 use App\Livewire\Settings\Locale;
 use App\Livewire\Sales\Deliveries;
@@ -101,6 +102,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/sales-reports-dashboard', \App\Livewire\Sales\SalesReportsDashboard::class)->name('sales-reports-dashboard');
     });
 
+    Route::get('/fya-warehouse',Warehouse2::class)->name('fya werehouse');
     // Finance Management
     Route::prefix('finance')->as('finance.')->group(function (): void {
         Route::get('/', \App\Livewire\Finance\Index::class)->name('index');

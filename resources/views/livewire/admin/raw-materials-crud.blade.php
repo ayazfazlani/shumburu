@@ -49,15 +49,15 @@
                         <td>{{ $rawMaterial->unit }}</td>
                         <td>
                             @if ($rawMaterial->is_active)
-                                <span class="badge badge-success">Yes</span>
+                                <span class="badge badge-sm badge-success">Yes</span>
                             @else
-                                <span class="badge badge-error">No</span>
+                                <span class="badge badge-sm badge-error">No</span>
                             @endif
                         </td>
                         <td class="text-right flex space-x-2">
-                            <button class="btn btn-sm btn-outline"
+                            <button class="btn btn-xs btn-outline"
                                 wire:click="openEditModal({{ $rawMaterial->id }})">Edit</button>
-                            <button class="btn btn-sm btn-error"
+                            <button class="btn btn-xs btn-error"
                                 wire:click="confirmDelete({{ $rawMaterial->id }})">Delete</button>
                         </td>
                     </tr>

@@ -6,9 +6,11 @@ use Livewire\Component;
 use App\Models\FinishedGood;
 use App\Models\MaterialStockOutLine;
 use App\Models\FinishedGoodMaterialStockOutLine;
+use Livewire\WithPagination;
 
 class FinishedGoodMaterialStockOutLineCrud extends Component
 {
+    use WithPagination;
     public $links, $finished_good_id, $material_stock_out_line_id, $quantity_used, $link_id;
     public $isEdit = false;
 
@@ -20,17 +22,17 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
 
     public function mount()
     {
-        $this->fetch();
+        // $this->fetch();
     }
 
-    public function fetch()
-    {
-        $this->links = FinishedGoodMaterialStockOutLine::with([
-            'finishedGood.product',
-            'materialStockOutLine.materialStockOut.rawMaterial',
-            'materialStockOutLine.productionLine'
-        ])->get();
-    }
+    // public function fetch()
+    // {
+    //     $this->links = FinishedGoodMaterialStockOutLine::with([
+    //         'finishedGood.product',
+    //         'materialStockOutLine.materialStockOut.rawMaterial',
+    //         'materialStockOutLine.productionLine'
+    //     ])->paginate(10);
+    // }
 
     public function create()
     {
@@ -41,7 +43,7 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
             'quantity_used' => $this->quantity_used,
         ]);
         $this->reset(['finished_good_id', 'material_stock_out_line_id', 'quantity_used']);
-        $this->fetch();
+        // $this->fetch();
     }
 
     public function edit($id)
@@ -64,25 +66,32 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
             'quantity_used' => $this->quantity_used,
         ]);
         $this->reset(['finished_good_id', 'material_stock_out_line_id', 'quantity_used', 'link_id', 'isEdit']);
-        $this->fetch();
+        // $this->fetch();
     }
 
     public function delete($id)
     {
         FinishedGoodMaterialStockOutLine::destroy($id);
-        $this->fetch();
+        // $this->fetch();
     }
 
     public function render()
     {
-        $finishedGoods = FinishedGood::with('product')->get();
+        // $this->fetch();
+        $records = FinishedGoodMaterialStockOutLine::with([
+            'finishedGood.product',
+            'materialStockOutLine.materialStockOut.rawMaterial',
+            'materialStockOutLine.productionLine'
+        ])->paginate(8);
+        $finishedGoods = FinishedGood::with('product')->latest()->take(10)->get();
         $stockOutLines = MaterialStockOutLine::with([
             'materialStockOut.rawMaterial',
             'productionLine'
-        ])->get();
+        ])->latest()->take(5)->get();
         return view('livewire.warehouse.finished-good-material-stock-out-line-crud', [
             'finishedGoods' => $finishedGoods,
             'stockOutLines' => $stockOutLines,
+            'records' => $records
         ]);
     }
 } 

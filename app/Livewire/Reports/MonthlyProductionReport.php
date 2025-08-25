@@ -102,7 +102,6 @@ class MonthlyProductionReport extends Component
             fn($item) => $item->product->name ?? 'Unknown',
             'size'
         ]);
-
         $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
         $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
         $products = Product::select('id', 'name')->orderBy('name')->get();

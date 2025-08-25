@@ -257,10 +257,11 @@
                 <div class="text-sm text-base-content/70">
                     Showing {{ $stockIns->firstItem() ?? 0 }} to {{ $stockIns->lastItem() ?? 0 }} of {{ $stockIns->total() }} entries
                 </div>
-                <div class="join">
-                    {{ $stockIns->links() }}
-                </div>
             </div>
+
+             <div class="join">
+                    {{ $stockIns->links('components.pagination') }}
+             </div>
         </div>
     </div>
 </div>

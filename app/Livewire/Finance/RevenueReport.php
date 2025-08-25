@@ -20,7 +20,7 @@ class RevenueReport extends Component
     //   abort(403, 'Unauthorized access to revenue reports.');
     // }
 
-    $payments = Payment::with(['customer', 'order'])
+    $payments = Payment::with(['customer', 'productionOrder'])
       ->latest()
       ->paginate(15);
 

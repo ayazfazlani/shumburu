@@ -11,9 +11,11 @@ use phpDocumentor\Reflection\Types\This;
 use App\Models\MaterialStockOut;
 use App\Models\ProductionLine;
 use App\Models\MaterialStockOutLine;
+use Livewire\WithPagination;
 
 class FinishedGoods extends Component
 {
+  use WithPagination;
   public $product_id;
   public $type = 'roll';
   public $length_m;

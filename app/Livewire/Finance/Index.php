@@ -32,7 +32,7 @@ class Index extends Component
       ->latest()
       ->paginate(10);
 
-    $scrapWaste = ScrapWaste::with(['rawMaterial', 'recordedBy'])
+    $scrapWaste = ScrapWaste::with(['recordedBy'])
       ->latest()
       ->paginate(10);
 
@@ -40,7 +40,9 @@ class Index extends Component
       ->latest()
       ->paginate(10);
 
-    $payments = Payment::with(['customer', 'order', 'recordedBy'])
+    $payments = Payment::with(['customer',
+     'productionOrder', 
+     'recordedBy'])
       ->latest()
       ->paginate(10);
 

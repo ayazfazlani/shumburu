@@ -253,11 +253,8 @@
 
                 </tbody>
             </table>
-            <div class="join float-end">
-                <button class="join-item btn">1</button>
-                <button class="join-item btn btn-active">2</button>
-                <button class="join-item btn">3</button>
-                <button class="join-item btn">4</button>
+          <div class="mt-4">
+                {{ $stockOuts->links('components.pagination') }}
             </div>
         </div>
     </div>
