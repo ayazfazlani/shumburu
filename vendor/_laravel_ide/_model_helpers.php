@@ -1644,20 +1644,8 @@ namespace App\Models {
     /**
      * App\Models\FinishedGoodMaterialStockOutLine
      *
-     * @property \Illuminate\Support\Carbon|null $updated_at
-     * @property \Illuminate\Support\Carbon|null $created_at
-     * @property float|null $quantity_used
-     * @property mixed $material_stock_out_line_id
-     * @property mixed $finished_good_id
-     * @property int $id
      * @property-read \App\Models\FinishedGood $finishedGood
      * @property-read \App\Models\MaterialStockOutLine $materialStockOutLine
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereFinishedGoodId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereMaterialStockOutLineId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereQuantityUsed($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereCreatedAt($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine query()
@@ -1959,15 +1947,35 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property mixed $type
-     * @property mixed $finished_goods_id
+     * @property \Illuminate\Support\Carbon|null $deleted_at
+     * @property mixed $created_by
+     * @property string|null $notes
+     * @property mixed $reference_id
+     * @property string|null $reference_type
+     * @property string $movement_date
+     * @property mixed $customer_id
+     * @property mixed $purpose
+     * @property string $batch_number
+     * @property float $quantity
+     * @property mixed $movement_type
+     * @property mixed $finished_good_id
      * @property int $id
      * @property-read \App\Models\FinishedGood $finishedGood
      * @property-read \App\Models\Customer $customer
      * @property-read \App\Models\User $createdBy
      * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereFinishedGoodsId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereFinishedGoodId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereMovementType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereQuantity($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereBatchNumber($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse wherePurpose($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereCustomerId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereMovementDate($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereReferenceType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereReferenceId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereNotes($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereCreatedBy($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereDeletedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FyaWarehouse>|FyaWarehouse newModelQuery()

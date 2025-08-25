@@ -48,7 +48,7 @@
                         <td>{{ $product->id }}</td>
                         <td colspan="3" class="whitespace-nowrap overflow-hidden">
                         {{ $product->name }}
-                        </td>
+                    </td>
                         <td>{{ $product->code }}</td>
                         <td>{{ $product->size }}</td>
                         <td>{{ $product->pn }}</td>
