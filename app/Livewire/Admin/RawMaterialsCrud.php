@@ -20,6 +20,7 @@ class RawMaterialsCrud extends Component
   public $code = '';
   public $description = '';
   public $unit = 'kg';
+  public $quantity = 0;
   public $is_active = true;
 
   public $showDeleteModal = false;
@@ -33,6 +34,7 @@ class RawMaterialsCrud extends Component
       'code' => 'required|string|max:255|unique:raw_materials,code' . $uniqueCode,
       'description' => 'nullable|string',
       'unit' => 'required|string|max:32',
+      'quantity' => 'nullable|numeric|min:0',
       'is_active' => 'boolean',
     ];
   }
@@ -65,6 +67,7 @@ class RawMaterialsCrud extends Component
     $this->code = $rawMaterial->code;
     $this->description = $rawMaterial->description;
     $this->unit = $rawMaterial->unit;
+    $this->quantity = $rawMaterial->quantity;
     $this->is_active = $rawMaterial->is_active;
     $this->isEdit = true;
     $this->showModal = true;
@@ -80,6 +83,7 @@ class RawMaterialsCrud extends Component
         'code' => $this->code,
         'description' => $this->description,
         'unit' => $this->unit,
+        'quantity' => $this->quantity,
         'is_active' => $this->is_active,
       ]);
     } else {
@@ -88,6 +92,7 @@ class RawMaterialsCrud extends Component
         'code' => $this->code,
         'description' => $this->description,
         'unit' => $this->unit,
+        'quantity' => $this->quantity,
         'is_active' => $this->is_active,
       ]);
     }
@@ -118,6 +123,7 @@ class RawMaterialsCrud extends Component
     $this->code = '';
     $this->description = '';
     $this->unit = 'kg';
+    $this->quantity = 0;
     $this->is_active = true;
   }
 

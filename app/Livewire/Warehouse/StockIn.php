@@ -46,6 +46,7 @@ class StockIn extends Component
     //   return;
     // }
 
+    // Create stock in transaction
     MaterialStockIn::create([
       'raw_material_id' => $this->raw_material_id,
       'quantity' => $this->quantity,
@@ -54,6 +55,11 @@ class StockIn extends Component
       'received_by' => $user->id,
       'notes' => $this->notes,
     ]);
+
+    // Update raw material quantity
+    $rawMaterial = RawMaterial::find($this->raw_material_id);
+    $rawMaterial->quantity += $this->quantity;
+    $rawMaterial->save();
 
     session()->flash('message', 'Material stock-in recorded successfully.');
 

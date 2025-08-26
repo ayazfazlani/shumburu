@@ -64,7 +64,7 @@
                                     <option value="">Select Raw Material</option>
                                     @foreach ($rawMaterials as $material)
                                         <option value="{{ $material->id }}">{{ $material->name }}
-                                            ({{ $material->code }})
+                                            ({{ $material->code }}) - {{ number_format($material->quantity, 3) }} {{ $material->unit }}
                                         </option>
                                     @endforeach
                                 </select>

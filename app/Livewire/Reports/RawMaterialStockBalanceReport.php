@@ -30,20 +30,28 @@ class RawMaterialStockBalanceReport extends Component
         $allMaterials = RawMaterial::orderBy('name')->get();
         $rows = [];
         foreach ($materials as $material) {
-            // Beginning balance: latest stock in before or on the date
-            $beginning = $material->stockIns()
-                ->where('received_date', '<=', $date)
-                ->orderByDesc('received_date')
-                ->value('quantity') ?? 0;
-            // Ending balance: latest stock out before or on the date
-            $ending = $material->stockOuts()
-                ->where('issued_date', '<=', $date)
-                ->orderByDesc('issued_date')
-                ->value('quantity') ?? 0;
-            // Addition, OUT, Return: set to 0 for now
-            $addition = 0;
-            $out = 0;
+            // Get current stock from raw_materials table
+            $currentStock = $material->quantity;
+            
+            // Calculate stock in for the selected date
+            $addition = $material->stockIns()
+                ->where('received_date', $date)
+                ->sum('quantity');
+            
+            // Calculate stock out for the selected date
+            $out = $material->stockOuts()
+                ->where('issued_date', $date)
+                ->sum('quantity');
+            
+            // Calculate beginning balance (current stock + out - addition)
+            $beginning = $currentStock + $out - $addition;
+            
+            // Ending balance is current stock
+            $ending = $currentStock;
+            
+            // Return is always 0 for now
             $return = 0;
+            
             $rows[] = [
                 'name' => $material->name,
                 'beginning' => $beginning,

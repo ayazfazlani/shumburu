@@ -37,6 +37,14 @@ class StockOut extends Component
 
         $user = Auth::user();
 
+        // Check if sufficient stock is available
+        $rawMaterial = RawMaterial::find($this->raw_material_id);
+        if ($rawMaterial->quantity < $this->quantity) {
+            session()->flash('error', 'Insufficient stock available. Current stock: ' . $rawMaterial->quantity . ' ' . $rawMaterial->unit);
+            return;
+        }
+
+        // Create stock out transaction
         MaterialStockOut::create([
             'raw_material_id' => $this->raw_material_id,
             'quantity' => $this->quantity,
@@ -46,6 +54,10 @@ class StockOut extends Component
             'status' => 'material_on_process',
             'notes' => $this->notes,
         ]);
+
+        // Update raw material quantity
+        $rawMaterial->quantity -= $this->quantity;
+        $rawMaterial->save();
 
         session()->flash('message', 'Material stock-out recorded successfully.');
 

@@ -16,10 +16,12 @@ class RawMaterial extends Model
     'description',
     'unit',
     'is_active',
+    'quantity',
   ];
 
   protected $casts = [
     'is_active' => 'boolean',
+    'quantity' => 'decimal:3',
   ];
 
   public function stockIns(): HasMany

@@ -35,6 +35,7 @@
                     <th>Code</th>
                     <th>Description</th>
                     <th>Unit</th>
+                    <th>Current Stock</th>
                     <th>Active</th>
                     <th class="text-right">Actions</th>
                 </tr>
@@ -47,6 +48,11 @@
                         <td>{{ $rawMaterial->code }}</td>
                         <td>{{ $rawMaterial->description }}</td>
                         <td>{{ $rawMaterial->unit }}</td>
+                        <td>
+                            <span class="badge badge-outline badge-sm {{ $rawMaterial->quantity > 0 ? 'badge-info' : 'badge-warning' }}">
+                                {{ number_format($rawMaterial->quantity,2) }} {{ $rawMaterial->unit }}
+                            </span>
+                        </td>
                         <td>
                             @if ($rawMaterial->is_active)
                                 <span class="badge badge-sm badge-success">Yes</span>
@@ -63,7 +69,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center text-gray-400 py-6">No raw materials found.</td>
+                        <td colspan="8" class="text-center text-gray-400 py-6">No raw materials found.</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -103,6 +109,14 @@
                 <input type="text" wire:model.defer="unit" class="input input-bordered w-full"
                     placeholder="Unit (e.g. kg, ton, bag)" />
                 @error('unit')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
+                @enderror
+            </div>
+            <div class="mb-4">
+                <label class="label">Initial Quantity</label>
+                <input type="number" step="0.001" wire:model.defer="quantity" class="input input-bordered w-full"
+                    placeholder="Initial stock quantity" />
+                @error('quantity')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>

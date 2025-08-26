@@ -209,7 +209,12 @@
                                         <div class="font-medium text-sm">{{ $material->name }}</div>
                                         <div class="text-xs opacity-70">{{ $material->code }}</div>
                                     </div>
-                                    <div class="badge badge-outline badge-sm">{{ $material->unit }}</div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="badge badge-outline badge-sm">{{ $material->unit }}</div>
+                                        <div class="badge badge-sm {{ $material->quantity > 0 ? 'badge-success' : 'badge-warning' }}">
+                                            {{ number_format($material->quantity, 1) }}
+                                        </div>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
