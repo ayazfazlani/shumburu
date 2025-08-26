@@ -31,7 +31,7 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th class="w-64">Name</th>
+                    <th colspan="3">Name</th>
                     <th>Code</th>
                     <th>Size</th>
                     <th>PN</th>
