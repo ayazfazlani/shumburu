@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\RawMaterial;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Illuminate\Validation\Rule;
 
 class RawMaterialsCrud extends Component
 {
@@ -26,18 +27,7 @@ class RawMaterialsCrud extends Component
   public $showDeleteModal = false;
   public $deleteId = null;
 
-  protected function rules()
-  {
-    $uniqueCode = $this->isEdit && $this->rawMaterialId ? ',code,' . $this->rawMaterialId : '';
-    return [
-      'name' => 'required|string|max:255',
-      'code' => 'required|string|max:255|unique:raw_materials,code' . $uniqueCode,
-      'description' => 'nullable|string',
-      'unit' => 'required|string|max:32',
-      'quantity' => 'nullable|numeric|min:0',
-      'is_active' => 'boolean',
-    ];
-  }
+  // Validation moved inline to saveRawMaterial() using $this->validate([...])
 
   public function render()
   {
@@ -75,26 +65,24 @@ class RawMaterialsCrud extends Component
 
   public function saveRawMaterial()
   {
-    $this->validate();
+    $validated = $this->validate([
+      'name' => 'required|string|max:255',
+      'code' => [
+        'required',
+        'string',
+        'max:255',
+        Rule::unique('raw_materials', 'code')->ignore($this->rawMaterialId),
+      ],
+      'description' => 'nullable|string',
+      'unit' => 'required|string|max:32',
+      'quantity' => 'nullable|numeric|min:0',
+      'is_active' => 'boolean',
+    ]);
     if ($this->isEdit && $this->rawMaterialId) {
       $rawMaterial = RawMaterial::findOrFail($this->rawMaterialId);
-      $rawMaterial->update([
-        'name' => $this->name,
-        'code' => $this->code,
-        'description' => $this->description,
-        'unit' => $this->unit,
-        'quantity' => $this->quantity,
-        'is_active' => $this->is_active,
-      ]);
+      $rawMaterial->update($validated);
     } else {
-      RawMaterial::create([
-        'name' => $this->name,
-        'code' => $this->code,
-        'description' => $this->description,
-        'unit' => $this->unit,
-        'quantity' => $this->quantity,
-        'is_active' => $this->is_active,
-      ]);
+      RawMaterial::create($validated);
     }
     $this->showModal = false;
     $this->resetForm();
