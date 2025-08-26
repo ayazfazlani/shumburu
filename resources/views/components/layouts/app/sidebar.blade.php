@@ -64,6 +64,12 @@
                     class="{{ request()->routeIs('admin.admin.raw-materials.index') ? 'active' : '' }}">
                     {{ __('Raw materials') }}
                 </flux:navlist.item>
+                @can('can manage customers')
+                <flux:navlist.item icon="users" href="{{ route('admin.customers-crud') }}" wire:navigate
+                    class="{{ request()->routeIs('admin.customers-crud') ? 'active' : '' }}">
+                    {{ __('customers') }}
+                </flux:navlist.item>
+                @endcan
             </flux:navlist.group>              
             @endcan
             @can(['can view warehouse section'])

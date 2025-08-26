@@ -1644,8 +1644,20 @@ namespace App\Models {
     /**
      * App\Models\FinishedGoodMaterialStockOutLine
      *
+     * @property \Illuminate\Support\Carbon|null $updated_at
+     * @property \Illuminate\Support\Carbon|null $created_at
+     * @property float|null $quantity_used
+     * @property mixed $material_stock_out_line_id
+     * @property mixed $finished_good_id
+     * @property int $id
      * @property-read \App\Models\FinishedGood $finishedGood
      * @property-read \App\Models\MaterialStockOutLine $materialStockOutLine
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereFinishedGoodId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereMaterialStockOutLineId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereQuantityUsed($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereCreatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGoodMaterialStockOutLine>|FinishedGoodMaterialStockOutLine query()

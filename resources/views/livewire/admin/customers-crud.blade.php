@@ -32,7 +32,9 @@
                 <tr>
                     <th>ID</th>
                     <th>Code</th>
+                    @can('can see customer name')
                     <th>Name</th>
+                    @endcan
                     <th>Contact Person</th>
                     <th>Phone</th>
                     <th>Email</th>
@@ -48,7 +50,9 @@
                     <tr>
                         <td>{{ $customer->id }}</td>
                         <td>{{ $customer->code }}</td>
+                        @can('can see customer name')
                         <td>{{ $customer->name }}</td>
+                        @endcan
                         <td>{{ $customer->contact_person }}</td>
                         <td>{{ $customer->phone }}</td>
                         <td>{{ $customer->email }}</td>
