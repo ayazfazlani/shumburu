@@ -19,8 +19,8 @@ class CreateOrder extends Component
     public $orderId = null;
     public $order_number = '';
     public $customer_id = '';
-    // public $product_id = '';
-    // public $quantity = '';
+    public $customerSearch = '';
+    public $selectedCustomerName = '';
     public $status = 'pending';
     public $requested_date = '';
     public $requested_by = '';
@@ -29,19 +29,26 @@ class CreateOrder extends Component
     public $deleteOrderId = null;
     public $orderSearch = '';
     public $orderPerPage = 10;
+    public $filteredCustomers = [];
 
     protected function rules()
     {
         return [
             'order_number' => 'required|string|max:255',
             'customer_id' => 'required|exists:customers,id',
-            // 'product_id' => 'required|exists:products,id',
-            // 'quantity' => 'required|numeric|min:1',
             'status' => 'required|string',
             'requested_date' => 'required|date',
             'requested_by' => 'nullable|exists:users,id',
             'notes' => 'nullable|string',
         ];
+    }
+
+    public function mount()
+    {
+        $this->filteredCustomers = Customer::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->toArray();
     }
 
     public function openOrderCreateModal()
@@ -59,14 +66,53 @@ class CreateOrder extends Component
         $this->orderId = $order->id;
         $this->order_number = $order->order_number;
         $this->customer_id = $order->customer_id;
-        // $this->product_id = $order->product_id;
-        // $this->quantity = $order->quantity;
+        $this->selectedCustomerName = $order->customer->name ?? '';
         $this->status = $order->status;
         $this->requested_date = $order->requested_date ? $order->requested_date->format('Y-m-d') : '';
         $this->requested_by = $order->requested_by;
         $this->notes = $order->notes;
         $this->isOrderEdit = true;
         $this->showOrderModal = true;
+    }
+
+    public function updatedCustomerSearch()
+    {
+        if (empty($this->customerSearch)) {
+            $this->filteredCustomers = Customer::where('is_active', true)
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        } else {
+            $this->filteredCustomers = Customer::where('is_active', true)
+                ->where('name', 'like', '%' . $this->customerSearch . '%')
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        }
+        
+        // Reset selection if search doesn't match
+        if ($this->customer_id && $this->selectedCustomerName) {
+            $found = false;
+            foreach ($this->filteredCustomers as $customer) {
+                if ($customer['id'] == $this->customer_id) {
+                    $found = true;
+                    break;
+                }
+            }
+            
+            if (!$found) {
+                $this->customer_id = '';
+                $this->selectedCustomerName = '';
+            }
+        }
+    }
+
+    public function selectCustomer($customerId, $customerName)
+    {
+        $this->customer_id = $customerId;
+        $this->selectedCustomerName = $customerName;
+        $this->customerSearch = ''; // Clear search after selection
+        $this->updatedCustomerSearch(); // Refresh the list
     }
 
     public function saveOrder()
@@ -78,8 +124,6 @@ class CreateOrder extends Component
             $order->update([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                // 'product_id' => $this->product_id,
-                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'requested_by' => $user ? $user->id : null,
@@ -90,8 +134,6 @@ class CreateOrder extends Component
             ProductionOrder::create([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
-                // 'product_id' => $this->product_id,
-                // 'quantity' => $this->quantity,
                 'status' => $this->status,
                 'requested_date' => $this->requested_date,
                 'requested_by' => $user ? $user->id : null,
@@ -123,29 +165,31 @@ class CreateOrder extends Component
         $this->orderId = null;
         $this->order_number = '';
         $this->customer_id = '';
-        // $this->product_id = '';
-        // $this->quantity = '';
+        $this->customerSearch = '';
+        $this->selectedCustomerName = '';
         $this->status = 'pending';
         $this->requested_date = '';
         $this->requested_by = '';
         $this->notes = '';
+        $this->filteredCustomers = Customer::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->toArray();
     }
 
     public function render()
     {
-        $orders = ProductionOrder::with(['customer'
-        // , 'product'
-        ])
+        $orders = ProductionOrder::with(['customer'])
             ->when($this->orderSearch, function ($q) {
                 $q->where('order_number', 'like', "%{$this->orderSearch}%");
             })
             ->latest()
             ->paginate($this->orderPerPage);
-        $customers = Customer::where('is_active', true)->get();
+            
         $products = Product::where('is_active', true)->get();
+        
         return view('livewire.sales.create-order', [
             'orders' => $orders,
-            'customers' => $customers,
             'products' => $products,
         ]);
     }

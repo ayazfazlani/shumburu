@@ -34,8 +34,6 @@
                 <tr>
                     <th>Order #</th>
                     <th>Customer</th>
-                    {{-- <th>Product</th>
-                    <th>Quantity</th> --}}
                     <th>Status</th>
                     <th>Requested Date</th>
                     <th>Notes</th>
@@ -48,8 +46,6 @@
                     <tr>
                         <td>{{ $order->order_number }}</td>
                         <td>{{ $order->customer->name ?? '-' }}</td>
-                        {{-- <td>{{ $order->product->name ?? '-' }}</td>
-                        <td>{{ $order->quantity }}</td> --}}
                         <td>
                             @if ($order->status === 'pending')
                                 <span class="badge badge-warning">Pending</span>
@@ -92,37 +88,73 @@
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
-            <div class="mb-4">
-                <label class="label">Customer</label>
-                <select wire:model.defer="customer_id" class="select select-bordered w-full">
-                    <option value="">Select Customer</option>
-                    @foreach ($customers as $customer)
-                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
-                    @endforeach
-                </select>
-                @error('customer_id')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            {{-- <div class="mb-4">
-                <label class="label">Product</label>
-                <select wire:model.defer="product_id" class="select select-bordered w-full">
-                    <option value="">Select Product</option>
-                    @foreach ($products as $product)
-                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                    @endforeach
-                </select>
-                @error('product_id')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Quantity</label>
-                <input type="number" wire:model.defer="quantity" class="input input-bordered w-full" min="1" placeholder="Quantity" />
-                @error('quantity')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div> --}}
+           <!-- In your Blade template, replace the customer search section with: -->
+<div class="mb-4">
+    <label class="label">Customer</label>
+    <div x-data="{ 
+        open: false, 
+        search: '', 
+        customers: @js($filteredCustomers),
+        filteredCustomers: @js($filteredCustomers),
+        selectedCustomer: null,
+        init() {
+            // Watch for Livewire updates to customers list
+            this.$wire.$watch('filteredCustomers', (value) => {
+                this.customers = value;
+                this.filterCustomers();
+            });
+        },
+        filterCustomers() {
+            if (this.search === '') {
+                this.filteredCustomers = this.customers;
+            } else {
+                const searchTerm = this.search.toLowerCase();
+                this.filteredCustomers = this.customers.filter(customer => 
+                    customer.name.toLowerCase().includes(searchTerm)
+                );
+            }
+        },
+        selectCustomer(customer) {
+            this.selectedCustomer = customer;
+            this.$wire.selectCustomer(customer.id, customer.name);
+            this.search = '';
+            this.open = false;
+        }
+    }" class="relative">
+        <input 
+            type="text" 
+            x-model="search" 
+            x-on:input="filterCustomers()"
+            class="input input-bordered w-full" 
+            placeholder="Search customers..."
+            @focus="open = true"
+            @click.away="open = false"
+        />
+        <div x-show="open" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+            <template x-if="filteredCustomers.length > 0">
+                <template x-for="customer in filteredCustomers" :key="customer.id">
+                    <div 
+                        class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        @click="selectCustomer(customer)"
+                    >
+                        <span x-text="customer.name"></span>
+                    </div>
+                </template>
+            </template>
+            <template x-if="filteredCustomers.length === 0">
+                <div class="px-4 py-2 text-gray-500">No customers found</div>
+            </template>
+        </div>
+    </div>
+    @if($selectedCustomerName)
+        <div class="mt-2 p-2 bg-gray-100 rounded-md">
+            Selected: <strong>{{ $selectedCustomerName }}</strong>
+        </div>
+    @endif
+    @error('customer_id')
+        <span class="text-red-500 text-xs">{{ $message }}</span>
+    @enderror
+</div>
             <div class="mb-4">
                 <label class="label">Status</label>
                 <select wire:model.defer="status" class="select select-bordered w-full">

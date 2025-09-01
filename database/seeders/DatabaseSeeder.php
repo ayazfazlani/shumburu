@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             RawMaterialSeeder::class,
             ProductSeeder::class,
             QualityReportSeeder::class,
+            CustomerSeeder::class,
         ]);
     }
 }
