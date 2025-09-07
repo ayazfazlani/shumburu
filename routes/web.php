@@ -57,6 +57,9 @@ Route::middleware(['auth'])->group(function (): void {
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
     Route::get('settings/locale', \App\Livewire\Settings\Locale::class)->name('settings.locale');
 
+    // Notifications
+    Route::get('/notifications', \App\Livewire\Notifications\Index::class)->name('notifications.index');
+
     // Warehouse Management
     Route::prefix('warehouse')->as('warehouse.')->group(function (): void {
         Route::get('/', \App\Livewire\Warehouse\Index::class)->name('index');
@@ -78,6 +81,7 @@ Route::middleware(['auth'])->group(function (): void {
     // Operations Management
     Route::prefix('operations')->as('operations.')->group(function (): void {
         Route::get('/', \App\Livewire\Operations\Index::class)->name('index');
+        Route::get('/production-orders', \App\Livewire\Operations\ProductionOrders::class)->name('production-orders');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');
         //daily production report

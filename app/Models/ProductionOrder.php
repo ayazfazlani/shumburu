@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\NotificationService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,38 @@ class ProductionOrder extends Model
     'production_end_date' => 'date',
     'delivery_date' => 'date',
   ];
+
+  protected static function boot()
+  {
+    parent::boot();
+
+    // Trigger notifications when status changes
+    static::updated(function ($productionOrder) {
+      \Log::info("ProductionOrder updated event fired for order #{$productionOrder->order_number}");
+      
+      if ($productionOrder->wasChanged('status')) {
+        $oldStatus = $productionOrder->getOriginal('status');
+        $newStatus = $productionOrder->status;
+        
+        // Debug logging
+        \Log::info("ProductionOrder status changed from '{$oldStatus}' to '{$newStatus}' for order #{$productionOrder->order_number}");
+        
+        // Send notification after the update
+        $notificationService = app(NotificationService::class);
+        $notificationService->notifyStatusChanged($productionOrder, $oldStatus, $newStatus, auth()->id() ?? null);
+        
+        \Log::info("Notification sent for status change from '{$oldStatus}' to '{$newStatus}'");
+      } else {
+        \Log::info("ProductionOrder updated but status did not change for order #{$productionOrder->order_number}");
+      }
+    });
+
+    // Trigger notifications when a new order is created
+    static::created(function ($productionOrder) {
+      $notificationService = app(NotificationService::class);
+      $notificationService->notifyOrderCreated($productionOrder);
+    });
+  }
 
   public function customer(): BelongsTo
   {
@@ -67,6 +100,11 @@ class ProductionOrder extends Model
   public function deliveries(): HasMany
   {
     return $this->hasMany(Delivery::class);
+  }
+
+  public function orderItems(): HasMany
+  {
+    return $this->hasMany(OrderItem::class);
   }
 
   public function items(): HasMany

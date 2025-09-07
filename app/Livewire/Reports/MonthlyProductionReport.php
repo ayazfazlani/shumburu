@@ -9,7 +9,7 @@ use App\Models\FinishedGood;
 use App\Models\QualityReport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\MaterialStockOutLine;
-
+use Illuminate\Support\Facades\Log;
 
 class MonthlyProductionReport extends Component
 {
@@ -28,7 +28,11 @@ class MonthlyProductionReport extends Component
         $startOfMonth = Carbon::parse($this->month . '-01')->startOfMonth();
         $endOfMonth = Carbon::parse($this->month . '-01')->endOfMonth();
 
-        $finishedGoods = FinishedGood::with(['product', 'materialStockOutLines.materialStockOut.rawMaterial'])
+        $finishedGoods = FinishedGood::with([
+                'product', 
+                'materialStockOutLines.materialStockOut.rawMaterial',
+                // 'qualityChecks' // Add relationship for quality checks if it exists
+            ])
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->when($this->shift, function($query) {
                 $query->whereHas('materialStockOutLines', function($q) {
@@ -45,7 +49,7 @@ class MonthlyProductionReport extends Component
             })
             ->get();
 
-        // Grouping and calculations (placeholder)
+        // Grouping and calculations
         $grouped = $finishedGoods->groupBy([
             fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown',
             fn($item) => $item->product->name ?? 'Unknown',
@@ -53,8 +57,19 @@ class MonthlyProductionReport extends Component
         ]);
 
         $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
-        $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
+        $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift')->filter();
         $products = Product::select('id', 'name')->orderBy('name')->get();
+
+        // Get raw materials for filter
+        $rawMaterials = FinishedGood::with('materialStockOutLines.materialStockOut.rawMaterial')
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->get()
+            ->pluck('materialStockOutLines')
+            ->flatten()
+            ->pluck('materialStockOut.rawMaterial.name')
+            ->unique()
+            ->filter()
+            ->values();
 
         // Get quality report data for this month ONLY if there's production data
         $qualityReport = null;
@@ -69,17 +84,20 @@ class MonthlyProductionReport extends Component
             'month' => $this->month,
             'shifts' => $shifts,
             'products' => $products,
+            'rawMaterials' => $rawMaterials,
             'qualityReport' => $qualityReport,
         ]);
     }
 
-    public function exportToPdf(){
-
-
+    public function exportToPdf()
+    {
         $startOfMonth = Carbon::parse($this->month . '-01')->startOfMonth();
         $endOfMonth = Carbon::parse($this->month . '-01')->endOfMonth();
 
-        $finishedGoods = FinishedGood::with(['product', 'materialStockOutLines.materialStockOut.rawMaterial'])
+        $finishedGoods = FinishedGood::with([
+                'product', 
+                'materialStockOutLines.materialStockOut.rawMaterial',
+            ])
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->when($this->shift, function($query) {
                 $query->whereHas('materialStockOutLines', function($q) {
@@ -96,16 +114,15 @@ class MonthlyProductionReport extends Component
             })
             ->get();
 
-        // Grouping and calculations (placeholder)
+        // Grouping and calculations
         $grouped = $finishedGoods->groupBy([
             fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown',
             fn($item) => $item->product->name ?? 'Unknown',
             'size'
         ]);
+        
         $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
-        $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
-        $products = Product::select('id', 'name')->orderBy('name')->get();
-
+        
         // Get quality report data for this month ONLY if there's production data
         $qualityReport = null;
         if ($finishedGoods->count() > 0) {
@@ -117,16 +134,17 @@ class MonthlyProductionReport extends Component
             'grouped' => $grouped,
             'finishedGoods' => $finishedGoods,
             'month' => $this->month,
-            'shifts' => $shifts,
-            'products' => $products,
             'qualityReport' => $qualityReport,
         ];
 
-        $pdf = Pdf::loadView('livewire.operations.exports.monthly-production-report', $data)->setPaper('a4','landscape');
+        $pdf = Pdf::loadView('livewire.operations.exports.monthly-production-report', $data)
+            ->setPaper('a4', 'landscape');
 
-        return response()->streamDownload(function () use ($pdf){
-         echo $pdf->output();
-        }, "monthly-production-report.pdf");
-
+        return response()->streamDownload(
+            function () use ($pdf) {
+                echo $pdf->output();
+            }, 
+            "monthly-production-report-{$this->month}.pdf"
+        );
     }
-} 
+}

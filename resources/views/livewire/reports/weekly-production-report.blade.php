@@ -9,7 +9,7 @@
         </div>
         <div class="text-right text-xs">
             <div><span class="font-semibold">Document no</span> S/P/E/PR QC:003</div>
-            <div><span class="font-semibold">Week:</span> {{ $startDate }} - {{ $endDate }}</div>
+            <div><span class="font-semibold">Week:</span> {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</div>
         </div>
     </div>
     <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
@@ -31,7 +31,7 @@
             </select>
             <select wire:model.live="raw_material" class="border rounded px-2 py-1 text-xs">
                 <option value="">All Raw Materials</option>
-                @foreach($finishedGoods->pluck('materialStockOutLines')->flatten()->pluck('materialStockOut.rawMaterial.name')->unique()->filter()->values() as $rm)
+                @foreach($rawMaterials as $rm)
                     <option value="{{ $rm }}">{{ $rm }}</option>
                 @endforeach
             </select>
@@ -40,9 +40,6 @@
             <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
                 Export PDF
             </button>
-            {{-- <button wire:click="printReport" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600">
-                Print
-            </button> --}}
         </div>
     </div>
     <div class="overflow-x-auto mt-2">
@@ -68,20 +65,47 @@
                     $totals = array_fill_keys($lengths->toArray(), 0);
                     $totalQuantityConsumed = 0;
                     $totalProductWeight = 0;
+                    $totalWaste = 0;
+                    $totalGross = 0;
                 @endphp
-                @foreach($grouped as $rawMaterial => $byProduct)
+                @forelse($grouped as $rawMaterial => $byProduct)
                     @foreach($byProduct as $productName => $bySize)
                         @foreach($bySize as $size => $records)
                             @php
-                                $qtyConsumed = $records->sum(function($rec) { return $rec->materialStockOutLines->sum('quantity_consumed'); });
+                                // Raw material consumed
+                                $qtyConsumed = $records->sum(function($rec) { 
+                                    return $rec->materialStockOutLines->sum('quantity_consumed'); 
+                                });
                                 $totalQuantityConsumed += $qtyConsumed;
-                                $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
+                                
+                                // Use the actual total_weight field from database if available, otherwise calculate
+                                $productWeight = $records->sum('total_weight');
+                                if ($productWeight <= 0) {
+                                    // Fallback calculation if total_weight is not set
+                                    $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
+                                }
                                 $totalProductWeight += $productWeight;
+                                
+                                // Calculate waste
+                                $waste = max(0, $qtyConsumed - $productWeight);
+                                $totalWaste += $waste;
+                                
+                                // Gross weight
+                                $gross = $qtyConsumed;
+                                $totalGross += $gross;
+                                
+                                // Get quality metrics - use average values for the group
+                                $ovality = $records->avg('ovality');
+                                $thickness = $records->avg('thickness');
+                                $outerDiameter = $records->avg('outer_diameter');
+                                
+                                // Get the actual size from the first record if size is empty
+                                $displaySize = $size ?: ($records->first()->size ?? 'N/A');
                             @endphp
                             <tr>
                                 <td class="border border-black">{{ $rawMaterial }}</td>
-                                <td class="border border-black">{{ $qtyConsumed }}</td>
-                                <td class="border border-black">{{ $size }}</td>
+                                <td class="border border-black">{{ number_format($qtyConsumed, 2) }}</td>
+                                <td class="border border-black">{{ $displaySize }}</td>
                                 @foreach($lengths as $length)
                                     @php
                                         $qty = $records->where('length_m', $length)->sum('quantity');
@@ -90,29 +114,36 @@
                                     <td class="border border-black">{{ $qty ?: '' }}</td>
                                 @endforeach
                                 <td class="border border-black">{{ number_format($productWeight, 2) }}</td>
-                                <td class="border border-black">0</td>
-                                <td class="border border-black">0</td>
-                                <td class="border border-black">-</td>
-                                <td class="border border-black">-</td>
-                                <td class="border border-black">-</td>
+                                <td class="border border-black">{{ number_format($waste, 2) }}</td>
+                                <td class="border border-black">{{ number_format($gross, 2) }}</td>
+                                <td class="border border-black">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
+                                <td class="border border-black">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
+                                <td class="border border-black">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
                             </tr>
                         @endforeach
                     @endforeach
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="{{ 10 + count($lengths) }}" class="border border-black text-center py-4">No production data found for the selected filters</td>
+                    </tr>
+                @endforelse
+                
+                @if($grouped->count() > 0)
                 <tr class="font-bold bg-gray-200">
                     <td class="border border-black">Total</td>
-                    <td class="border border-black">{{ $totalQuantityConsumed }}</td>
+                    <td class="border border-black">{{ number_format($totalQuantityConsumed, 2) }}</td>
                     <td class="border border-black"></td>
                     @foreach($lengths as $length)
                         <td class="border border-black">{{ $totals[$length] }}</td>
                     @endforeach
                     <td class="border border-black">{{ number_format($totalProductWeight, 2) }}</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
+                    <td class="border border-black">{{ number_format($totalWaste, 2) }}</td>
+                    <td class="border border-black">{{ number_format($totalGross, 2) }}</td>
                     <td class="border border-black"></td>
                     <td class="border border-black"></td>
                     <td class="border border-black"></td>
                 </tr>
+                @endif
             </tbody>
         </table>
     </div>
@@ -136,19 +167,22 @@
                 <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
             @endif
         @else
+            @if($grouped->count() > 0)
             <div class="font-semibold underline mb-1">Comment of Quality</div>
             <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
             <div class="font-semibold underline mb-1">Problems:</div>
             <ul class="list-disc pl-5 mb-2">
                 <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
-                <!-- Add more problems as needed -->
             </ul>
             <div class="font-semibold underline mb-1">Corrective action:</div>
             <div class="mb-2">The problems were reduced by communicating with the shift leader and operators. However, weight and raw material quality problem were not reduced because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products and shrinkage problem in 125mm products was reduced by increasing the length and OD of products and raw material problems were reduced by changing the raw materials.</div>
             <div class="font-semibold underline mb-1">Remark:</div>
             <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
+            @endif
         @endif
     </div>
+    
+    @if($grouped->count() > 0)
     <div class="mt-6 flex flex-wrap justify-between text-xs">
         <div>
             <div class="mb-1">Prepared by <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
@@ -161,4 +195,5 @@
             <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
         </div>
     </div>
-</div> 
+    @endif
+</div>

@@ -5,6 +5,7 @@ namespace App\Livewire\Sales;
 use App\Models\ProductionOrder;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -131,7 +132,7 @@ class CreateOrder extends Component
             ]);
             session()->flash('message', 'Production order updated.');
         } else {
-            ProductionOrder::create([
+            $order = ProductionOrder::create([
                 'order_number' => $this->order_number,
                 'customer_id' => $this->customer_id,
                 'status' => $this->status,
@@ -139,7 +140,12 @@ class CreateOrder extends Component
                 'requested_by' => $user ? $user->id : null,
                 'notes' => $this->notes,
             ]);
-            session()->flash('message', 'Production order created.');
+            
+            // Send notifications for new order
+            $notificationService = app(NotificationService::class);
+            $notificationService->notifyOrderCreated($order);
+            
+            session()->flash('message', 'Production order created and notifications sent.');
         }
         $this->showOrderModal = false;
         $this->resetOrderForm();

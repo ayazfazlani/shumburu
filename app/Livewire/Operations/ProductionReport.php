@@ -5,176 +5,157 @@ namespace App\Livewire\Operations;
 use Carbon\Carbon;
 use App\Models\Product;
 use Livewire\Component;
-// use Barryvdh\DomPDF\PDF;
 use App\Models\FinishedGood;
-use Livewire\WithPagination;
 use App\Models\QualityReport;
-use App\Models\ProductionLine;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\DB;
 use App\Models\MaterialStockOutLine;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ProductionReport extends Component
 {
-    use WithPagination;
-
-    public $date ;
+    public $date;
     public $shift = '';
     public $product_id = '';
+    public $raw_material = '';
 
     public function mount()
     {
         $this->date = Carbon::today()->toDateString();
-        $this->date = "2025-07-16";
     }
-
-    public function updatingDate() { $this->resetPage(); }
-    public function updatingShift() { $this->resetPage(); }
-    public function updatingProductId() { $this->resetPage(); }
-
-    // public function render()
-    // {
-    //     // Get all unique lengths for the selected date and filters
-    //     $query = FinishedGood::query()->where('created_at', $this->date)
-    //     ->when($this->shift, function($query){
-          
-    //         $query->whereHas('materialStockoutLine', function($q){
-    //           $q->where('shift', $this->shift);
-    //         });
-            
-        
-    //     })
-    //     ->when($this->product_id,function($query) {
-    //         $query->where('product_id', $this->product_id);
-    //     });
-
-    //     dd($query );
-    //     $lengths = $query->pluck('length_m')->unique()->sort()->values();
-
-
-
-    //     // Fetch finished goods for the selected date and filters
-    //     $finishedGoods = $query->with(['product', 'customer', 'producedBy'])->get();
-
-    //     // Group by raw material (or product), shift, size
-    //     $grouped = $finishedGoods->groupBy([
-    //         fn($item) => $item->raw_material_name ?? ($item->product->name ?? 'Unknown'),
-    //         'shift',
-    //         'size'
-    //     ]);
-
-    //     // For filter dropdowns
-    //     $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
-    //     $products = Product::select('id', 'name')->orderBy('name')->get();
-
-    //     return view('livewire.operations.production-report', [
-    //         'lengths' => $lengths,
-    //         'grouped' => $grouped,
-    //         'finishedGoods' => $finishedGoods,
-    //         'date' => $this->date,
-    //         'shifts' => $shifts,
-    //         'products' => $products,
-    //         'shift' => $this->shift,
-    //         'product_id' => $this->product_id,
-    //     ]);
-    // }
 
     public function render()
-{
-    $finishedGoods = FinishedGood::with([
-        'product',
-        'materialStockOutLines.materialStockOut.rawMaterial'
-    ])
-    
-    ->whereDate('created_at', $this->date)
-    ->get();
+    {
+        $startOfDay = Carbon::parse($this->date)->startOfDay();
+        $endOfDay = Carbon::parse($this->date)->endOfDay();
 
-  
-    $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        $finishedGoods = FinishedGood::with([
+                'product', 
+                'materialStockOutLines.materialStockOut.rawMaterial',
+            ])
+            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->when($this->shift, function($query) {
+                $query->whereHas('materialStockOutLines', function($q) {
+                    $q->where('shift', $this->shift);
+                });
+            })
+            ->when($this->product_id, function($query) {
+                $query->where('product_id', $this->product_id);
+            })
+            ->when($this->raw_material, function($query) {
+                $query->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($q) {
+                    $q->where('name', $this->raw_material);
+                });
+            })
+            ->get();
 
-    // Group by raw material name, shift, product name, and size
-    $grouped = $finishedGoods->groupBy([
-        fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown'
-,
-        fn($item) => $item->materialStockOutLines->first()->shift ?? 'Unknown',
-        fn($item) => $item->product->name ?? 'Unknown',
-        'size'
-    ]);
+        // FIXED: Group by material, product, size, and length to ensure all records are shown
+        $grouped = $finishedGoods->groupBy([
+            fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown',
+            fn($item) => $item->product->name ?? 'Unknown',
+            'size',
+            'length_m' // Added length to the grouping
+        ]);
 
-    // dd($grouped);
+        $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        
+        // Get shifts for filter
+        $shifts = MaterialStockOutLine::select('shift')
+            ->distinct()
+            ->pluck('shift')
+            ->filter();
+            
+        $products = Product::select('id', 'name')->orderBy('name')->get();
+        
+        // Get raw materials for filter
+        $rawMaterials = FinishedGood::with('materialStockOutLines.materialStockOut.rawMaterial')
+            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->get()
+            ->pluck('materialStockOutLines')
+            ->flatten()
+            ->pluck('materialStockOut.rawMaterial.name')
+            ->unique()
+            ->filter()
+            ->values();
 
-    $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
-    $products = Product::select('id', 'name')->orderBy('name')->get();
+        // Get quality report data for this date ONLY if there's production data
+        $qualityReport = null;
+        if ($finishedGoods->count() > 0) {
+            $qualityReport = QualityReport::forDate($this->date, 'daily')->first();
+        }
 
-    // Get quality report data for this date ONLY if there's production data
-    $qualityReport = null;
-    if ($finishedGoods->count() > 0) {
-        $qualityReport = QualityReport::forDate($this->date, 'daily')->first();
+        return view('livewire.operations.production-report', [
+            'lengths' => $lengths,
+            'grouped' => $grouped,
+            'finishedGoods' => $finishedGoods,
+            'date' => $this->date,
+            'shifts' => $shifts,
+            'products' => $products,
+            'rawMaterials' => $rawMaterials,
+            'shift' => $this->shift,
+            'product_id' => $this->product_id,
+            'qualityReport' => $qualityReport,
+        ]);
     }
 
+    public function exportToPdf()
+    {
+        $startOfDay = Carbon::parse($this->date)->startOfDay();
+        $endOfDay = Carbon::parse($this->date)->endOfDay();
 
-    return view('livewire.operations.production-report', [
-        'lengths' => $lengths,
-        'grouped' => $grouped,
-        'finishedGoods' => $finishedGoods,
-        'date' => $this->date,
-        'shifts' => $shifts,
-        'products' => $products,
-        'shift' => $this->shift,
-        'product_id' => $this->product_id,
-        'qualityReport' => $qualityReport,
-    ]);
-}
+        $finishedGoods = FinishedGood::with([
+                'product', 
+                'materialStockOutLines.materialStockOut.rawMaterial',
+            ])
+            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->when($this->shift, function($query) {
+                $query->whereHas('materialStockOutLines', function($q) {
+                    $q->where('shift', $this->shift);
+                });
+            })
+            ->when($this->product_id, function($query) {
+                $query->where('product_id', $this->product_id);
+            })
+            ->when($this->raw_material, function($query) {
+                $query->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($q) {
+                    $q->where('name', $this->raw_material);
+                });
+            })
+            ->get();
 
-public function exportToPdf(){
+        // FIXED: Use the same grouping logic as in render()
+        $grouped = $finishedGoods->groupBy([
+            fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown',
+            fn($item) => $item->product->name ?? 'Unknown',
+            'size',
+            'length_m' // Added length to the grouping
+        ]);
+        
+        $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        
+        // Get quality report data for this date ONLY if there's production data
+        $qualityReport = null;
+        if ($finishedGoods->count() > 0) {
+            $qualityReport = QualityReport::forDate($this->date, 'daily')->first();
+        }
 
-    $finishedGoods = FinishedGood::with([
-        'product',
-        'materialStockOutLines.materialStockOut.rawMaterial'
-    ])
-    
-    ->whereDate('created_at', $this->date)
-    ->get();
+        $data = [
+            'lengths' => $lengths,
+            'grouped' => $grouped,
+            'finishedGoods' => $finishedGoods,
+            'date' => $this->date,
+            'qualityReport' => $qualityReport,
+            'startDate' => $startOfDay,
+            'endDate' => $endOfDay,
+        ];
 
-  
-    $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        $pdf = Pdf::loadView('livewire.operations.exports.production-report', $data)
+            ->setPaper('a4', 'landscape');
 
-    // Group by raw material name, shift, product name, and size
-    $grouped = $finishedGoods->groupBy([
-        fn($item) => $item->materialStockOutLines->first()?->materialStockOut?->rawMaterial?->name ?? 'Unknown'
-,
-        fn($item) => $item->materialStockOutLines->first()->shift ?? 'Unknown',
-        fn($item) => $item->product->name ?? 'Unknown',
-        'size'
-    ]);
-
-    // dd($grouped);
-
-    $shifts = MaterialStockOutLine::select('shift')->distinct()->pluck('shift');
-    $products = Product::select('id', 'name')->orderBy('name')->get();
-
-    // Get quality report data for this date ONLY if there's production data
-    $qualityReport = null;
-    if ($finishedGoods->count() > 0) {
-        $qualityReport = QualityReport::forDate($this->date, 'daily')->first();
+        return response()->streamDownload(
+            function () use ($pdf) {
+                echo $pdf->output();
+            }, 
+            "daily-production-report-{$this->date}.pdf"
+        );
     }
-
-    $data = [
-        'lengths' => $lengths,
-        'grouped' => $grouped,
-        'finishedGoods' => $finishedGoods,
-        'date' => $this->date,
-        'shifts' => $shifts,
-        'products' => $products,
-        'shift' => $this->shift,
-        'product_id' => $this->product_id,
-        'qualityReport' => $qualityReport,
-    ];
-      $pdf = Pdf::loadView('livewire.operations.exports.production-report', $data)->setPaper('a4','landscape');
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'daily-production-report.pdf');
-}
 }

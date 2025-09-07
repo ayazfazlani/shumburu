@@ -27,6 +27,8 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
         }
         .logo-section {
             display: flex;
@@ -107,6 +109,7 @@
         .comments-title {
             font-weight: 600;
             margin-bottom: 8px;
+            text-decoration: underline;
         }
         .signature-section {
             margin-top: 24px;
@@ -162,6 +165,10 @@
             border-radius: 4px;
             border: 1px solid #e2e8f0;
         }
+        .list-disc {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -181,7 +188,7 @@
             </div>
         </div>
 
-        <!-- Week Information (replaces filters) -->
+        <!-- Week Information -->
         <div class="week-info">
             <span class="font-semibold">Report Period: </span>
             {{ $startDate }} to {{ $endDate }}
@@ -211,20 +218,48 @@
                         $totals = array_fill_keys($lengths->toArray(), 0);
                         $totalQuantityConsumed = 0;
                         $totalProductWeight = 0;
+                        $totalWaste = 0;
+                        $totalGross = 0;
                     @endphp
-                    @foreach($grouped as $rawMaterial => $byProduct)
+                    
+                    @forelse($grouped as $rawMaterial => $byProduct)
                         @foreach($byProduct as $productName => $bySize)
                             @foreach($bySize as $size => $records)
                                 @php
-                                    $qtyConsumed = $records->sum(function($rec) { return $rec->materialStockOutLines->sum('quantity_consumed'); });
+                                    // Raw material consumed
+                                    $qtyConsumed = $records->sum(function($rec) { 
+                                        return $rec->materialStockOutLines->sum('quantity_consumed'); 
+                                    });
                                     $totalQuantityConsumed += $qtyConsumed;
-                                    $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
+                                    
+                                    // Use the actual total_weight field from database if available, otherwise calculate
+                                    $productWeight = $records->sum('total_weight');
+                                    if ($productWeight <= 0) {
+                                        // Fallback calculation if total_weight is not set
+                                        $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
+                                    }
                                     $totalProductWeight += $productWeight;
+                                    
+                                    // Calculate waste
+                                    $waste = max(0, $qtyConsumed - $productWeight);
+                                    $totalWaste += $waste;
+                                    
+                                    // Gross weight
+                                    $gross = $qtyConsumed;
+                                    $totalGross += $gross;
+                                    
+                                    // Get quality metrics - use average values for the group
+                                    $ovality = $records->avg('ovality');
+                                    $thickness = $records->avg('thickness');
+                                    $outerDiameter = $records->avg('outer_diameter');
+                                    
+                                    // Get the actual size from the first record if size is empty
+                                    $displaySize = $size ?: ($records->first()->size ?? 'N/A');
                                 @endphp
                                 <tr>
                                     <td>{{ $rawMaterial }}</td>
-                                    <td class="text-right">{{ $qtyConsumed }}</td>
-                                    <td>{{ $size }}</td>
+                                    <td class="text-right">{{ number_format($qtyConsumed, 2) }}</td>
+                                    <td>{{ $displaySize }}</td>
                                     @foreach($lengths as $length)
                                         @php
                                             $qty = $records->where('length_m', $length)->sum('quantity');
@@ -233,29 +268,36 @@
                                         <td class="text-right">{{ $qty ?: '' }}</td>
                                     @endforeach
                                     <td class="text-right">{{ number_format($productWeight, 2) }}</td>
-                                    <td class="text-right">0</td>
-                                    <td class="text-right">0</td>
-                                    <td class="text-center">-</td>
-                                    <td class="text-center">-</td>
-                                    <td class="text-center">-</td>
+                                    <td class="text-right">{{ number_format($waste, 2) }}</td>
+                                    <td class="text-right">{{ number_format($gross, 2) }}</td>
+                                    <td class="text-center">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
+                                    <td class="text-center">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
+                                    <td class="text-center">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
                                 </tr>
                             @endforeach
                         @endforeach
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="{{ 10 + count($lengths) }}" class="text-center py-4">No production data found for the selected filters</td>
+                        </tr>
+                    @endforelse
+                    
+                    @if($grouped->count() > 0)
                     <tr class="total-row">
                         <td>Total</td>
-                        <td class="text-right">{{ $totalQuantityConsumed }}</td>
+                        <td class="text-right">{{ number_format($totalQuantityConsumed, 2) }}</td>
                         <td></td>
                         @foreach($lengths as $length)
                             <td class="text-right">{{ $totals[$length] }}</td>
                         @endforeach
                         <td class="text-right">{{ number_format($totalProductWeight, 2) }}</td>
-                        <td></td>
-                        <td></td>
+                        <td class="text-right">{{ number_format($totalWaste, 2) }}</td>
+                        <td class="text-right">{{ number_format($totalGross, 2) }}</td>
                         <td></td>
                         <td></td>
                         <td></td>
                     </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -283,13 +325,15 @@
             @else
                 <div class="comments-title">Comment of Quality</div>
                 <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
+                
                 <div class="comments-title">Problems:</div>
                 <ul class="list-disc pl-5 mb-2">
                     <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
-                    <!-- Add more problems as needed -->
                 </ul>
+                
                 <div class="comments-title">Corrective action:</div>
                 <div class="mb-2">The problems were reduced by communicating with the shift leader and operators. However, weight and raw material quality problem were not reduced because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products and shrinkage problem in 125mm products was reduced by increasing the length and OD of products and raw material problems were reduced by changing the raw materials.</div>
+                
                 <div class="comments-title">Remark:</div>
                 <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
             @endif

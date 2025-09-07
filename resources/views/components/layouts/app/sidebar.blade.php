@@ -24,6 +24,7 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
+    
     <flux:sidebar sticky stashable
         class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 lg:dark:bg-zinc-900/50">
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
@@ -32,10 +33,15 @@
             <x-app-logo class="size-8"></x-app-logo>
         </a>
 
-        <div>
+        <div class="flex flex-col gap-3">
             <flux:button href="{{ route('home') }}" icon="arrow-left" size="sm" wire:navigate>
                 {{ __('global.go_to_frontend') }}
             </flux:button>
+            
+            <!-- Notification Center -->
+            <div class="w-full mb-4">
+                @livewire('components.notification-center')
+            </div>
         </div>
 
         <flux:navlist variant="outline">
@@ -174,6 +180,12 @@
                     Operations Dashboard
                 </flux:navlist.item>
                 @endcan
+                @can('can manage production orders')
+                <flux:navlist.item icon="clipboard-document-list" href="{{ route('operations.production-orders') }}" wire:navigate
+                    class="{{ request()->routeIs('operations.production-orders') ? 'active' : '' }}">
+                    Production Orders
+                </flux:navlist.item>
+                @endcan
                 @can('can add downtime record')
                 <flux:navlist.item icon="clock" href="{{ route('operations.downtime-record') }}" wire:navigate
                     class="{{ request()->routeIs('operations.downtime-record') ? 'active' : '' }}">
@@ -271,6 +283,18 @@
                 </flux:navlist.item>
             </flux:navlist.group>
             @endcan
+
+            <!-- Notifications Section -->
+            <flux:navlist.group heading="Notifications" class="grid">
+                <flux:navlist.item icon="bell" href="{{ route('notifications.index') }}" wire:navigate
+                    class="{{ request()->routeIs('notifications.index') ? 'active' : '' }}">
+                    All Notifications
+                </flux:navlist.item>
+                <flux:navlist.item icon="bell-alert" href="{{ route('notifications.index', ['filter' => 'unread']) }}" wire:navigate
+                    class="{{ request()->get('filter') === 'unread' ? 'active' : '' }}">
+                    Unread Only
+                </flux:navlist.item>
+            </flux:navlist.group>
         </flux:navlist>
 
         <flux:spacer />

@@ -6,7 +6,9 @@ use App\Models\ProductionOrder;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Delivery;
+use App\Services\NotificationService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -118,7 +120,7 @@ class OrdersOverview extends Component
             'payment_method' => $this->paymentMethod,
             'payment_date' => $this->paymentDate,
             'notes' => $this->paymentNotes,
-            'recorded_by' => auth()->id(),
+            'recorded_by' => Auth::id(),
         ]);
 
         session()->flash('message', 'Payment recorded successfully.');
@@ -127,11 +129,18 @@ class OrdersOverview extends Component
 
     public function addDelivery($orderId)
     {
-        // $this->selectedOrder = ProductionOrder::with(['items.product'])->findOrFail($orderId);
         $order = ProductionOrder::findOrFail($orderId);
-         $order->update(['status' => 'delivered']);
-         $this->mount();
-        // $this->showDeliveryModal = true;
+        $oldStatus = $order->status;
+        
+        // Update status to delivered
+        $order->update(['status' => 'delivered']);
+        
+        // Explicitly send notifications as backup (in case model observer doesn't fire)
+        $notificationService = app(NotificationService::class);
+        $notificationService->notifyStatusChanged($order, $oldStatus, 'delivered', Auth::id());
+        
+        session()->flash('message', 'Order marked as delivered and notifications sent to sales team!');
+        $this->mount();
     }
 
     public function saveDelivery()
@@ -153,7 +162,7 @@ class OrdersOverview extends Component
             'unit_price' => $firstItem->unit_price,
             'total_amount' => $this->deliveryQuantity * $firstItem->unit_price,
             'delivery_date' => $this->deliveryDate,
-            'delivered_by' => auth()->id(),
+            'delivered_by' => Auth::id(),
             'notes' => $this->deliveryNotes,
         ]);
 
@@ -162,7 +171,13 @@ class OrdersOverview extends Component
         $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
         
         if ($totalDelivered >= $totalOrdered) {
+            $oldStatus = $this->selectedOrder->status;
+            // Update status to delivered
             $this->selectedOrder->update(['status' => 'delivered']);
+            
+            // Explicitly send notifications as backup (in case model observer doesn't fire)
+            $notificationService = app(NotificationService::class);
+            $notificationService->notifyStatusChanged($this->selectedOrder, $oldStatus, 'delivered', Auth::id());
         }
 
         session()->flash('message', 'Delivery recorded successfully.');
@@ -172,9 +187,16 @@ class OrdersOverview extends Component
     public function updateOrderStatus($orderId, $status)
     {
         $order = ProductionOrder::findOrFail($orderId);
+        $oldStatus = $order->status;
+        
+        // Update status
         $order->update(['status' => $status]);
         
-        session()->flash('message', 'Order status updated successfully.');
+        // Explicitly send notifications as backup (in case model observer doesn't fire)
+        $notificationService = app(NotificationService::class);
+        $notificationService->notifyStatusChanged($order, $oldStatus, $status, Auth::id());
+        
+        session()->flash('message', "Order status updated from {$oldStatus} to {$status}. Notifications sent!");
     }
 
     public function closeOrderDetailsModal()
