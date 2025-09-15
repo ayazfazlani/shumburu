@@ -14,161 +14,27 @@
             padding: 0;
             background: white;
         }
-        .container {
-            padding: 24px;
-            background: white;
-            max-width: 100%;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .logo {
-            width: 64px;
-            height: 64px;
-            background: #3b82f6;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        .title-section {
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 1.2;
-        }
-        .subtitle {
-            font-size: 12px;
-            color: #6b7280;
-        }
-        .meta-section {
-            text-align: right;
-            font-size: 12px;
-        }
-        .meta-section div {
-            margin-bottom: 2px;
-        }
-        .font-semibold {
-            font-weight: 600;
-        }
-        .month-info {
-            font-size: 11px;
-            margin-bottom: 10px;
-            padding: 6px 10px;
-            background: #f1f5f9;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            font-size: 11px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 4px 6px;
-            text-align: left;
-        }
-        thead th {
-            background: #e5e7eb;
-            font-weight: bold;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .text-gray-500 {
-            color: #6b7280;
-        }
-        .font-bold {
-            font-weight: bold;
-        }
-        .bg-gray-200 {
-            background: #e5e7eb;
-        }
-        .bg-gray-50 {
-            background: #f9fafb;
-        }
-        .comments {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background: #f9fafb;
-        }
-        .comments-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-decoration: underline;
-        }
-        .signature-section {
-            margin-top: 24px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-        }
-        .signature-box {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .signature-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .underline {
-            border-bottom: 1px solid #000;
-            display: inline-block;
-            min-width: 120px;
-            text-align: center;
-        }
-        .space-y-1 > * + * {
-            margin-top: 4px;
-        }
-        .space-y-4 > * + * {
-            margin-top: 16px;
-        }
-        .mb-1 { margin-bottom: 4px; }
-        .mb-2 { margin-bottom: 8px; }
-        .mt-4 { margin-top: 16px; }
-        .mt-6 { margin-top: 24px; }
-        .p-3 { padding: 12px; }
-        .rounded { border-radius: 4px; }
-        .border { border: 1px solid #d1d5db; }
-        tbody tr:nth-child(even) {
-            background: #f8fafc;
-        }
-        .total-row {
-            background: #e5e7eb;
-            font-weight: bold;
-        }
-        .total-row td {
-            border-top: 2px solid #9ca3af;
-            border-bottom: 2px solid #9ca3af;
-        }
-        .list-disc {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
+        .container { padding: 24px; background: white; border: 1px solid #d1d5db; border-radius: 8px; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .logo-section { display: flex; align-items: center; gap: 8px; }
+        .logo { width: 64px; height: 64px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 12px; }
+        .title-section { font-weight: bold; font-size: 18px; line-height: 1.2; }
+        .subtitle { font-size: 12px; color: #6b7280; }
+        .meta-section { text-align: right; font-size: 12px; }
+        .font-semibold { font-weight: 600; }
+        .month-info { font-size: 11px; margin-bottom: 10px; padding: 6px 10px; background: #f1f5f9; border-radius: 4px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+        th, td { border: 1px solid #000; padding: 4px 6px; text-align: left; }
+        thead th { background: #e5e7eb; font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .total-row { background: #e5e7eb; font-weight: bold; }
+        .comments { margin-top: 16px; padding: 12px; border-radius: 4px; border: 1px solid #d1d5db; background: #f9fafb; }
+        .comments-title { font-weight: 600; margin-bottom: 8px; text-decoration: underline; }
+        .signature-section { margin-top: 24px; display: flex; justify-content: space-between; font-size: 11px; }
+        .signature-box { display: flex; flex-direction: column; gap: 16px; }
+        .signature-item { display: flex; flex-direction: column; gap: 4px; }
+        .underline { border-bottom: 1px solid #000; display: inline-block; min-width: 120px; text-align: center; }
     </style>
 </head>
 <body>
@@ -198,7 +64,7 @@
         <div class="overflow-x-auto mt-2">
             <table>
                 <thead>
-                    <tr class="bg-gray-200">
+                    <tr>
                         <th>Raw Material</th>
                         <th>Weight (kg)</th>
                         <th>Size of Pipe</th>
@@ -220,40 +86,59 @@
                         $totalProductWeight = 0;
                         $totalWaste = 0;
                         $totalGross = 0;
+
+                        $allOvality = [];
+                        // Ovality tracking
+                    $totalStartOvality = 0;
+                    $totalEndOvality = 0;
+                    $totalOvalityCount = 0;
+                        $allThickness = [];
+                        $allOuterDiameter = [];
                     @endphp
                     
                     @forelse($grouped as $rawMaterial => $byProduct)
                         @foreach($byProduct as $productName => $bySize)
                             @foreach($bySize as $size => $records)
                                 @php
-                                    // Raw material consumed
-                                    $qtyConsumed = $records->sum(function($rec) { 
-                                        return $rec->materialStockOutLines->sum('quantity_consumed'); 
-                                    });
+                                    $qtyConsumed = $records->sum(fn($rec) => $rec->materialStockOutLines->sum('quantity_consumed'));
                                     $totalQuantityConsumed += $qtyConsumed;
                                     
-                                    // Use the actual total_weight field from database if available, otherwise calculate
                                     $productWeight = $records->sum('total_weight');
                                     if ($productWeight <= 0) {
-                                        // Fallback calculation if total_weight is not set
                                         $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
                                     }
                                     $totalProductWeight += $productWeight;
                                     
-                                    // Calculate waste
                                     $waste = max(0, $qtyConsumed - $productWeight);
                                     $totalWaste += $waste;
                                     
-                                    // Gross weight
                                     $gross = $qtyConsumed;
                                     $totalGross += $gross;
                                     
-                                    // Get quality metrics - use average values for the group
-                                    $ovality = $records->avg('ovality');
+                                    // $ovality = $records->avg('ovality');
+                                     $startOvality = null;
+                                    $endOvality = null;
+                                    foreach ($records as $rec) {
+                                        if ($rec->start_ovality !== null) {
+                                            $totalStartOvality += $rec->start_ovality;
+                                            $startOvality = $rec->start_ovality;
+                                        }
+                                        if ($rec->end_ovality !== null) {
+                                            $totalEndOvality += $rec->end_ovality;
+                                            $endOvality = $rec->end_ovality;
+                                        }
+                                    }
+                                    if ($startOvality !== null || $endOvality !== null) {
+                                        $totalOvalityCount++;
+                                    }
+
                                     $thickness = $records->avg('thickness');
                                     $outerDiameter = $records->avg('outer_diameter');
-                                    
-                                    // Get the actual size from the first record if size is empty
+
+                                    // if ($ovality) $allOvality[] = $ovality;
+                                    if ($thickness) $allThickness[] = $thickness;
+                                    if ($outerDiameter) $allOuterDiameter[] = $outerDiameter;
+
                                     $displaySize = $size ?: ($records->first()->size ?? 'N/A');
                                 @endphp
                                 <tr>
@@ -270,7 +155,7 @@
                                     <td class="text-right">{{ number_format($productWeight, 2) }}</td>
                                     <td class="text-right">{{ number_format($waste, 2) }}</td>
                                     <td class="text-right">{{ number_format($gross, 2) }}</td>
-                                    <td class="text-center">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
+                                    <td class="text-center">{{ $startOvality ? number_format($startOvality, 1) : '-' }}-{{ $endOvality ? number_format($endOvality, 1) : '-' }}</td>
                                     <td class="text-center">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
                                     <td class="text-center">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
                                 </tr>
@@ -284,7 +169,7 @@
                     
                     @if($grouped->count() > 0)
                     <tr class="total-row">
-                        <td>Total</td>
+                        <td>Total / Avg</td>
                         <td class="text-right">{{ number_format($totalQuantityConsumed, 2) }}</td>
                         <td></td>
                         @foreach($lengths as $length)
@@ -293,9 +178,13 @@
                         <td class="text-right">{{ number_format($totalProductWeight, 2) }}</td>
                         <td class="text-right">{{ number_format($totalWaste, 2) }}</td>
                         <td class="text-right">{{ number_format($totalGross, 2) }}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                         <td class="border border-black">
+                            {{ $totalOvalityCount > 0 ? number_format($totalStartOvality / $totalOvalityCount, 1) : '-' }}
+                            -
+                            {{ $totalOvalityCount > 0 ? number_format($totalEndOvality / $totalOvalityCount, 1) : '-' }}
+                        </td>
+                        <td class="text-center">{{ count($allThickness) ? number_format(array_sum($allThickness)/count($allThickness), 3) : '-' }}</td>
+                        <td class="text-center">{{ count($allOuterDiameter) ? number_format(array_sum($allOuterDiameter)/count($allOuterDiameter), 3) : '-' }}</td>
                     </tr>
                     @endif
                 </tbody>
@@ -306,38 +195,7 @@
         <div class="comments">
             @if($qualityReport)
                 <div class="comments-title">Comment of Quality</div>
-                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this month all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
-                
-                @if($qualityReport->problems)
-                    <div class="comments-title">Problems:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->problems)) !!}</div>
-                @endif
-                
-                @if($qualityReport->corrective_actions)
-                    <div class="comments-title">Corrective action:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
-                @endif
-                
-                @if($qualityReport->remarks)
-                    <div class="comments-title">Remark:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
-                @endif
-            @else
-                @if($grouped->count() > 0)
-                <div class="comments-title">Comment of Quality</div>
-                <div class="mb-2">In this month all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
-                
-                <div class="comments-title">Problems:</div>
-                <ul class="list-disc pl-5 mb-2">
-                    <li>Example: 160mm PN10 products had a problem of weight (over from standard), thickness, high difference between maximum and minimum thickness value, internal roughness, length and fading of blue stripe, power outage.</li>
-                </ul>
-                
-                <div class="comments-title">Corrective action:</div>
-                <div class="mb-2">Most of the problems were solved or minimized by communicating with the shift leader and operator. However, the weight problem was reduced but not eliminated because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products.</div>
-                
-                <div class="comments-title">Remark:</div>
-                <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
-                @endif
+                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this month all products were produced according to the standards...' }}</div>
             @endif
         </div>
 

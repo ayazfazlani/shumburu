@@ -70,12 +70,16 @@
                     $totalProductWeight = 0;
                     $totalWaste = 0;
                     $totalGross = 0;
+
+                    // Ovality tracking
+                    $totalStartOvality = 0;
+                    $totalEndOvality = 0;
+                    $totalOvalityCount = 0;
                 @endphp
 
                 @forelse($groupedByShift as $shift => $shiftGroup)
                     @php 
                         $shiftRowCount = 0;
-                        // Calculate total rows for this shift
                         foreach($shiftGroup as $rawMaterial => $byProduct) {
                             foreach($byProduct as $productName => $bySize) {
                                 $shiftRowCount += count($bySize);
@@ -89,27 +93,38 @@
                             @foreach($bySize as $size => $records)
                                 @php
                                     $shiftRowIndex++;
-                                    // Raw material consumed
                                     $qtyConsumed = $records->sum(fn($rec) => $rec->materialStockOutLines->sum('quantity_consumed'));
                                     $totalQuantityConsumed += $qtyConsumed;
 
-                                    // Product weight
                                     $productWeight = $records->sum('total_weight');
                                     if ($productWeight <= 0) {
                                         $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
                                     }
                                     $totalProductWeight += $productWeight;
 
-                                    // Waste
                                     $waste = max(0, $qtyConsumed - $productWeight);
                                     $totalWaste += $waste;
 
-                                    // Gross
                                     $gross = $qtyConsumed;
                                     $totalGross += $gross;
 
-                                    // Quality metrics
-                                    $ovality = $records->avg('ovality');
+                                    // Ovality values
+                                    $startOvality = null;
+                                    $endOvality = null;
+                                    foreach ($records as $rec) {
+                                        if ($rec->start_ovality !== null) {
+                                            $totalStartOvality += $rec->start_ovality;
+                                            $startOvality = $rec->start_ovality;
+                                        }
+                                        if ($rec->end_ovality !== null) {
+                                            $totalEndOvality += $rec->end_ovality;
+                                            $endOvality = $rec->end_ovality;
+                                        }
+                                    }
+                                    if ($startOvality !== null || $endOvality !== null) {
+                                        $totalOvalityCount++;
+                                    }
+
                                     $thickness = $records->avg('thickness');
                                     $outerDiameter = $records->avg('outer_diameter');
                                 @endphp
@@ -117,7 +132,6 @@
                                     <td class="border border-black">{{ $rawMaterial }}</td>
                                     <td class="border border-black">{{ number_format($qtyConsumed, 2) }}</td>
                                     
-                                    {{-- Show shift only in first row of the shift group --}}
                                     @if($shiftRowIndex === 1)
                                         <td class="border border-black align-top" rowspan="{{ $shiftRowCount }}">
                                             {{ $shift }}
@@ -135,9 +149,9 @@
                                     <td class="border border-black">{{ number_format($productWeight, 2) }}</td>
                                     <td class="border border-black">{{ number_format($waste, 2) }}</td>
                                     <td class="border border-black">{{ number_format($gross, 2) }}</td>
-                                    <td class="border border-black">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
-                                    <td class="border border-black">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
-                                    <td class="border border-black">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
+                                    <td class="border border-black">{{ $startOvality ? number_format($startOvality, 1) : '-' }}-{{ $endOvality ? number_format($endOvality, 1) : '-' }}</td>
+                                    <td class="border border-black">{{ $thickness ? number_format($thickness,2) : '-' }}</td>
+                                    <td class="border border-black">{{ $outerDiameter ? number_format($outerDiameter,2) : '-' }}</td>
                                 </tr>
                             @endforeach
                         @endforeach
@@ -161,7 +175,11 @@
                         <td class="border border-black">{{ number_format($totalProductWeight, 2) }}</td>
                         <td class="border border-black">{{ number_format($totalWaste, 2) }}</td>
                         <td class="border border-black">{{ number_format($totalGross, 2) }}</td>
-                        <td class="border border-black">-</td>
+                        <td class="border border-black">
+                            {{ $totalOvalityCount > 0 ? number_format($totalStartOvality / $totalOvalityCount, 1) : '-' }}
+                            -
+                            {{ $totalOvalityCount > 0 ? number_format($totalEndOvality / $totalOvalityCount, 1) : '-' }}
+                        </td>
                         <td class="border border-black">-</td>
                         <td class="border border-black">-</td>
                     </tr>
