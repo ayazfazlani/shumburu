@@ -56,7 +56,7 @@ class DowntimeRecord extends Component
     $user = Auth::user();
 
     // Check if user has operations access
-    if (!$user->hasRole(['admin', 'operations', 'plant_manager'])) {
+    if (!$user->hasRole(['Admin', 'Super Admin', 'Plant Manager'])) {
       session()->flash('error', 'Unauthorized to record downtime.');
       return;
     }

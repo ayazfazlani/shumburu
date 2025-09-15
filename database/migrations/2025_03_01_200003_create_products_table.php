@@ -11,11 +11,11 @@ return new class extends Migration
     Schema::create('products', function (Blueprint $table) {
       $table->id();
       $table->string('name');
-      $table->string('code')->unique(); // OS1, OS2, OS3, etc.
+      $table->string('code')->nullable(); // OS1, OS2, OS3, etc.
       $table->string('size'); // 20mm, 32mm, 110mm, etc.
       $table->string('pn'); // PN6, PN10, etc.
       $table->decimal('weight_per_meter', 8, 3)->nullable();
-      $table->decimal('meter_length', 8, 2);
+      $table->decimal('meter_length', 8, 2)->nullable();
       $table->text('description')->nullable();
       $table->boolean('is_active')->default(true);
       $table->timestamps();

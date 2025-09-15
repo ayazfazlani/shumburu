@@ -143,12 +143,25 @@
                                 </div>
                                 <div class="form-control">
                                     <label class="label">
-                                        <span class="label-text font-semibold">Ovality *</span>
+                                        <span class="label-text font-semibold">Start Ovality *</span>
                                     </label>
-                                    <input type="text" wire:model="ovality"
-                                        class="input input-bordered w-full @error('ovality') input-error @enderror"
-                                        placeholder="Enter Ovality" />
-                                    @error('ovality')
+                                    <input type="text" wire:model="startOvality"
+                                        class="input input-bordered w-full @error('startOvality') input-error @enderror"
+                                        placeholder="Enter start ovality" />
+                                    @error('startOvality')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text font-semibold">End Ovality *</span>
+                                    </label>
+                                    <input type="text" wire:model="endOvality"
+                                        class="input input-bordered w-full @error('endOvality') input-error @enderror"
+                                        placeholder="Enter end ovality" />
+                                    @error('endOvality')
                                         <label class="label">
                                             <span class="label-text-alt text-error">{{ $message }}</span>
                                         </label>
@@ -319,7 +332,8 @@
                             <td>{{ $item->quantity }} pieces</td>
                              <td>{{ $item->total_weight }}</td>
                             <td>{{ $item->batch_number }}</td>
-                            <td>{{ $item->ovality }}</td>
+                            <td>{{ number_format($item->start_ovality, 2) }} - 
+    {{ $item->end_ovality ? number_format($item->end_ovality, 2) : 'N/A' }}</td>
                             <td>{{ $item->stripe_color }}</td>
                             <td>{{ $item->production_date }}</td>
                             <td>{{ $item->purpose }}</td>

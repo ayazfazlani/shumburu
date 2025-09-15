@@ -35,7 +35,7 @@ class ProductsCrud extends Component
       : 'unique:products,code';
     return [
       'name' => 'required|string|max:255',
-      'code' => ['required', 'string', 'max:255', $uniqueCode],
+      'code' => 'nullable|string|max:255',
       'size' => 'required|string|max:255',
       'pn' => 'required|string|max:255',
       'WeightPerMeter' => 'required|numeric|min:0',

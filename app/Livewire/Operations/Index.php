@@ -29,7 +29,7 @@ class Index extends Component
       ->paginate(10);
 
     $wasteRecords = ScrapWaste::with([
-      // 'rawMaterial',
+      'materialStockOutLine.materialStockOut',
        'recordedBy'])
       ->latest()
       ->paginate(10);

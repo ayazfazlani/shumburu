@@ -28,7 +28,8 @@ class FinishedGood extends Model
     'size',
     'surface',
     'thickness',
-    'ovality',
+    'start_ovality',
+    'end_ovality',
     'stripe_color',
   ];
 

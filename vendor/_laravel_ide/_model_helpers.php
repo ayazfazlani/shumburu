@@ -1306,7 +1306,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon $production_date
      * @property string $batch_number
      * @property string|null $stripe_color
-     * @property float|null $ovality
+     * @property float|null $end_ovality
+     * @property float|null $start_ovality
      * @property float|null $thickness
      * @property string|null $surface
      * @property string|null $size
@@ -1335,7 +1336,8 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereSize($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereSurface($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereThickness($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereOvality($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereStartOvality($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereEndOvality($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereStripeColor($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereBatchNumber($value)
      * @method static \Illuminate\Database\Eloquent\Builder<FinishedGood>|FinishedGood whereProductionDate($value)
@@ -4233,11 +4235,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property boolean $is_active
      * @property string|null $description
-     * @property decimal:2 $meter_length
+     * @property decimal:2|null $meter_length
      * @property float|null $weight_per_meter
      * @property string $pn
      * @property string $size
-     * @property string $code
+     * @property string|null $code
      * @property string $name
      * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FinishedGood> $finishedGoods
