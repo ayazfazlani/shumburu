@@ -9,21 +9,28 @@ use App\Models\ProductionLine;
 
 class MaterialStockOutLineCrud extends Component
 {
-    public $lines, $material_stock_out_id, $production_line_id, $quantity_consumed, $line_id;
+    public $lines;
     public $shift;
+    public $production_line_id;
+    public $materials = []; // holds multiple rows of [material_stock_out_id, quantity]
+
     public $materialStockOutLines = [];
     public $isEdit = false;
+    public $editLineId;
 
     protected $rules = [
-        'material_stock_out_id' => 'required|exists:material_stock_outs,id',
+        'shift' => 'required|in:A,B',
         'production_line_id' => 'required|exists:production_lines,id',
-        'quantity_consumed' => 'required|numeric|min:0.01',
-        'shift' => 'required|in:A,B'
+        'materials.*.material_stock_out_id' => 'required|exists:material_stock_outs,id',
+        'materials.*.quantity_consumed' => 'required|numeric|min:0.01',
     ];
 
     public function mount()
     {
         $this->fetch();
+        $this->materials = [
+            ['material_stock_out_id' => '', 'quantity_consumed' => '']
+        ];
     }
 
     public function fetch()
@@ -31,44 +38,37 @@ class MaterialStockOutLineCrud extends Component
         $this->materialStockOutLines = MaterialStockOutLine::with([
             'materialStockOut.rawMaterial',
             'productionLine'
-        ])->get();
+        ])->latest()->get();
+
+        $this->lines = ProductionLine::all();
     }
 
-    public function create()
+    public function addRow()
+    {
+        $this->materials[] = ['material_stock_out_id' => '', 'quantity_consumed' => ''];
+    }
+
+    public function removeRow($index)
+    {
+        unset($this->materials[$index]);
+        $this->materials = array_values($this->materials);
+    }
+
+    public function saveBatch()
     {
         $this->validate();
-        MaterialStockOutLine::create([
-            'material_stock_out_id' => $this->material_stock_out_id,
-            'production_line_id' => $this->production_line_id,
-            'quantity_consumed' => $this->quantity_consumed,
-            'shift' => $this->shift
-        ]);
-        $this->reset(['material_stock_out_id', 'production_line_id', 'quantity_consumed']);
-        $this->fetch();
-    }
 
-    public function edit($id)
-    {
-        $line = MaterialStockOutLine::findOrFail($id);
-        $this->line_id = $line->id;
-        $this->material_stock_out_id = $line->material_stock_out_id;
-        $this->production_line_id = $line->production_line_id;
-        $this->quantity_consumed = $line->quantity_consumed;
-        $this->isEdit = true;
-        $this->shift = $line->shift;
-    }
+        foreach ($this->materials as $row) {
+            MaterialStockOutLine::create([
+                'material_stock_out_id' => $row['material_stock_out_id'],
+                'production_line_id' => $this->production_line_id,
+                'quantity_consumed' => $row['quantity_consumed'],
+                'shift' => $this->shift
+            ]);
+        }
 
-    public function update()
-    {
-        $this->validate();
-        $line = MaterialStockOutLine::findOrFail($this->line_id);
-        $line->update([
-            'material_stock_out_id' => $this->material_stock_out_id,
-            'production_line_id' => $this->production_line_id,
-            'quantity_consumed' => $this->quantity_consumed,
-            'shift' => $this->shift
-        ]);
-        $this->reset(['material_stock_out_id', 'production_line_id', 'quantity_consumed', 'line_id', 'isEdit']);
+        $this->reset(['shift', 'production_line_id', 'materials']);
+        $this->materials = [['material_stock_out_id' => '', 'quantity_consumed' => '']];
         $this->fetch();
     }
 
@@ -80,13 +80,13 @@ class MaterialStockOutLineCrud extends Component
 
     public function render()
     {
-        $this->mount();
-        $stockOuts = MaterialStockOut::with('rawMaterial')->latest()->take(5)->get();
-        $this->lines = ProductionLine::all();
+        $this->fetch();
+        $stockOuts = MaterialStockOut::with('rawMaterial')->get();
+
         return view('livewire.warehouse.material-stock-out-line-crud', [
             'stockOuts' => $stockOuts,
             'lines' => $this->lines,
             'materialStockOutLines' => $this->materialStockOutLines,
         ]);
     }
-} 
+}

@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::table('products', function (Blueprint $table) {
             $table->string('code')->nullable()->change();
             $table->decimal('meter_length', 8, 2)->nullable()->change();
-            $table->dropUnique('products_code_unique');
+            // $table->dropUnique('products_code_unique');
         });
     }
 
