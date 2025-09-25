@@ -336,15 +336,15 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $delivered_by
+     * @property int $delivered_by
      * @property \Illuminate\Support\Carbon $delivery_date
      * @property decimal:2 $total_amount
      * @property decimal:2 $unit_price
      * @property string $batch_number
      * @property decimal:2 $quantity
-     * @property mixed $product_id
-     * @property mixed $customer_id
-     * @property mixed $production_order_id
+     * @property int $product_id
+     * @property int $customer_id
+     * @property int $production_order_id
      * @property int $id
      * @property-read \App\Models\ProductionOrder $productionOrder
      * @property-read \App\Models\Customer $customer
@@ -980,9 +980,9 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $recorded_by
+     * @property int $recorded_by
      * @property string $reason
-     * @property mixed $duration_minutes
+     * @property int $duration_minutes
      * @property string $end_time
      * @property string $start_time
      * @property string $downtime_date
@@ -1300,8 +1300,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $produced_by
-     * @property mixed $customer_id
+     * @property int $produced_by
+     * @property int|null $customer_id
      * @property mixed $purpose
      * @property \Illuminate\Support\Carbon $production_date
      * @property string $batch_number
@@ -1316,7 +1316,7 @@ namespace App\Models {
      * @property float|null $outer_diameter
      * @property float $length_m
      * @property mixed $type
-     * @property mixed $product_id
+     * @property int $product_id
      * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\FyaWarehouse> $fyaMovements
      * @property-read int|null $fyaMovements_count
@@ -1649,8 +1649,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property float|null $quantity_used
-     * @property mixed $material_stock_out_line_id
-     * @property mixed $finished_good_id
+     * @property int $material_stock_out_line_id
+     * @property int $finished_good_id
      * @property int $id
      * @property-read \App\Models\FinishedGood $finishedGood
      * @property-read \App\Models\MaterialStockOutLine $materialStockOutLine
@@ -1962,17 +1962,17 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property \Illuminate\Support\Carbon|null $deleted_at
-     * @property mixed $created_by
+     * @property int $created_by
      * @property string|null $notes
-     * @property mixed $reference_id
+     * @property int|null $reference_id
      * @property string|null $reference_type
      * @property string $movement_date
-     * @property mixed $customer_id
+     * @property int|null $customer_id
      * @property mixed $purpose
      * @property string $batch_number
      * @property float $quantity
      * @property mixed $movement_type
-     * @property mixed $finished_good_id
+     * @property int $finished_good_id
      * @property int $id
      * @property-read \App\Models\FinishedGood $finishedGood
      * @property-read \App\Models\Customer $customer
@@ -2294,11 +2294,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $received_by
+     * @property int $received_by
      * @property \Illuminate\Support\Carbon $received_date
      * @property string $batch_number
      * @property decimal:3 $quantity
-     * @property mixed $raw_material_id
+     * @property int $raw_material_id
      * @property int $id
      * @property-read \App\Models\RawMaterial $rawMaterial
      * @property-read \App\Models\User $receivedBy
@@ -2614,11 +2614,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
      * @property mixed $status
-     * @property mixed $issued_by
+     * @property int $issued_by
      * @property \Illuminate\Support\Carbon $issued_date
      * @property string $batch_number
      * @property decimal:3 $quantity
-     * @property mixed $raw_material_id
+     * @property int $raw_material_id
      * @property int $id
      * @property-read \App\Models\RawMaterial $rawMaterial
      * @property-read \App\Models\User $issuedBy
@@ -2939,8 +2939,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property float $quantity_consumed
-     * @property mixed $production_line_id
-     * @property mixed $material_stock_out_id
+     * @property int $production_line_id
+     * @property int $material_stock_out_id
      * @property int $id
      * @property-read \App\Models\MaterialStockOut $materialStockOut
      * @property-read \App\Models\ProductionLine $productionLine
@@ -3265,7 +3265,7 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property \Illuminate\Support\Carbon|null $read_at
      * @property array $data
-     * @property mixed $notifiable_id
+     * @property int $notifiable_id
      * @property string $notifiable_type
      * @property string $type
      * @property int $id
@@ -3589,8 +3589,8 @@ namespace App\Models {
      * @property decimal:2 $unit_price
      * @property string $unit
      * @property decimal:2 $quantity
-     * @property mixed $product_id
-     * @property mixed $production_order_id
+     * @property int $product_id
+     * @property int $production_order_id
      * @property int $id
      * @property-read mixed $formatted_unit_price
      * @property-read mixed $formatted_total_price
@@ -3908,14 +3908,14 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $recorded_by
+     * @property int $recorded_by
      * @property \Illuminate\Support\Carbon $payment_date
      * @property string|null $proforma_invoice_number
      * @property string|null $bank_slip_reference
      * @property string|null $payment_method
      * @property decimal:2 $amount
-     * @property mixed $customer_id
-     * @property mixed $production_order_id
+     * @property int $customer_id
+     * @property int $production_order_id
      * @property int $id
      * @property-read \App\Models\ProductionOrder $productionOrder
      * @property-read \App\Models\Customer $customer
@@ -4562,8 +4562,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $description
      * @property string|null $capacity_kg_hr
-     * @property mixed $max_size
-     * @property mixed $min_size
+     * @property int|null $max_size
+     * @property int|null $min_size
      * @property string $name
      * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MaterialStockOut> $materialStockOuts
@@ -4878,15 +4878,15 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $plant_manager_id
-     * @property mixed $approved_by
-     * @property mixed $requested_by
+     * @property int|null $plant_manager_id
+     * @property int|null $approved_by
+     * @property int $requested_by
      * @property \Illuminate\Support\Carbon|null $delivery_date
      * @property \Illuminate\Support\Carbon|null $production_end_date
      * @property \Illuminate\Support\Carbon|null $production_start_date
      * @property \Illuminate\Support\Carbon $requested_date
      * @property mixed $status
-     * @property mixed $customer_id
+     * @property int $customer_id
      * @property string $order_number
      * @property int $id
      * @property-read mixed $total_price
@@ -5873,11 +5873,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $notes
-     * @property mixed $recorded_by
+     * @property int $recorded_by
      * @property string $waste_date
      * @property string $reason
      * @property decimal:3 $quantity
-     * @property mixed $material_stock_out_line_id
+     * @property int $material_stock_out_line_id
      * @property int $id
      * @property-read \App\Models\RawMaterial $rawMaterial
      * @property-read \App\Models\User $recordedBy
@@ -6190,7 +6190,7 @@ namespace App\Models {
     /**
      * App\Models\User
      *
-     * @property mixed $department_id
+     * @property int|null $department_id
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $remember_token
