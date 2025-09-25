@@ -1,199 +1,244 @@
-<div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
-    <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center space-x-2">
-            <x-app-logo class="w-16 h-16" />
-            <div>
-                <div class="font-bold text-lg">SHUMBRO PLASTIC FACTORY</div>
-                <div class="text-xs">Quality Control Weekly Production of Pipe & Raw Material Reports</div>
+<div>
+<div class="container mx-auto py-6">
+    <div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+                <div class="app-logo">SPF</div>
+                <div>
+                    <div class="font-bold text-lg">SHUMBRO PLASTIC FACTORY</div>
+                    <div class="text-xs text-gray-600">Quality Control Weekly Production of Pipe & Raw Material Reports</div>
+                </div>
+            </div>
+            <div class="text-right text-xs">
+                <div><span class="font-semibold">Document no</span> S/P/E/PR QC:003</div>
+                <div><span class="font-semibold">Week:</span> {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</div>
             </div>
         </div>
-        <div class="text-right text-xs">
-            <div><span class="font-semibold">Document no</span> S/P/E/PR QC:003</div>
-            <div><span class="font-semibold">Week:</span> {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</div>
-        </div>
-    </div>
-    <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
-        <div class="flex items-center gap-2">
-            <span class="font-semibold">Filters:</span>
-            <input type="date" wire:model.live="startDate" class="border rounded px-2 py-1 text-xs" />
-            <input type="date" wire:model.live="endDate" class="border rounded px-2 py-1 text-xs" />
-            <select wire:model.live="shift" class="border rounded px-2 py-1 text-xs">
-                <option value="">All Shifts</option>
-                @foreach($shifts as $s)
-                    <option value="{{ $s }}">{{ $s }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="product_id" class="border rounded px-2 py-1 text-xs">
-                <option value="">All Products</option>
-                @foreach($products as $product)
-                    <option value="{{ $product->id }}">{{ $product->name }}</option>
-                @endforeach
-            </select>
-            <select wire:model.live="raw_material" class="border rounded px-2 py-1 text-xs">
-                <option value="">All Raw Materials</option>
-                @foreach($rawMaterials as $rm)
-                    <option value="{{ $rm }}">{{ $rm }}</option>
-                @endforeach
-            </select>
-        </div>
-         <div class="flex gap-2">
-            <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
-                Export PDF
-            </button>
-        </div>
-    </div>
-    <div class="overflow-x-auto mt-2">
-        <table class="w-full text-xs border border-collapse border-black">
-            <thead>
-                <tr class="bg-gray-200">
-                    <th class="border border-black">Raw Material</th>
-                    <th class="border border-black">Weight (kg)</th>
-                    <th class="border border-black">Size of Pipe</th>
-                    @foreach($lengths as $length)
-                        <th class="border border-black">{{ $length }}m</th>
+
+        <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
+            <div class="flex items-center gap-2">
+                <span class="font-semibold">Filters:</span>
+                <input type="date" wire:model.live="startDate" class="border rounded px-2 py-1 text-xs" />
+                <input type="date" wire:model.live="endDate" class="border rounded px-2 py-1 text-xs" />
+                <select wire:model.live="shift" class="border rounded px-2 py-1 text-xs">
+                    <option value="">All Shifts</option>
+                    @foreach($shifts as $s)
+                        <option value="{{ $s }}">{{ $s }}</option>
                     @endforeach
-                    <th class="border border-black">Total Product Weight (kg)</th>
-                    <th class="border border-black">Waste (kg)</th>
-                    <th class="border border-black">Gross (kg)</th>
-                    <th class="border border-black">Ovality</th>
-                    <th class="border border-black">Thickness</th>
-                    <th class="border border-black">Outer Diameter</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $totals = array_fill_keys($lengths->toArray(), 0);
-                    $totalQuantityConsumed = 0;
-                    $totalProductWeight = 0;
-                    $totalWaste = 0;
-                    $totalGross = 0;
-                @endphp
-                @forelse($grouped as $rawMaterial => $byProduct)
-                    @foreach($byProduct as $productName => $bySize)
-                        @foreach($bySize as $size => $records)
-                            @php
-                                // Raw material consumed
-                                $qtyConsumed = $records->sum(function($rec) { 
-                                    return $rec->materialStockOutLines->sum('quantity_consumed'); 
-                                });
-                                $totalQuantityConsumed += $qtyConsumed;
-                                
-                                // Use the actual total_weight field from database if available, otherwise calculate
-                                $productWeight = $records->sum('total_weight');
-                                if ($productWeight <= 0) {
-                                    // Fallback calculation if total_weight is not set
-                                    $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
-                                }
-                                $totalProductWeight += $productWeight;
-                                
-                                // Calculate waste
-                                $waste = max(0, $qtyConsumed - $productWeight);
-                                $totalWaste += $waste;
-                                
-                                // Gross weight
-                                $gross = $qtyConsumed;
-                                $totalGross += $gross;
-                                
-                                // Get quality metrics - use average values for the group
-                                $ovality = $records->avg('ovality');
-                                $thickness = $records->avg('thickness');
-                                $outerDiameter = $records->avg('outer_diameter');
-                                
-                                // Get the actual size from the first record if size is empty
-                                $displaySize = $size ?: ($records->first()->size ?? 'N/A');
-                            @endphp
-                            <tr>
-                                <td class="border border-black">{{ $rawMaterial }}</td>
-                                <td class="border border-black">{{ number_format($qtyConsumed, 2) }}</td>
-                                <td class="border border-black">{{ $displaySize }}</td>
-                                @foreach($lengths as $length)
-                                    @php
-                                        $qty = $records->where('length_m', $length)->sum('quantity');
-                                        $totals[$length] += $qty;
-                                    @endphp
-                                    <td class="border border-black">{{ $qty ?: '' }}</td>
-                                @endforeach
-                                <td class="border border-black">{{ number_format($productWeight, 2) }}</td>
-                                <td class="border border-black">{{ number_format($waste, 2) }}</td>
-                                <td class="border border-black">{{ number_format($gross, 2) }}</td>
-                                <td class="border border-black">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
-                                <td class="border border-black">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
-                                <td class="border border-black">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
-                            </tr>
+                </select>
+                <select wire:model.live="product_id" class="border rounded px-2 py-1 text-xs">
+                    <option value="">All Products</option>
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}">{{ $product->name }}</option>
+                    @endforeach
+                </select>
+                <select wire:model.live="raw_material" class="border rounded px-2 py-1 text-xs">
+                    <option value="">All Raw Materials</option>
+                    @foreach($rawMaterials as $rm)
+                        <option value="{{ $rm }}">{{ $rm }}</option>
+                    @endforeach
+                </select>
+
+                <button wire:click="refreshPage" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                    Apply Filters
+                </button>
+                <button wire:click="clearFilters" class="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
+                    Clear Filters
+                </button>
+            </div>
+            <div class="flex gap-2">
+                <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                    Export PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-3 text-xs">
+            <span class="font-semibold">Report Period: </span>
+            {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
+        </div>
+
+        <div class="overflow-x-auto mt-2">
+            <table class="w-full text-xs border border-collapse border-gray-400">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-400 p-1">Raw Material</th>
+                        <th class="border border-gray-400 p-1">Qty (kg)</th>
+                        <th class="border border-gray-400 p-1">Size of Pipe</th>
+                        <th class="border border-gray-400 p-1">Shift</th>
+                        <th class="border border-gray-400 p-1">Line</th>
+                        @foreach($lengths as $length)
+                            <th class="border border-gray-400 p-1 text-center">{{ $length }}m</th>
                         @endforeach
-                    @endforeach
-                @empty
-                    <tr>
-                        <td colspan="{{ 10 + count($lengths) }}" class="border border-black text-center py-4">No production data found for the selected filters</td>
+                        <th class="border border-gray-400 p-1">Total Product Weight (kg)</th>
+                        <th class="border border-gray-400 p-1">Waste (kg)</th>
+                        <th class="border border-gray-400 p-1">Gross (kg)</th>
+                        <th class="border border-gray-400 p-1">Ovality (start-end)</th>
+                        <th class="border border-gray-400 p-1">Thickness</th>
+                        <th class="border border-gray-400 p-1">Outer Diameter</th>
                     </tr>
-                @endforelse
-                
-                @if($grouped->count() > 0)
-                <tr class="font-bold bg-gray-200">
-                    <td class="border border-black">Total</td>
-                    <td class="border border-black">{{ number_format($totalQuantityConsumed, 2) }}</td>
-                    <td class="border border-black"></td>
-                    @foreach($lengths as $length)
-                        <td class="border border-black">{{ $totals[$length] }}</td>
-                    @endforeach
-                    <td class="border border-black">{{ number_format($totalProductWeight, 2) }}</td>
-                    <td class="border border-black">{{ number_format($totalWaste, 2) }}</td>
-                    <td class="border border-black">{{ number_format($totalGross, 2) }}</td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                    <td class="border border-black"></td>
-                </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $totalsByLength = array_fill_keys($lengths->toArray(), 0);
+                        $grandRawQty = 0;
+                        $grandProductWeight = 0;
+                        $grandWaste = 0;
+                        $grandGross = 0;
+                    @endphp
+
+                    @forelse($grouped as $productName => $rows)
+                        @foreach($rows as $row)
+                            @php
+                                $raws = $row['raw_materials_list'] ?? [];
+                                $rawCount = count($raws) ?: 1;
+
+                                $qtyConsumed = $row['total_raw_consumed'] ?? 0;
+                                $productWeight = $row['total_product_weight'] ?? 0;
+                                $waste = max(0, $qtyConsumed - $productWeight);
+                                $gross = $qtyConsumed;
+
+                                $grandRawQty += $qtyConsumed;
+                                $grandProductWeight += $productWeight;
+                                $grandWaste += $waste;
+                                $grandGross += $gross;
+
+                                $qtyByLength = $row['qty_by_length'] ?? [];
+
+                                $startOval = $row['avg_start_ovality'] ?? 0;
+                                $endOval = $row['avg_end_ovality'] ?? 0;
+                                $thicknessAvg = $row['avg_thickness'] ?? null;
+                                $outerAvg = $row['avg_outer'] ?? null;
+                            @endphp
+
+                            @foreach($raws as $index => $rm)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 p-1">{{ $rm['name'] }}</td>
+                                    <td class="border border-gray-300 p-1 text-right">{{ number_format($rm['qty'], 2) }}</td>
+
+                                    @if($index === 0)
+                                        <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
+
+                                        @foreach($lengths as $l)
+                                            @php
+                                                $qtyL = $qtyByLength[$l] ?? 0;
+                                                $totalsByLength[$l] += $qtyL;
+                                            @endphp
+                                            <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
+                                        @endforeach
+
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($productWeight, 2) }}</td>
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ number_format($startOval, 3) }} - {{ number_format($endOval, 3) }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thicknessAvg ? number_format($thicknessAvg, 3) : '-' }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $outerAvg ? number_format($outerAvg, 3) : '-' }}</td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="{{ 11 + count($lengths) }}" class="border border-gray-300 text-center py-4">No production data found for the selected filters</td>
+                        </tr>
+                    @endforelse
+
+                    @if($grouped->count() > 0)
+                        <tr class="font-bold bg-gray-100">
+                            <td class="border border-gray-400 p-1">Total</td>
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandRawQty, 2) }}</td>
+                            <td class="border border-gray-400 p-1"></td>
+                            <td class="border border-gray-400 p-1"></td>
+                            <td class="border border-gray-400 p-1"></td>
+
+                            @foreach($lengths as $length)
+                                <td class="border border-gray-400 p-1 text-right">{{ number_format($totalsByLength[$length] ?? 0, 2) }}</td>
+                            @endforeach
+
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandProductWeight, 2) }}</td>
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandWaste, 2) }}</td>
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandGross, 2) }}</td>
+                            <td class="border border-gray-400 p-1"></td>
+                            <td class="border border-gray-400 p-1"></td>
+                            <td class="border border-gray-400 p-1"></td>
+                        </tr>
+                    @endif
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Quality comment area --}}
+        <div class="mt-4 text-xs border border-gray-300 rounded p-3 bg-gray-50">
+            @if($qualityReport)
+                <div class="font-semibold underline mb-1">Comment of Quality</div>
+                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
+
+                @if($qualityReport->problems)
+                    <div class="font-semibold underline mb-1">Problems:</div>
+                    <div class="mb-2">{!! nl2br(e($qualityReport->problems)) !!}</div>
                 @endif
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4 text-xs">
-        @if($qualityReport)
-            <div class="font-semibold underline mb-1">Comment of Quality</div>
-            <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
-            
-            @if($qualityReport->problems)
-                <div class="font-semibold underline mb-1">Problems:</div>
-                <div class="mb-2">{!! nl2br(e($qualityReport->problems)) !!}</div>
+
+                @if($qualityReport->corrective_actions)
+                    <div class="font-semibold underline mb-1">Corrective action:</div>
+                    <div class="mb-2">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
+                @endif
+
+                @if($qualityReport->remarks)
+                    <div class="font-semibold underline mb-1">Remark:</div>
+                    <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
+                @endif
+            @else
+                @if($grouped->count() > 0)
+                    <div class="font-semibold underline mb-1">Comment of Quality</div>
+                    <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
+                    <div class="font-semibold underline mb-1">Problems:</div>
+                    <ul class="list-disc pl-5 mb-2">
+                        <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
+                    </ul>
+                @endif
             @endif
-            
-            @if($qualityReport->corrective_actions)
-                <div class="font-semibold underline mb-1">Corrective action:</div>
-                <div class="mb-2">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
-            @endif
-            
-            @if($qualityReport->remarks)
-                <div class="font-semibold underline mb-1">Remark:</div>
-                <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
-            @endif
-        @else
-            @if($grouped->count() > 0)
-            <div class="font-semibold underline mb-1">Comment of Quality</div>
-            <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
-            <div class="font-semibold underline mb-1">Problems:</div>
-            <ul class="list-disc pl-5 mb-2">
-                <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
-            </ul>
-            <div class="font-semibold underline mb-1">Corrective action:</div>
-            <div class="mb-2">The problems were reduced by communicating with the shift leader and operators. However, weight and raw material quality problem were not reduced because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products and shrinkage problem in 125mm products was reduced by increasing the length and OD of products and raw material problems were reduced by changing the raw materials.</div>
-            <div class="font-semibold underline mb-1">Remark:</div>
-            <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
-            @endif
+        </div>
+
+        @if($grouped->count() > 0)
+        <div class="mt-6 flex flex-wrap justify-between text-xs">
+            <div>
+                <div class="mb-1">Prepared by <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
+                <div>Checked by <span class="underline">{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</span></div>
+                <div>Approved by <span class="underline">{{ $qualityReport->approved_by ?? 'Aschalew' }}</span></div>
+            </div>
+            <div class="text-right">
+                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
+                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
+                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
+            </div>
+        </div>
         @endif
     </div>
-    
-    @if($grouped->count() > 0)
-    <div class="mt-6 flex flex-wrap justify-between text-xs">
-        <div>
-            <div class="mb-1">Prepared by <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
-            <div>Checked by <span class="underline">{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</span></div>
-            <div>Approved by <span class="underline">{{ $qualityReport->approved_by ?? 'Aschalew' }}</span></div>
-        </div>
-        <div class="text-right">
-            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-            <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-        </div>
-    </div>
-    @endif
 </div>
+
+<style>
+    .app-logo {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+        box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    }
+</style>
+</div>
+
+@push('scripts')
+<script>
+    window.addEventListener('refresh-page', event => {
+        window.location.reload();
+    })
+</script>
+@endpush

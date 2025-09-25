@@ -3,41 +3,53 @@
 
     <!-- Create/Edit Form -->
     <form wire:submit.prevent="{{ $isEdit ? 'update' : 'create' }}" class="mb-6 bg-white p-4 rounded shadow">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label class="block font-semibold mb-1">Finished Good</label>
-                <select wire:model="finished_good_id" class="form-select w-full">
-                    <option value="">Select Finished Good</option>
-                    {{ $count = 1 }}
-                    @foreach($finishedGoods as $fg)
-                        <option value="{{ $fg->id }}">
-                            #{{ $count++ }} - {{ $fg->product->name ?? 'N/A' }} | Type: {{ $fg->type ?? '-' }} | Batch: {{ $fg->batch_number ?? '-' }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('finished_good_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-            </div>
-            <div>
-                <label class="block font-semibold mb-1">Material Stock Out Line</label>
-                <select wire:model="material_stock_out_line_id" class="form-select w-full">
-                    <option value="">Select Stock Out Line</option>
-                    {{ $count2 = 1 }}
-                    @foreach($stockOutLines as $line)
-                        <option value="{{ $line->id }}">
-                            #{{ $count2++ }} - {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }} | Batch: {{ $line->materialStockOut->batch_number ?? '-' }} | Line: {{ $line->productionLine->name ?? '-' }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('material_stock_out_line_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-            </div>
+        <div>
+            <label class="block font-semibold mb-1">Finished Good</label>
+            <select wire:model="finished_good_id" class="form-select w-full">
+                <option value="">Select Finished Good</option>
+                @foreach($finishedGoods as $fg)
+                    <option value="{{ $fg->id }}">
+                        {{ $fg->product->name ?? 'N/A' }} | Type: {{ $fg->type ?? '-' }} | Batch: {{ $fg->batch_number ?? '-' }}
+                    </option>
+                @endforeach
+            </select>
+            @error('finished_good_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div>
-                <label class="block font-semibold mb-1">Quantity Used</label>
-                <input type="number" wire:model="quantity_used" class="form-input w-full" step="0.01" min="0" />
-                @error('quantity_used') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-            </div>
+
+        <div class="mt-4">
+            <h4 class="font-semibold mb-2">Raw Materials Used</h4>
+            @foreach($usages as $index => $usage)
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                    <div>
+                        <select wire:model="usages.{{ $index }}.material_stock_out_line_id" class="form-select w-full">
+                            <option value="">Select Material</option>
+                            @foreach($stockOutLines as $line)
+                                <option value="{{ $line->id }}">
+                                    {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }}
+                                    | Batch: {{ $line->materialStockOut->batch_number ?? '-' }}
+                                    | Line: {{ $line->productionLine->name ?? '-' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('usages.'.$index.'.material_stock_out_line_id')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" wire:model="usages.{{ $index }}.quantity_used"
+                               class="form-input w-full" step="0.01" min="0"
+                               placeholder="Quantity Used" />
+                        <button type="button" wire:click="removeUsageRow({{ $index }})"
+                                class="btn btn-xs btn-error">X</button>
+                    </div>
+                </div>
+            @endforeach
+
+            <button type="button" wire:click="addUsageRow" class="btn btn-sm btn-secondary mt-2">
+                + Add Material
+            </button>
         </div>
+
         <div class="mt-4 flex gap-2">
             <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Update' : 'Create' }}</button>
             @if($isEdit)
@@ -45,6 +57,7 @@
             @endif
         </div>
     </form>
+
     <div class="mt-8">
         <h3 class="text-lg font-bold mb-2">Links</h3>
         <table class="table-zebra w-full text-sm">
@@ -91,4 +104,4 @@
 
         {{ $records->links('components.pagination') }}
     </div>
-</div> 
+</div>
