@@ -3,363 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Production Report - SHUMBRO PLASTIC FACTORY</title>
+    <title>Weekly Production Report - {{ $startDate }} to {{ $endDate }}</title>
     <style>
-        @page { margin: 18px; }
-        body { 
-            font-family: DejaVu Sans, Arial, sans-serif; 
-            font-size: 11px; 
-            color: #000; 
-            margin: 0;
-            padding: 0;
-            background: white;
-        }
-        .container {
-            padding: 24px;
-            background: white;
-            max-width: 100%;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-        }
-        .logo-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .logo {
-            width: 64px;
-            height: 64px;
-            background: #3b82f6;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-        .title-section {
-            font-weight: bold;
-            font-size: 18px;
-            line-height: 1.2;
-        }
-        .subtitle {
-            font-size: 12px;
-            color: #6b7280;
-        }
-        .meta-section {
-            text-align: right;
-            font-size: 12px;
-        }
-        .meta-section div {
-            margin-bottom: 2px;
-        }
-        .font-semibold {
-            font-weight: 600;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-            font-size: 11px;
-        }
-        th, td {
-            border: 1px solid #000;
-            padding: 4px 6px;
-            text-align: left;
-        }
-        thead th {
-            background: #e5e7eb;
-            font-weight: bold;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .text-center {
-            text-align: center;
-        }
-        .text-gray-500 {
-            color: #6b7280;
-        }
-        .font-bold {
-            font-weight: bold;
-        }
-        .bg-gray-200 {
-            background: #e5e7eb;
-        }
-        .bg-gray-50 {
-            background: #f9fafb;
-        }
-        .comments {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 4px;
-            border: 1px solid #d1d5db;
-            background: #f9fafb;
-        }
-        .comments-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            text-decoration: underline;
-        }
-        .signature-section {
-            margin-top: 24px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 11px;
-        }
-        .signature-box {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .signature-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .underline {
-            border-bottom: 1px solid #000;
-            display: inline-block;
-            min-width: 120px;
-            text-align: center;
-        }
-        .space-y-1 > * + * {
-            margin-top: 4px;
-        }
-        .space-y-4 > * + * {
-            margin-top: 16px;
-        }
-        .mb-1 { margin-bottom: 4px; }
-        .mb-2 { margin-bottom: 8px; }
-        .mt-4 { margin-top: 16px; }
-        .mt-6 { margin-top: 24px; }
-        .p-3 { padding: 12px; }
-        .rounded { border-radius: 4px; }
-        .border { border: 1px solid #d1d5db; }
-        tbody tr:nth-child(even) {
-            background: #f8fafc;
-        }
-        .total-row {
-            background: #e5e7eb;
-            font-weight: bold;
-        }
-        .total-row td {
-            border-top: 2px solid #9ca3af;
-            border-bottom: 2px solid #9ca3af;
-        }
-        .week-info {
-            font-size: 11px;
-            margin-bottom: 10px;
-            padding: 6px 10px;
-            background: #f1f5f9;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-        }
-        .list-disc {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .company-name { font-size: 18px; font-weight: bold; }
+        .report-title { font-size: 14px; margin: 5px 0; }
+        .document-info { font-size: 9px; text-align: right; }
+        .filters { margin: 10px 0; padding: 8px; background: #f0f0f0; border-radius: 4px; }
+        .filter-item { margin: 2px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #333; padding: 4px; text-align: center; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .bg-gray { background-color: #f9f9f9; }
+        .totals-row { font-weight: bold; background-color: #e6e6e6; }
+        .quality-section { margin-top: 15px; padding: 10px; border: 1px solid #333; border-radius: 4px; }
+        .signature-section { margin-top: 20px; display: flex; justify-content: space-between; }
+        .signature-box { width: 30%; text-align: center; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo-section">
-                <div class="logo">SPF</div>
-                <div>
-                    <div class="title-section">SHUMBRO PLASTIC FACTORY</div>
-                    <div class="subtitle">Quality Control Weekly Production of Pipe & Raw Material Reports</div>
-                </div>
-            </div>
-            <div class="meta-section">
-                <div><span class="font-semibold">Document no</span> S/P/E/PR QC:003</div>
-                <div><span class="font-semibold">Week:</span> {{ $startDate }} - {{ $endDate }}</div>
-            </div>
-        </div>
-
-        <!-- Week Information -->
-        <div class="week-info">
-            <span class="font-semibold">Report Period: </span>
-            {{ $startDate }} to {{ $endDate }}
-        </div>
-
-        <!-- Table -->
-        <div class="overflow-x-auto mt-2">
-            <table>
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th>Raw Material</th>
-                        <th>Weight (kg)</th>
-                        <th>Size of Pipe</th>
-                        @foreach($lengths as $length)
-                            <th class="text-center">{{ $length }}m</th>
-                        @endforeach
-                        <th>Total Product Weight (kg)</th>
-                        <th>Waste (kg)</th>
-                        <th>Gross (kg)</th>
-                        <th>Ovality</th>
-                        <th>Thickness</th>
-                        <th>Outer Diameter</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $totals = array_fill_keys($lengths->toArray(), 0);
-                        $totalQuantityConsumed = 0;
-                        $totalProductWeight = 0;
-                        $totalWaste = 0;
-                        $totalGross = 0;
-                    @endphp
-                    
-                    @forelse($grouped as $rawMaterial => $byProduct)
-                        @foreach($byProduct as $productName => $bySize)
-                            @foreach($bySize as $size => $records)
-                                @php
-                                    // Raw material consumed
-                                    $qtyConsumed = $records->sum(function($rec) { 
-                                        return $rec->materialStockOutLines->sum('quantity_consumed'); 
-                                    });
-                                    $totalQuantityConsumed += $qtyConsumed;
-                                    
-                                    // Use the actual total_weight field from database if available, otherwise calculate
-                                    $productWeight = $records->sum('total_weight');
-                                    if ($productWeight <= 0) {
-                                        // Fallback calculation if total_weight is not set
-                                        $productWeight = $records->sum('quantity') * ($records->first()->product->weight_per_meter ?? 0);
-                                    }
-                                    $totalProductWeight += $productWeight;
-                                    
-                                    // Calculate waste
-                                    $waste = max(0, $qtyConsumed - $productWeight);
-                                    $totalWaste += $waste;
-                                    
-                                    // Gross weight
-                                    $gross = $qtyConsumed;
-                                    $totalGross += $gross;
-                                    
-                                    // Get quality metrics - use average values for the group
-                                    $ovality = $records->avg('ovality');
-                                    $thickness = $records->avg('thickness');
-                                    $outerDiameter = $records->avg('outer_diameter');
-                                    
-                                    // Get the actual size from the first record if size is empty
-                                    $displaySize = $size ?: ($records->first()->size ?? 'N/A');
-                                @endphp
-                                <tr>
-                                    <td>{{ $rawMaterial }}</td>
-                                    <td class="text-right">{{ number_format($qtyConsumed, 2) }}</td>
-                                    <td>{{ $displaySize }}</td>
-                                    @foreach($lengths as $length)
-                                        @php
-                                            $qty = $records->where('length_m', $length)->sum('quantity');
-                                            $totals[$length] += $qty;
-                                        @endphp
-                                        <td class="text-right">{{ $qty ?: '' }}</td>
-                                    @endforeach
-                                    <td class="text-right">{{ number_format($productWeight, 2) }}</td>
-                                    <td class="text-right">{{ number_format($waste, 2) }}</td>
-                                    <td class="text-right">{{ number_format($gross, 2) }}</td>
-                                    <td class="text-center">{{ $ovality ? number_format($ovality, 3) : '-' }}</td>
-                                    <td class="text-center">{{ $thickness ? number_format($thickness, 3) : '-' }}</td>
-                                    <td class="text-center">{{ $outerDiameter ? number_format($outerDiameter, 3) : '-' }}</td>
-                                </tr>
-                            @endforeach
-                        @endforeach
-                    @empty
-                        <tr>
-                            <td colspan="{{ 10 + count($lengths) }}" class="text-center py-4">No production data found for the selected filters</td>
-                        </tr>
-                    @endforelse
-                    
-                    @if($grouped->count() > 0)
-                    <tr class="total-row">
-                        <td>Total</td>
-                        <td class="text-right">{{ number_format($totalQuantityConsumed, 2) }}</td>
-                        <td></td>
-                        @foreach($lengths as $length)
-                            <td class="text-right">{{ $totals[$length] }}</td>
-                        @endforeach
-                        <td class="text-right">{{ number_format($totalProductWeight, 2) }}</td>
-                        <td class="text-right">{{ number_format($totalWaste, 2) }}</td>
-                        <td class="text-right">{{ number_format($totalGross, 2) }}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
-                    @endif
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Quality Comments -->
-        <div class="comments">
-            @if($qualityReport)
-                <div class="comments-title">Comment of Quality</div>
-                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
-                
-                @if($qualityReport->problems)
-                    <div class="comments-title">Problems:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->problems)) !!}</div>
-                @endif
-                
-                @if($qualityReport->corrective_actions)
-                    <div class="comments-title">Corrective action:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
-                @endif
-                
-                @if($qualityReport->remarks)
-                    <div class="comments-title">Remark:</div>
-                    <div class="mb-2">{!! nl2br(e($qualityReport->remarks)) !!}</div>
-                @endif
-            @else
-                <div class="comments-title">Comment of Quality</div>
-                <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
-                
-                <div class="comments-title">Problems:</div>
-                <ul class="list-disc pl-5 mb-2">
-                    <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
-                </ul>
-                
-                <div class="comments-title">Corrective action:</div>
-                <div class="mb-2">The problems were reduced by communicating with the shift leader and operators. However, weight and raw material quality problem were not reduced because of the thickness of the products did not fulfill the standard parameter when it was produced in the standard weight, so in order to reduce this problem we increased the weight by prioritizing the thickness of the products and shrinkage problem in 125mm products was reduced by increasing the length and OD of products and raw material problems were reduced by changing the raw materials.</div>
-                
-                <div class="comments-title">Remark:</div>
-                <div class="mb-2">As quality we recommended that the double type raw materials quality (purity and density) should be checked.</div>
-            @endif
-        </div>
-
-        <!-- Signature Section -->
-        <div class="signature-section">
-            <div class="signature-box">
-                <div class="signature-item">
-                    <div class="mb-1">Prepared by: <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
-                    <div>Date: <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-                </div>
-            </div>
-            <div class="signature-box">
-                <div class="signature-item">
-                    <div class="mb-1">Checked by: <span class="underline">{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</span></div>
-                    <div>Date: <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-                </div>
-            </div>
-            <div class="signature-box">
-                <div class="signature-item">
-                    <div class="mb-1">Approved by: <span class="underline">{{ $qualityReport->approved_by ?? 'Aschalew' }}</span></div>
-                    <div>Date: <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-                </div>
-            </div>
+    <div class="header">
+        <div class="company-name">SHUMBRO PLASTIC FACTORY</div>
+        <div class="report-title">Quality Control Weekly Production of Pipe & Raw Material Reports</div>
+        <div class="document-info">
+            <div>Document no: S/P/E/PR QC:003</div>
+            <div>Week: {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</div>
         </div>
     </div>
+
+    <div class="filters">
+        <div class="filter-item"><strong>Report Period:</strong> {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}</div>
+        @if($filters['shift'] || $filters['product'] !== 'All' || $filters['raw_material'] !== 'All')
+        <div class="filter-item"><strong>Filters Applied:</strong></div>
+        @if($filters['shift'])<div class="filter-item">Shift: {{ $filters['shift'] }}</div>@endif
+        @if($filters['product'] !== 'All')<div class="filter-item">Product: {{ $filters['product'] }}</div>@endif
+        @if($filters['raw_material'] !== 'All')<div class="filter-item">Raw Material: {{ $filters['raw_material'] }}</div>@endif
+        @endif
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Raw Material</th>
+                <th>Qty (kg)</th>
+                <th>Size of Pipe</th>
+                <th>Shift</th>
+                <th>Line</th>
+                @foreach($lengths as $length)
+                    <th>{{ $length }}m</th>
+                @endforeach
+                <th>Total Product Weight (kg)</th>
+                <th>Waste (kg)</th>
+                <th>Gross (kg)</th>
+                <th>Ovality (start-end)</th>
+                <th>Thickness</th>
+                <th>Outer Diameter</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $totalsByLength = array_fill_keys($lengths->toArray(), 0);
+                $grandRawQty = 0;
+                $grandProductWeight = 0;
+                $grandWaste = 0;
+                $grandGross = 0;
+            @endphp
+
+            @forelse($grouped as $productName => $rows)
+                @foreach($rows as $row)
+                    @php
+                        $raws = $row['raw_materials_list'] ?? [];
+                        $rawCount = count($raws) ?: 1;
+
+                        $qtyConsumed = $row['total_raw_consumed'] ?? 0;
+                        $productWeight = $row['total_product_weight'] ?? 0;
+                        $waste = max(0, $qtyConsumed - $productWeight);
+                        $gross = $qtyConsumed;
+
+                        $grandRawQty += $qtyConsumed;
+                        $grandProductWeight += $productWeight;
+                        $grandWaste += $waste;
+                        $grandGross += $gross;
+
+                        $qtyByLength = $row['qty_by_length'] ?? [];
+
+                        $startOval = $row['avg_start_ovality'] ?? 0;
+                        $endOval = $row['avg_end_ovality'] ?? 0;
+                        $thicknessAvg = $row['avg_thickness'] ?? null;
+                        $outerAvg = $row['avg_outer'] ?? null;
+                    @endphp
+
+                    @foreach($raws as $index => $rm)
+                        <tr>
+                            <td class="text-left">{{ $rm['name'] }}</td>
+                            <td class="text-right">{{ number_format($rm['qty'], 2) }}</td>
+
+                            @if($index === 0)
+                                <td class="text-left" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
+
+                                @foreach($lengths as $l)
+                                    @php
+                                        $qtyL = $qtyByLength[$l] ?? 0;
+                                        $totalsByLength[$l] += $qtyL;
+                                    @endphp
+                                    <td class="text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
+                                @endforeach
+
+                                <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($productWeight, 2) }}</td>
+                                <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
+                                <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ number_format($startOval, 3) }} - {{ number_format($endOval, 3) }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ $thicknessAvg ? number_format($thicknessAvg, 3) : '-' }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ $outerAvg ? number_format($outerAvg, 3) : '-' }}</td>
+                            @endif
+                        </tr>
+                    @endforeach
+                @endforeach
+            @empty
+                <tr>
+                    <td colspan="{{ 11 + count($lengths) }}" style="text-align: center; padding: 20px;">No production data found for the selected filters</td>
+                </tr>
+            @endforelse
+
+            @if($grouped->count() > 0)
+                <tr class="totals-row">
+                    <td>Total</td>
+                    <td class="text-right">{{ number_format($grandRawQty, 2) }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+
+                    @foreach($lengths as $length)
+                        <td class="text-right">{{ number_format($totalsByLength[$length] ?? 0, 2) }}</td>
+                    @endforeach
+
+                    <td class="text-right">{{ number_format($grandProductWeight, 2) }}</td>
+                    <td class="text-right">{{ number_format($grandWaste, 2) }}</td>
+                    <td class="text-right">{{ number_format($grandGross, 2) }}</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            @endif
+        </tbody>
+    </table>
+
+    @if($grouped->count() > 0)
+    <div class="quality-section">
+        <div style="font-weight: bold; text-decoration: underline; margin-bottom: 5px;">Comment of Quality</div>
+        
+        @if($qualityReport)
+            <div style="margin-bottom: 10px;">{{ $qualityReport->quality_comment ?: 'In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
+
+            @if($qualityReport->problems)
+                <div style="font-weight: bold; text-decoration: underline; margin: 5px 0;">Problems:</div>
+                <div style="margin-bottom: 10px;">{!! nl2br(e($qualityReport->problems)) !!}</div>
+            @endif
+
+            @if($qualityReport->corrective_actions)
+                <div style="font-weight: bold; text-decoration: underline; margin: 5px 0;">Corrective action:</div>
+                <div style="margin-bottom: 10px;">{!! nl2br(e($qualityReport->corrective_actions)) !!}</div>
+            @endif
+
+            @if($qualityReport->remarks)
+                <div style="font-weight: bold; text-decoration: underline; margin: 5px 0;">Remark:</div>
+                <div style="margin-bottom: 10px;">{!! nl2br(e($qualityReport->remarks)) !!}</div>
+            @endif
+        @else
+            <div style="margin-bottom: 10px;">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
+            <div style="font-weight: bold; text-decoration: underline; margin: 5px 0;">Problems:</div>
+            <ul style="margin: 5px 0; padding-left: 20px;">
+                <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
+            </ul>
+        @endif
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div>Prepared by: ___________________</div>
+            <div>{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</div>
+            <div>Date: {{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</div>
+        </div>
+        <div class="signature-box">
+            <div>Checked by: ___________________</div>
+            <div>{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</div>
+            <div>Date: {{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</div>
+        </div>
+        <div class="signature-box">
+            <div>Approved by: ___________________</div>
+            <div>{{ $qualityReport->approved_by ?? 'Aschalew' }}</div>
+            <div>Date: {{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</div>
+        </div>
+    </div>
+    @endif
 </body>
 </html>
