@@ -193,8 +193,8 @@
 
                         $startOval = $row['avg_start_ovality'] ?? 0;
                         $endOval = $row['avg_end_ovality'] ?? 0;
-                        $thicknessAvg = $row['avg_thickness'] ?? null;
-                        $outerAvg = $row['avg_outer'] ?? null;
+                        $thicknessAvg = $row['thickness'] ?? null;
+                        $outerAvg = $row['outer'] ?? null;
                     @endphp
 
                     @foreach($raws as $index => $rm)

@@ -47,9 +47,30 @@
                 </button>
             </div>
             <div class="flex gap-2">
-                <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                {{-- <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
                     Export PDF
-                </button>
+                </button> --}}
+                       <button 
+    wire:click="exportToPdf" 
+    wire:loading.attr="disabled"
+    wire:target="exportToPdf"
+    class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium 
+           hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-70 disabled:cursor-not-allowed"
+>
+    <!-- Normal State -->
+    <span wire:loading.remove>
+        📄 Export PDF
+    </span>
+
+    <!-- Loading State -->
+    <span wire:loading class="flex items-center gap-2">
+        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        {{-- Exporting... --}}
+    </span>
+</button>
             </div>
         </div>
 
@@ -107,7 +128,7 @@
 
                                 $startOval = $row['avg_start_ovality'] ?? 0;
                                 $endOval = $row['avg_end_ovality'] ?? 0;
-                                $thicknessAvg = $row['avg_thickness'] ?? null;
+                                $thicknessAvg = $row['thickness'] ?? null;
                                 $outerAvg = $row['avg_outer'] ?? null;
                             @endphp
 

@@ -120,8 +120,7 @@ class MonthlyProductionReport extends Component
                         'start_ovality' => 0.0,
                         'end_ovality' => 0.0,
                         'ovality_count' => 0,
-                        'thickness_sum' => 0.0,
-                        'thickness_count' => 0,
+                        'thickness' => $thickness,
                         'outer_sum' => 0.0,
                         'outer_count' => 0,
                     ];
@@ -149,8 +148,7 @@ class MonthlyProductionReport extends Component
                     }
                 }
                 if (!is_null($thickness)) {
-                    $merged[$key]['thickness_sum'] += (float) $thickness;
-                    $merged[$key]['thickness_count']++;
+                    $merged[$key]['thickness'];
                 }
                 if (!is_null($outer)) {
                     $merged[$key]['outer_sum'] += (float) $outer;
@@ -170,7 +168,7 @@ class MonthlyProductionReport extends Component
             // Calculate averages
             $item['avg_start_ovality'] = $item['ovality_count'] > 0 ? $item['start_ovality'] / $item['ovality_count'] : 0;
             $item['avg_end_ovality'] = $item['ovality_count'] > 0 ? $item['end_ovality'] / $item['ovality_count'] : 0;
-            $item['avg_thickness'] = $item['thickness_count'] > 0 ? $item['thickness_sum'] / $item['thickness_count'] : 0;
+            $item['thickness'] = $item['thickness'];
             $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : 0;
 
             return $item;

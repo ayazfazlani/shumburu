@@ -1,4 +1,6 @@
 <div>
+
+    {{-- {{ dd($data) }} --}}
 <div class="container mx-auto py-6" wire:poll(render).2s>
     <div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
         <div class="flex items-center justify-between mb-2">
@@ -40,12 +42,36 @@
                     @endforeach
                 </select>
 
-                <button wire:click="refreshPage">Apply filters</button>
+                <button  class="btn btn-primary btn-xs" wire:click="refreshPage"
+                 wire:loading.attr="disabled" wire:target="refreshPage">Apply filters</button>
             </div>
             <div class="flex gap-2">
-                <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
+                {{-- <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
                     Export PDF
-                </button>
+                </button> --}}
+
+                <button 
+    wire:click="exportToPdf" 
+    wire:loading.attr="disabled"
+    wire:target="exportToPdf"
+    class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium 
+           hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-70 disabled:cursor-not-allowed"
+>
+    <!-- Normal State -->
+    <span wire:loading.remove>
+        📄 Export PDF
+    </span>
+
+    <!-- Loading State -->
+    <span wire:loading class="flex items-center gap-2">
+        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        {{-- Exporting... --}}
+    </span>
+</button>
+
             </div>
         </div>
 
@@ -60,9 +86,10 @@
                 <thead>
                     <tr class="bg-gray-200">
                         <th class="border border-gray-400 p-1">Raw Material</th>
-                        <th class="border border-gray-400 p-1">Qty (kg)</th>
+                        <th class="border border-gray-400 p-1">used Qty (kg)</th>
                         <th class="border border-gray-400 p-1">Size of Pipe</th>
                         <th class="border border-gray-400 p-1">Shift</th>
+                        <th class="border border-gray-400 p-1">Weight/Meter</th>
                         <th class="border border-gray-400 p-1">Line</th>
                         @foreach($lengths as $length)
                             <th class="border border-gray-400 p-1 text-center">{{ $length }}m</th>
@@ -109,7 +136,7 @@
                                     $endOval = $row['end_ovality'] / max(1, $row['ovality_count']);
                                     $ovalityAvg = round(($startOval + $endOval) / 2, 3);
                                 }
-                                $thicknessAvg = ($row['thickness_count'] > 0) ? round($row['thickness_sum'] / $row['thickness_count'], 3) : null;
+                                $thickness=  round($row['thickness']);
                                 $outerAvg = ($row['outer_count'] > 0) ? round($row['outer_sum'] / $row['outer_count'], 3) : null;
                             @endphp
 
@@ -121,6 +148,7 @@
                                     @if($index === 0)
                                         <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
+                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['weight_per_meter'] ?: '-' }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
 
                                         @foreach($lengths as $l)
@@ -135,7 +163,7 @@
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $startOval }}={{$endOval}}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thicknessAvg ?? '-' }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thickness ?? '-' }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $outerAvg ?? '-' }}</td>
                                     @endif
                                 </tr>
@@ -151,6 +179,7 @@
                         <tr class="font-bold bg-gray-100">
                             <td class="border border-gray-400 p-1">Total</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandRawQty, 2) }}</td>
+                            <td class="border border-gray-400 p-1"></td>
                             <td class="border border-gray-400 p-1"></td>
                             <td class="border border-gray-400 p-1"></td>
                             <td class="border border-gray-400 p-1"></td>
