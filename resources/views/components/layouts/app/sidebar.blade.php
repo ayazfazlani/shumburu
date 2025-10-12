@@ -112,6 +112,10 @@
                 <flux:navlist.item icon="check-badge" href="{{ route('warehouse.finished-goods') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.finished-goods') ? 'active' : '' }}">
                     Finished Goods
+                </flux:navlist.item>
+                <flux:navlist.item icon="cog-6-tooth" href="{{ route('warehouse.finished-goods-crud') }}" wire:navigate
+                    class="{{ request()->routeIs('warehouse.finished-goods-crud') ? 'active' : '' }}">
+                    Finished Goods CRUD
                 </flux:navlist.item>                                   
                 @endcan
                 @can('can see FG material stock out links')
