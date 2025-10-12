@@ -78,28 +78,37 @@
         <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-3 text-xs">
             <span class="font-semibold">Report Date: </span>
             {{ \Carbon\Carbon::parse($date)->format('F d, Y') }}
+            <br>
+            <span class="text-gray-600">Note: Length columns show quantities (pieces) for each length. Total Products column shows sum of all pieces.</span>
         </div>
 
 
         <div class="overflow-x-auto mt-2">
             <table class="w-full text-xs border border-collapse border-gray-400">
                 <thead>
+                    <!-- Main header row -->
                     <tr class="bg-gray-200">
-                        <th class="border border-gray-400 p-1">Raw Material</th>
-                        <th class="border border-gray-400 p-1">used Qty (kg)</th>
-                        <th class="border border-gray-400 p-1">Size of Pipe</th>
-                        <th class="border border-gray-400 p-1">Shift</th>
-                        <th class="border border-gray-400 p-1">Weight/Meter</th>
-                        <th class="border border-gray-400 p-1">Line</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Raw Material</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Used Qty (kg)</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Size of Pipe</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Shift</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Weight/Meter</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Line</th>
+                        <th class="border border-gray-400 p-1" colspan="{{ count($lengths) }}">Production Length in m/roll</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Total Products</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Total Product Weight (kg)</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Total Meters</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Waste (kg)</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Gross (kg)</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Ovality (start-end)</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Thickness</th>
+                        <th class="border border-gray-400 p-1" rowspan="2">Outer Diameter</th>
+                    </tr>
+                    <!-- Sub header row for length columns -->
+                    <tr class="bg-gray-200">
                         @foreach($lengths as $length)
                             <th class="border border-gray-400 p-1 text-center">{{ $length }}m</th>
                         @endforeach
-                        <th class="border border-gray-400 p-1">Total Product Weight (kg)</th>
-                        <th class="border border-gray-400 p-1">Waste (kg)</th>
-                        <th class="border border-gray-400 p-1">Gross (kg)</th>
-                        <th class="border border-gray-400 p-1">Ovality (start-end)</th>
-                        <th class="border border-gray-400 p-1">Thickness</th>
-                        <th class="border border-gray-400 p-1">Outer Diameter</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,6 +116,8 @@
                         $totalsByLength = array_fill_keys($lengths->toArray(), 0);
                         $grandRawQty = 0;
                         $grandProductWeight = 0;
+                        $grandTotalMeters = 0;
+                        $grandTotalProducts = 0;
                         $grandWaste = 0;
                         $grandGross = 0;
                     @endphp
@@ -120,15 +131,27 @@
 
                                 $qtyConsumed = $row['total_raw_consumed'] ?? 0;
                                 $productWeight = $row['total_product_weight'] ?? 0;
-                                $waste = max(0, $qtyConsumed - $productWeight);
+                                $qtyByLength = $row['qty_by_length'] ?? [];
+                                
+                                // Calculate total meters: sum of (quantity * length) for all lengths
+                                $totalMeters = 0;
+                                foreach ($qtyByLength as $length => $qty) {
+                                    $totalMeters += $qty * $length;
+                                }
+                                
+                                // Calculate total products: sum of all quantities
+                                $totalProducts = array_sum($qtyByLength);
+                                
+                                // Use actual recorded waste instead of calculated waste
+                                $waste = $row['total_waste'] ?? 0;
                                 $gross = $qtyConsumed;
 
                                 $grandRawQty += $qtyConsumed;
                                 $grandProductWeight += $productWeight;
+                                $grandTotalMeters += $totalMeters;
+                                $grandTotalProducts += $totalProducts;
                                 $grandWaste += $waste;
                                 $grandGross += $gross;
-
-                                $qtyByLength = $row['qty_by_length'] ?? [];
 
                                 $ovalityAvg = null;
                                 if (!empty($row['ovality_count']) && $row['ovality_count'] > 0) {
@@ -159,7 +182,9 @@
                                             <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
                                         @endforeach
 
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($totalProducts, 0) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($productWeight, 2) }}</td>
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($totalMeters, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $startOval }}={{$endOval}}</td>
@@ -171,7 +196,7 @@
                         @endforeach
                     @empty
                         <tr>
-                            <td colspan="{{ 11 + count($lengths) }}" class="border border-gray-300 text-center py-4">No production data found for the selected filters</td>
+                            <td colspan="{{ 13 + count($lengths) }}" class="border border-gray-300 text-center py-4">No production data found for the selected filters</td>
                         </tr>
                     @endforelse
 
@@ -188,7 +213,9 @@
                                 <td class="border border-gray-400 p-1 text-right">{{ number_format($totalsByLength[$length] ?? 0, 2) }}</td>
                             @endforeach
 
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandTotalProducts, 0) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandProductWeight, 2) }}</td>
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandTotalMeters, 2) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandWaste, 2) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandGross, 2) }}</td>
                             <td class="border border-gray-400 p-1"></td>

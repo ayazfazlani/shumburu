@@ -143,6 +143,19 @@
                                 </div>
                                 <div class="form-control">
                                     <label class="label">
+                                        <span class="label-text font-semibold">Waste Quantity (kg)</span>
+                                    </label>
+                                    <input type="number" wire:model="waste_quantity" min="0" step="0.01"
+                                        class="input input-bordered w-full @error('waste_quantity') input-error @enderror"
+                                        placeholder="Waste quantity in kg" />
+                                    @error('waste_quantity')
+                                        <label class="label">
+                                            <span class="label-text-alt text-error">{{ $message }}</span>
+                                        </label>
+                                    @enderror
+                                </div>
+                                <div class="form-control">
+                                    <label class="label">
                                         <span class="label-text font-semibold">Start Ovality *</span>
                                     </label>
                                     <input type="text" wire:model="startOvality"
@@ -312,7 +325,8 @@
                         <th>Surface</th>
                         <th>Outer Diameter</th>
                         <th>Quantity</th>
-                        <th>Toal Weight</th>
+                        <th>Total Weight</th>
+                        <th>Waste (kg)</th>
                         <th>Batch No</th>
                         <th>Ovality</th>
                         <th>Stripe Color</th>
@@ -330,7 +344,8 @@
                             <td>{{ $item->surface }}</td>
                             <td>{{ $item->outer_diameter}}</td>
                             <td>{{ $item->quantity }} pieces</td>
-                             <td>{{ $item->total_weight }}</td>
+                            <td>{{ $item->total_weight }}</td>
+                            <td>{{ $item->waste_quantity ?? '0.00' }}</td>
                             <td>{{ $item->batch_number }}</td>
                             <td>{{ number_format($item->start_ovality, 2) }} - 
     {{ $item->end_ovality ? number_format($item->end_ovality, 2) : 'N/A' }}</td>

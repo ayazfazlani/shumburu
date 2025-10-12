@@ -25,6 +25,7 @@ class FinishedGood extends Model
     'outer_diameter',
     'quantity',
     'total_weight',
+    'waste_quantity',
     'size',
     'surface',
     'thickness',
@@ -36,6 +37,7 @@ class FinishedGood extends Model
   // pro
   protected $casts = [
     'quantity' => 'decimal:2',
+    'waste_quantity' => 'decimal:2',
     'production_date' => 'date',
   ];
 

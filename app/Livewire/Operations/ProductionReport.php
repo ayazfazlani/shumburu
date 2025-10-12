@@ -106,10 +106,10 @@ class ProductionReport extends Component
                 $prodLineId = $line->production_line_id ?? ($line->productionLine->id ?? 'no-line');
                 $prodLineName = $line->productionLine->name ?? ('Line ' . $prodLineId);
 
+                // Group by product, shift, and production line only
+                // This will aggregate all lengths of the same product together
                 $key = implode('|', [
                     $productName,
-                    $size,
-                    $length,
                     $lineShift,
                     $prodLineId
                 ]);
@@ -119,7 +119,6 @@ class ProductionReport extends Component
                         'product' => $productName,
                         'weight_per_meter' => $wieghtPrMeter,
                         'size' => $size,
-                        'length' => $length,
                         'shift' => $lineShift,
                         'production_line_id' => $prodLineId,
                         'production_line_name' => $prodLineName,
@@ -127,6 +126,7 @@ class ProductionReport extends Component
                         'total_raw_consumed' => 0.0,
                         'total_product_weight' => 0.0,
                         'total_product_qty' => 0.0,
+                        'total_waste' => 0.0,
                         'qty_by_length' => [],
                         'start_ovality' => 0.0,
                         'end_ovality' => 0.0,
@@ -144,10 +144,24 @@ class ProductionReport extends Component
 
                 $merged[$key]['total_product_weight'] += $fgWeight;
                 $merged[$key]['total_product_qty'] += $fgQty;
+                
+                // Aggregate waste quantities
+                $wasteQty = (float) ($fg->waste_quantity ?? 0);
+                $merged[$key]['total_waste'] += $wasteQty;
 
+                // Group quantities by length
                 $lenKey = $length;
+                
+                // Check if quantity looks like weight (large number) vs piece count (small integer)
+                // If quantity > 100, it's likely weight and we need to convert to pieces
+                $actualQty = $fgQty;
+                if ($fgQty > 100 && $wieghtPrMeter > 0) {
+                    // Convert weight to pieces: weight / (weight_per_meter * length)
+                    $actualQty = $fgQty / ($wieghtPrMeter * $length);
+                }
+                
                 $merged[$key]['qty_by_length'][$lenKey] =
-                    ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $fgQty;
+                    ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $actualQty;
 
                 if (!is_null($startOval)) {
                     $merged[$key]['start_ovality'] += (float) $startOval;
@@ -196,32 +210,65 @@ class ProductionReport extends Component
         $endOfDay = Carbon::parse($this->date)->endOfDay();
 
         // Main query with pagination
-        $finishedGoodsQuery = FinishedGood::with([
-                'product',
-                'materialStockOutLines.materialStockOut.rawMaterial',
-                'materialStockOutLines.productionLine'
-            ])
-            ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->when($this->shift, function($q) {
-                return $q->whereHas('materialStockOutLines', function($qq) {
-                    $qq->where('shift', $this->shift);
-                });
-            })
-            ->when($this->product_id, function($q) {
-                return $q->where('product_id', $this->product_id);
-            })
-            ->when($this->raw_material, function($q) {
-                return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($qq) {
-                    $qq->where('name', $this->raw_material);
-                });
-            })
-            ->orderBy('created_at', 'desc');
+        // $finishedGoodsQuery = FinishedGood::with([
+        //         'product',
+        //         'materialStockOutLines.materialStockOut.rawMaterial',
+        //         'materialStockOutLines.productionLine'
+        //     ])
+        //     ->whereBetween('created_at', [$startOfDay, $endOfDay])
+        //     ->when($this->shift, function($q) {
+        //         return $q->whereHas('materialStockOutLines', function($qq) {
+        //             $qq->where('shift', $this->shift);
+        //         });
+        //     })
+        //     ->when($this->product_id, function($q) {
+        //         return $q->where('product_id', $this->product_id);
+        //     })
+        //     ->when($this->raw_material, function($q) {
+        //         return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($qq) {
+        //             $qq->where('name', $this->raw_material);
+        //         });
+        //     })->refresh()
+        //     ->orderBy('created_at', 'desc');
 
-        // Get paginated results for display
-        $paginatedFinishedGoods = $finishedGoodsQuery->paginate(50);
+        // // Get paginated results for display
+        // $paginatedFinishedGoods = $finishedGoodsQuery->paginate(50);
         
-        // Get all results for grouping calculations
-        $allFinishedGoods = $finishedGoodsQuery->get();
+        // // Get all results for grouping calculations
+        // $allFinishedGoods = $finishedGoodsQuery->get();
+
+
+
+        $finishedGoodsQuery = FinishedGood::with([
+            'product',
+            'materialStockOutLines.materialStockOut.rawMaterial',
+            'materialStockOutLines.productionLine'
+        ])
+        ->whereBetween('created_at', [$startOfDay, $endOfDay])
+        ->when($this->shift, function($q) {
+            return $q->whereHas('materialStockOutLines', function($qq) {
+                $qq->where('shift', $this->shift);
+            });
+        })
+        ->when($this->product_id, function($q) {
+            return $q->where('product_id', $this->product_id);
+        })
+        ->when($this->raw_material, function($q) {
+            return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($qq) {
+                $qq->where('name', $this->raw_material);
+            });
+        })
+        ->orderBy('created_at', 'desc');
+    
+    // Clone the query for all results
+    $allFinishedGoodsQuery = clone $finishedGoodsQuery;
+    
+    // Use paginate on the original
+    $paginatedFinishedGoods = $finishedGoodsQuery->paginate(50);
+    
+    // Use get() on the cloned query
+    $allFinishedGoods = $allFinishedGoodsQuery->get();
+    
 
         $grouped = $this->buildMergedGroups($allFinishedGoods);
         $lengths = $allFinishedGoods->pluck('length_m')->unique()->sort()->values();

@@ -20,6 +20,7 @@ class FinishedGoods extends Component
   public $type = 'roll';
   public $length_m;
   public $quantity;
+  public $waste_quantity = 0;
   public $batch_number;
   public $production_date;
   public $purpose = 'for_stock';
@@ -45,6 +46,7 @@ class FinishedGoods extends Component
     'type' => 'required|in:roll,cut',
     'length_m' => 'required|numeric|min:0.01',
     'quantity' => 'required|numeric|min:0.01',
+    'waste_quantity' => 'nullable|numeric|min:0',
     'batch_number' => 'required|string|max:255',
     'production_date' => 'required|date',
     'purpose' => 'required|in:for_stock,for_customer_order',
@@ -91,6 +93,7 @@ class FinishedGoods extends Component
       'type' => $this->type,
       'length_m' => $this->length_m,
       'quantity' => $this->quantity,
+      'waste_quantity' => $this->waste_quantity ?? 0,
       'batch_number' => $this->batch_number,
       'production_date' => $this->production_date,
       'purpose' => $this->purpose,
@@ -107,7 +110,7 @@ class FinishedGoods extends Component
       'stripe_color' => $this->stripeColor
     ]);
     session()->flash('message', 'Finished goods recorded successfully.');
-    $this->reset(['product_id', 'type', 'length_m', 'quantity', 'batch_number', 'customer_id', 'notes']);
+    $this->reset(['product_id', 'type', 'length_m', 'quantity', 'waste_quantity', 'batch_number', 'customer_id', 'notes']);
     $this->production_date = now()->format('Y-m-d');
     $this->finishedGoods = FinishedGood::with('product')->get();
   }
