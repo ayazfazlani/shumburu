@@ -72,7 +72,10 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/production/{id}/edit', \App\Livewire\Warehouse\EditProduction::class)->name('production.edit');
         Route::get('/stock-out', \App\Livewire\Warehouse\StockOut::class)->name('stock-out');
         Route::get('/finished-goods', \App\Livewire\Warehouse\FinishedGoods::class)->name('finished-goods');
+        Route::get('/finished-goods-crud', \App\Livewire\Warehouse\FinishedGoodsCrud::class)->name('finished-goods-crud');
         Route::get('/scrap-waste', ScrapWasteRecord::class)->name('scrap-wastes');
+        Route::get('/scrap-waste-management', \App\Livewire\Warehouse\ScrapWasteManagement::class)->name('scrap-waste-management');
+        Route::get('/inventory-dashboard', \App\Livewire\Warehouse\InventoryDashboard::class)->name('inventory-dashboard');
         Route::get('/finished-good-material-stock-out', FinishedGoodMaterialStockOutLineCrud::class)->name('finished-good-material');
         // Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
         Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');

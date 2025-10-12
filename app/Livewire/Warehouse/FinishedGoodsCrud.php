@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Warehouse;
 
-use App\Models\FinishedGood;
 use App\Models\Product;
-use App\Models\Customer;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\Customer;
+use App\Models\FinishedGood;
 use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
-class FinishedGoods extends Component
+class FinishedGoodsCrud extends Component
 {
-  use WithPagination;
+    use WithPagination;
 
     // Search and filter properties
     public $search = '';
@@ -20,6 +21,7 @@ class FinishedGoods extends Component
     public $filter_customer = '';
     public $filter_purpose = '';
     public $filter_type = '';
+    public $filter_status = '';
     public $date_from = '';
     public $date_to = '';
 
@@ -30,22 +32,23 @@ class FinishedGoods extends Component
 
     // Form fields
     public $product_id = '';
-  public $type = 'roll';
-    public $length_m = '';
     public $quantity = '';
     public $batch_number = '';
     public $production_date = '';
-  public $purpose = 'for_stock';
+    public $purpose = 'for_stock';
     public $customer_id = '';
+    public $produced_by = '';
     public $notes = '';
-    public $size = '';
-    public $total_weight = '';
+    public $type = 'roll';
+    public $length_m = '';
     public $outer_diameter = '';
+    public $size = '';
     public $surface = '';
     public $thickness = '';
     public $start_ovality = '';
     public $end_ovality = '';
     public $stripe_color = '';
+    public $total_weight = '';
 
     // Bulk operations
     public $selectedItems = [];
@@ -55,29 +58,30 @@ class FinishedGoods extends Component
     // Pagination
     public $perPage = 10;
 
-  protected $rules = [
-    'product_id' => 'required|exists:products,id',
-    'type' => 'required|in:roll,cut',
-        'length_m' => 'required|numeric|min:0.001',
+    protected $rules = [
+        'product_id' => 'required|exists:products,id',
         'quantity' => 'required|numeric|min:0.001',
-    'batch_number' => 'required|string|max:255',
-    'production_date' => 'required|date',
+        'batch_number' => 'nullable|string|max:255',
+        'production_date' => 'required|date',
         'purpose' => 'required|in:for_stock,for_sale,for_customer',
         'customer_id' => 'nullable|exists:customers,id',
         'notes' => 'nullable|string|max:1000',
-        'size' => 'nullable|string|max:100',
+        'type' => 'required|in:roll,cut',
+        'length_m' => 'required|numeric|min:0.001',
         'outer_diameter' => 'nullable|numeric|min:0',
+        'size' => 'nullable|string|max:100',
         'surface' => 'nullable|string|max:100',
         'thickness' => 'nullable|numeric|min:0',
         'start_ovality' => 'nullable|numeric|min:0',
         'end_ovality' => 'nullable|numeric|min:0',
         'stripe_color' => 'nullable|string|max:50',
         'total_weight' => 'nullable|numeric|min:0',
-  ];
+    ];
 
-  public function mount()
-  {
-    $this->production_date = now()->format('Y-m-d');
+    public function mount()
+    {
+        $this->production_date = now()->format('Y-m-d');
+        $this->produced_by = Auth::id();
     }
 
     public function render()
@@ -115,10 +119,10 @@ class FinishedGoods extends Component
 
         $finishedGoods = $query->paginate($this->perPage);
 
-        $products = Product::where('is_active', true)->orderBy('name')->get();
-        $customers = Customer::where('is_active', true)->orderBy('name')->get();
+        $products = Product::orderBy('name')->get();
+        $customers = Customer::orderBy('name')->get();
 
-        return view('livewire.warehouse.finished-goods', [
+        return view('livewire.warehouse.finished-goods-crud', [
             'finishedGoods' => $finishedGoods,
             'products' => $products,
             'customers' => $customers,
@@ -138,22 +142,23 @@ class FinishedGoods extends Component
         
         $this->editingId = $id;
         $this->product_id = $finishedGood->product_id;
-        $this->type = $finishedGood->type;
-        $this->length_m = $finishedGood->length_m;
         $this->quantity = $finishedGood->quantity;
         $this->batch_number = $finishedGood->batch_number;
         $this->production_date = $finishedGood->production_date->format('Y-m-d');
         $this->purpose = $finishedGood->purpose;
         $this->customer_id = $finishedGood->customer_id;
+        $this->produced_by = $finishedGood->produced_by;
         $this->notes = $finishedGood->notes;
-        $this->size = $finishedGood->size;
-        $this->total_weight = $finishedGood->total_weight;
+        $this->type = $finishedGood->type;
+        $this->length_m = $finishedGood->length_m;
         $this->outer_diameter = $finishedGood->outer_diameter;
+        $this->size = $finishedGood->size;
         $this->surface = $finishedGood->surface;
         $this->thickness = $finishedGood->thickness;
         $this->start_ovality = $finishedGood->start_ovality;
         $this->end_ovality = $finishedGood->end_ovality;
         $this->stripe_color = $finishedGood->stripe_color;
+        $this->total_weight = $finishedGood->total_weight;
 
         $this->showForm = true;
     }
@@ -161,31 +166,31 @@ class FinishedGoods extends Component
     public function view($id)
     {
         $this->viewingId = $id;
-  }
+    }
 
-  public function save()
-  {
-    $this->validate();
+    public function save()
+    {
+        $this->validate();
 
         $data = [
-      'product_id' => $this->product_id,
-      'type' => $this->type,
-      'length_m' => $this->length_m,
-      'quantity' => $this->quantity,
-      'batch_number' => $this->batch_number,
-      'production_date' => $this->production_date,
-      'purpose' => $this->purpose,
+            'product_id' => $this->product_id,
+            'quantity' => $this->quantity,
+            'batch_number' => $this->batch_number,
+            'production_date' => $this->production_date,
+            'purpose' => $this->purpose,
             'customer_id' => $this->customer_id ?: null,
-            'produced_by' => Auth::id(),
-      'notes' => $this->notes,
-      'size' => $this->size,
-            'total_weight' => $this->total_weight ?: $this->calculateWeight(),
+            'produced_by' => $this->produced_by,
+            'notes' => $this->notes,
+            'type' => $this->type,
+            'length_m' => $this->length_m,
             'outer_diameter' => $this->outer_diameter,
+            'size' => $this->size,
             'surface' => $this->surface,
-      'thickness' => $this->thickness,
+            'thickness' => $this->thickness,
             'start_ovality' => $this->start_ovality,
             'end_ovality' => $this->end_ovality,
             'stripe_color' => $this->stripe_color,
+            'total_weight' => $this->total_weight ?: $this->calculateWeight(),
         ];
 
         if ($this->editingId) {
@@ -301,9 +306,10 @@ class FinishedGoods extends Component
             
             // CSV Headers
             fputcsv($file, [
-                'ID', 'Product', 'Type', 'Quantity', 'Length (m)', 'Batch Number', 'Production Date', 
-                'Purpose', 'Customer', 'Size', 'Outer Diameter', 'Surface', 'Thickness',
-                'Start Ovality', 'End Ovality', 'Stripe Color', 'Total Weight', 'Produced By', 'Notes', 'Created At'
+                'ID', 'Product', 'Quantity', 'Batch Number', 'Production Date', 
+                'Purpose', 'Customer', 'Type', 'Length (m)', 'Size', 'Thickness',
+                'Outer Diameter', 'Surface', 'Start Ovality', 'End Ovality',
+                'Stripe Color', 'Total Weight', 'Produced By', 'Notes', 'Created At'
             ]);
 
             // CSV Data
@@ -311,17 +317,17 @@ class FinishedGoods extends Component
                 fputcsv($file, [
                     $good->id,
                     $good->product->name ?? '',
-                    ucfirst($good->type),
                     $good->quantity,
-                    $good->length_m,
                     $good->batch_number ?? '',
                     $good->production_date->format('Y-m-d'),
                     ucfirst(str_replace('_', ' ', $good->purpose)),
                     $good->customer->name ?? '',
+                    ucfirst($good->type),
+                    $good->length_m,
                     $good->size ?? '',
+                    $good->thickness ?? '',
                     $good->outer_diameter ?? '',
                     $good->surface ?? '',
-                    $good->thickness ?? '',
                     $good->start_ovality ?? '',
                     $good->end_ovality ?? '',
                     $good->stripe_color ?? '',
@@ -351,13 +357,13 @@ class FinishedGoods extends Component
     private function resetForm()
     {
         $this->reset([
-            'product_id', 'type', 'length_m', 'quantity', 'batch_number', 'production_date', 'purpose',
-            'customer_id', 'notes', 'size', 'total_weight', 'outer_diameter', 'surface', 'thickness',
-            'start_ovality', 'end_ovality', 'stripe_color'
+            'product_id', 'quantity', 'batch_number', 'production_date', 'purpose',
+            'customer_id', 'produced_by', 'notes', 'type', 'length_m', 'outer_diameter',
+            'size', 'surface', 'thickness', 'start_ovality', 'end_ovality',
+            'stripe_color', 'total_weight'
         ]);
-        $this->type = 'roll';
-        $this->purpose = 'for_stock';
         $this->production_date = now()->format('Y-m-d');
+        $this->produced_by = Auth::id();
         $this->resetValidation();
     }
 
@@ -400,11 +406,4 @@ class FinishedGoods extends Component
     {
         $this->resetPage();
     }
-
-    public function updatedPurpose()
-    {
-        if ($this->purpose === 'for_stock') {
-            $this->customer_id = null;
-        }
-  }
 }

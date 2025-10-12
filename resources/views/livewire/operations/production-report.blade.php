@@ -94,6 +94,7 @@
                         @foreach($lengths as $length)
                             <th class="border border-gray-400 p-1 text-center">{{ $length }}m</th>
                         @endforeach
+                        <th class="border border-gray-400 p-1">Total Rolls</th>
                         <th class="border border-gray-400 p-1">Total Product Weight (kg)</th>
                         <th class="border border-gray-400 p-1">Waste (kg)</th>
                         <th class="border border-gray-400 p-1">Gross (kg)</th>
@@ -109,6 +110,7 @@
                         $grandProductWeight = 0;
                         $grandWaste = 0;
                         $grandGross = 0;
+                        $grandRolls = 0;
                     @endphp
 
                     @forelse($grouped as $productName => $rows)
@@ -127,6 +129,7 @@
                                 $grandProductWeight += $productWeight;
                                 $grandWaste += $waste;
                                 $grandGross += $gross;
+                                $grandRolls += ($row['total_rolls'] ?? 0);
 
                                 $qtyByLength = $row['qty_by_length'] ?? [];
 
@@ -156,9 +159,10 @@
                                                 $qtyL = $qtyByLength[$l] ?? 0;
                                                 $totalsByLength[$l] += $qtyL;
                                             @endphp
-                                            <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
+                                            <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 0) : '' }}</td>
                                         @endforeach
 
+                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($row['total_rolls'] ?? 0, 0) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($productWeight, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
@@ -185,9 +189,10 @@
                             <td class="border border-gray-400 p-1"></td>
 
                             @foreach($lengths as $length)
-                                <td class="border border-gray-400 p-1 text-right">{{ number_format($totalsByLength[$length] ?? 0, 2) }}</td>
+                                <td class="border border-gray-400 p-1 text-right">{{ number_format($totalsByLength[$length] ?? 0, 0) }}</td>
                             @endforeach
 
+                            <td class="border border-gray-400 p-1 text-right">{{ number_format($grandRolls, 0) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandProductWeight, 2) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandWaste, 2) }}</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandGross, 2) }}</td>
