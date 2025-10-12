@@ -107,15 +107,51 @@ class Production extends Component
         $this->production_line_id = $entry->production_line_id;
         $this->quantity_consumed = $entry->quantity_consumed;
         $this->shift = $entry->shift;
-        // TODO: Load finishedGoods, stockOutUsages, stockOutScraps from $entry if needed
+        
+        // Load finished goods
+        $this->finishedGoods = [];
+        foreach ($entry->finishedGoods as $fg) {
+            $this->finishedGoods[] = [
+                'product_id' => $fg->product_id,
+                'type' => $fg->type,
+                'length_m' => $fg->length_m,
+                'quantity' => $fg->quantity,
+                'outer_diameter' => $fg->outer_diameter,
+                'size' => $fg->size,
+                'surface' => $fg->surface,
+                'thickness' => $fg->thickness,
+                'ovality' => $fg->start_ovality,
+                'batch_number' => $fg->batch_number,
+                'production_date' => $fg->production_date,
+                'purpose' => $fg->purpose,
+                'customer_id' => $fg->customer_id,
+                'notes' => $fg->notes,
+            ];
+        }
+        
+        // If no finished goods, add one empty row
+        if (empty($this->finishedGoods)) {
+            $this->finishedGoods = [
+                ['product_id' => '', 'type' => 'roll', 'length_m' => '', 'quantity' => '', 'outer_diameter' => '', 'size' => '', 'surface' => '', 'thickness' => '', 'ovality' => '', 'batch_number' => '', 'production_date' => '', 'purpose' => 'for_stock', 'customer_id' => '', 'notes' => '']
+            ];
+        }
+        
         $this->isEdit = true;
         $this->showModal = true;
     }
 
     public function delete($id)
     {
-        $entry = MaterialStockOutLine::findOrFail($id);
-        $entry->delete();
+        DB::transaction(function () use ($id) {
+            $entry = MaterialStockOutLine::findOrFail($id);
+            
+            // Delete associated finished goods
+            $entry->finishedGoods()->delete();
+            
+            // Delete the entry
+            $entry->delete();
+        });
+        
         session()->flash('success', 'Production entry deleted successfully!');
     }
 
@@ -153,41 +189,68 @@ class Production extends Component
                     'material_stock_out_id' => $this->material_stock_out_id,
                     'production_line_id' => $this->production_line_id,
                     'quantity_consumed' => $this->quantity_consumed,
-                    // 'shift' => $this->shift,
+                    'shift' => $this->shift,
                 ]);
+                
+                // Delete existing finished goods for this entry
+                $entry->finishedGoods()->delete();
             } else {
                 $entry = MaterialStockOutLine::create([
                     'material_stock_out_id' => $this->material_stock_out_id,
                     'production_line_id' => $this->production_line_id,
                     'quantity_consumed' => $this->quantity_consumed,
-                    // 'shift' => $this->shift,
+                    'shift' => $this->shift,
                 ]);
             }
-            // Save finished goods
+            
+            // Save finished goods with proper relationship
             foreach ($this->finishedGoods as $fg) {
-                
-                FinishedGood::create([
-                    'product_id' => $fg['product_id'],
-                    'quantity' => $fg['quantity'],
-                    'batch_number' => $fg['batch_number'],
-                    'production_date' => $fg['production_date'],
-                    'purpose' => $fg['purpose'],
-                    'customer_id' => $fg['customer_id'],
-                    'produced_by' => Auth::id(),
-                    'notes' => $fg['notes'],
-                    'type' => $fg['type'],
-                    'length_m' => $fg['length_m'],
-                    'outer_diameter' => $fg['outer_diameter'],
-                    'size' => $fg['size'],
-                    'surface' => $fg['surface'],
-                    'thickness' => $fg['thickness'],
-                    'ovality' => $fg['ovality'],
-                ]);
+                if (!empty($fg['product_id']) && !empty($fg['quantity'])) {
+                    $finishedGood = FinishedGood::create([
+                        'product_id' => $fg['product_id'],
+                        'quantity' => $fg['quantity'],
+                        'batch_number' => $fg['batch_number'],
+                        'production_date' => $fg['production_date'],
+                        'purpose' => $fg['purpose'],
+                        'customer_id' => $fg['customer_id'],
+                        'produced_by' => Auth::id(),
+                        'notes' => $fg['notes'],
+                        'type' => $fg['type'],
+                        'length_m' => $fg['length_m'],
+                        'outer_diameter' => $fg['outer_diameter'],
+                        'size' => $fg['size'],
+                        'surface' => $fg['surface'],
+                        'thickness' => $fg['thickness'],
+                        'start_ovality' => $fg['ovality'],
+                        'end_ovality' => $fg['ovality'],
+                        'total_weight' => $this->calculateWeight($fg),
+                    ]);
+                    
+                    // Link finished good to material stock out line
+                    $entry->finishedGoods()->attach($finishedGood->id, [
+                        'quantity_used' => $this->quantity_consumed,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
         });
 
         $this->showModal = false;
         session()->flash('success', 'Production entry saved successfully!');
+    }
+    
+    private function calculateWeight($finishedGood)
+    {
+        // Calculate weight based on length, quantity, and product specifications
+        $length = (float) ($finishedGood['length_m'] ?? 0);
+        $quantity = (float) ($finishedGood['quantity'] ?? 0);
+        
+        // Get product weight per meter if available
+        $product = Product::find($finishedGood['product_id']);
+        $weightPerMeter = $product->weight_per_meter ?? 1.0; // Default weight per meter
+        
+        return $length * $quantity * $weightPerMeter;
     }
 
     #[Layout('components.layouts.app')]

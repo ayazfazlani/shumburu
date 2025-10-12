@@ -7,86 +7,167 @@ use App\Models\Product;
 use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
-use phpDocumentor\Reflection\Types\This;
-use App\Models\MaterialStockOut;
-use App\Models\ProductionLine;
-use App\Models\MaterialStockOutLine;
 use Livewire\WithPagination;
+use Livewire\Attributes\Layout;
 
 class FinishedGoods extends Component
 {
   use WithPagination;
-  public $product_id;
+
+    // Search and filter properties
+    public $search = '';
+    public $filter_product = '';
+    public $filter_customer = '';
+    public $filter_purpose = '';
+    public $filter_type = '';
+    public $date_from = '';
+    public $date_to = '';
+
+    // Form properties
+    public $showForm = false;
+    public $editingId = null;
+    public $viewingId = null;
+
+    // Form fields
+    public $product_id = '';
   public $type = 'roll';
-  public $length_m;
-  public $quantity;
-  public $batch_number;
-  public $production_date;
+    public $length_m = '';
+    public $quantity = '';
+    public $batch_number = '';
+    public $production_date = '';
   public $purpose = 'for_stock';
-  public $customer_id;
-  public $notes;
-  public $finishedGoods;
+    public $customer_id = '';
+    public $notes = '';
+    public $size = '';
+    public $total_weight = '';
+    public $outer_diameter = '';
+    public $surface = '';
+    public $thickness = '';
+    public $start_ovality = '';
+    public $end_ovality = '';
+    public $stripe_color = '';
 
-  // remaining fields 
+    // Bulk operations
+    public $selectedItems = [];
+    public $selectAll = false;
+    public $bulkAction = '';
 
-  public $size;
-  public $totalWeight;
-  public $outerDiameter;
-  public $Surface;
-  public $thickness;
-  public $startOvality;
-  public $endOvality;
-  public $stripeColor;
-
-  // Removed: material_stock_out_id, production_line_id, quantity_used
+    // Pagination
+    public $perPage = 10;
 
   protected $rules = [
     'product_id' => 'required|exists:products,id',
     'type' => 'required|in:roll,cut',
-    'length_m' => 'required|numeric|min:0.01',
-    'quantity' => 'required|numeric|min:0.01',
+        'length_m' => 'required|numeric|min:0.001',
+        'quantity' => 'required|numeric|min:0.001',
     'batch_number' => 'required|string|max:255',
     'production_date' => 'required|date',
-    'purpose' => 'required|in:for_stock,for_customer_order',
-    'customer_id' => 'nullable|required_if:purpose,for_customer_order|exists:customers,id',
-    'notes' => 'nullable|string',
-    'size' => 'nullable|numeric',
-    'outerDiameter' => 'nullable|numeric',
-    'Surface' => 'nullable|string',
-    'thickness' => 'nullable|string',
-    'startOvality' => 'nullable|string',
-    'endOvality' => 'nullable|string',
-    'stripeColor' => 'nullable|string'
+        'purpose' => 'required|in:for_stock,for_sale,for_customer',
+        'customer_id' => 'nullable|exists:customers,id',
+        'notes' => 'nullable|string|max:1000',
+        'size' => 'nullable|string|max:100',
+        'outer_diameter' => 'nullable|numeric|min:0',
+        'surface' => 'nullable|string|max:100',
+        'thickness' => 'nullable|numeric|min:0',
+        'start_ovality' => 'nullable|numeric|min:0',
+        'end_ovality' => 'nullable|numeric|min:0',
+        'stripe_color' => 'nullable|string|max:50',
+        'total_weight' => 'nullable|numeric|min:0',
   ];
 
   public function mount()
   {
-    $this->type = 'roll';
     $this->production_date = now()->format('Y-m-d');
-    $this->finishedGoods = FinishedGood::with([
-      'product'
-      ])->get();
-  }
-
-  public function updatedPurpose()
-  {
-    if ($this->purpose === 'for_stock') {
-      $this->customer_id = null;
     }
+
+    public function render()
+    {
+        $query = FinishedGood::with(['product', 'customer', 'producedBy'])
+            ->when($this->search, function($q) {
+                $q->where(function($query) {
+                    $query->where('batch_number', 'like', '%' . $this->search . '%')
+                          ->orWhere('size', 'like', '%' . $this->search . '%')
+                          ->orWhere('notes', 'like', '%' . $this->search . '%')
+                          ->orWhereHas('product', function($q) {
+                              $q->where('name', 'like', '%' . $this->search . '%');
+                          });
+                });
+            })
+            ->when($this->filter_product, function($q) {
+                $q->where('product_id', $this->filter_product);
+            })
+            ->when($this->filter_customer, function($q) {
+                $q->where('customer_id', $this->filter_customer);
+            })
+            ->when($this->filter_purpose, function($q) {
+                $q->where('purpose', $this->filter_purpose);
+            })
+            ->when($this->filter_type, function($q) {
+                $q->where('type', $this->filter_type);
+            })
+            ->when($this->date_from, function($q) {
+                $q->whereDate('production_date', '>=', $this->date_from);
+            })
+            ->when($this->date_to, function($q) {
+                $q->whereDate('production_date', '<=', $this->date_to);
+            })
+            ->orderBy('created_at', 'desc');
+
+        $finishedGoods = $query->paginate($this->perPage);
+
+        $products = Product::where('is_active', true)->orderBy('name')->get();
+        $customers = Customer::where('is_active', true)->orderBy('name')->get();
+
+        return view('livewire.warehouse.finished-goods', [
+            'finishedGoods' => $finishedGoods,
+            'products' => $products,
+            'customers' => $customers,
+        ]);
+    }
+
+    public function create()
+    {
+        $this->resetForm();
+        $this->showForm = true;
+        $this->editingId = null;
+    }
+
+    public function edit($id)
+    {
+        $finishedGood = FinishedGood::findOrFail($id);
+        
+        $this->editingId = $id;
+        $this->product_id = $finishedGood->product_id;
+        $this->type = $finishedGood->type;
+        $this->length_m = $finishedGood->length_m;
+        $this->quantity = $finishedGood->quantity;
+        $this->batch_number = $finishedGood->batch_number;
+        $this->production_date = $finishedGood->production_date->format('Y-m-d');
+        $this->purpose = $finishedGood->purpose;
+        $this->customer_id = $finishedGood->customer_id;
+        $this->notes = $finishedGood->notes;
+        $this->size = $finishedGood->size;
+        $this->total_weight = $finishedGood->total_weight;
+        $this->outer_diameter = $finishedGood->outer_diameter;
+        $this->surface = $finishedGood->surface;
+        $this->thickness = $finishedGood->thickness;
+        $this->start_ovality = $finishedGood->start_ovality;
+        $this->end_ovality = $finishedGood->end_ovality;
+        $this->stripe_color = $finishedGood->stripe_color;
+
+        $this->showForm = true;
+    }
+
+    public function view($id)
+    {
+        $this->viewingId = $id;
   }
 
   public function save()
   {
     $this->validate();
-    $user = Auth::user();
-    if($this->product_id){
-    $weightPerMeter = Product::where('id', $this->product_id)->pluck('weight_per_meter');
-    $totalweight = $weightPerMeter[0] * $this->quantity;
-    // dd($total_weight);
-    // return;
-    }
-  
-    FinishedGood::create([
+
+        $data = [
       'product_id' => $this->product_id,
       'type' => $this->type,
       'length_m' => $this->length_m,
@@ -94,31 +175,236 @@ class FinishedGoods extends Component
       'batch_number' => $this->batch_number,
       'production_date' => $this->production_date,
       'purpose' => $this->purpose,
-      'customer_id' => $this->customer_id,
-      'produced_by' => $user->id,
+            'customer_id' => $this->customer_id ?: null,
+            'produced_by' => Auth::id(),
       'notes' => $this->notes,
       'size' => $this->size,
-      'total_weight'=> $totalweight,
-      'outer_diameter'=> $this->outerDiameter,
-      'surface' => $this->Surface,
+            'total_weight' => $this->total_weight ?: $this->calculateWeight(),
+            'outer_diameter' => $this->outer_diameter,
+            'surface' => $this->surface,
       'thickness' => $this->thickness,
-      'start_ovality' => $this->startOvality,
-      'end_ovality' => $this->endOvality,
-      'stripe_color' => $this->stripeColor
-    ]);
-    session()->flash('message', 'Finished goods recorded successfully.');
-    $this->reset(['product_id', 'type', 'length_m', 'quantity', 'batch_number', 'customer_id', 'notes']);
-    $this->production_date = now()->format('Y-m-d');
-    $this->finishedGoods = FinishedGood::with('product')->get();
-  }
+            'start_ovality' => $this->start_ovality,
+            'end_ovality' => $this->end_ovality,
+            'stripe_color' => $this->stripe_color,
+        ];
 
-  public function render()
-  {
-    $products = Product::where('is_active', true)->get();
-    $customers = Customer::where('is_active', true)->get();
-    return view('livewire.warehouse.finished-goods', [
-      'products' => $products,
-      'customers' => $customers,
-    ]);
+        if ($this->editingId) {
+            $finishedGood = FinishedGood::findOrFail($this->editingId);
+            $finishedGood->update($data);
+            session()->flash('success', 'Finished good updated successfully!');
+        } else {
+            FinishedGood::create($data);
+            session()->flash('success', 'Finished good created successfully!');
+        }
+
+        $this->resetForm();
+        $this->showForm = false;
+    }
+
+    public function delete($id)
+    {
+        $finishedGood = FinishedGood::findOrFail($id);
+        $finishedGood->delete();
+        session()->flash('success', 'Finished good deleted successfully!');
+    }
+
+    public function deleteSelected()
+    {
+        if (empty($this->selectedItems)) {
+            session()->flash('error', 'Please select items to delete.');
+            return;
+        }
+
+        FinishedGood::whereIn('id', $this->selectedItems)->delete();
+        $this->selectedItems = [];
+        $this->selectAll = false;
+        session()->flash('success', 'Selected finished goods deleted successfully!');
+    }
+
+    public function updatePurpose()
+    {
+        if (empty($this->selectedItems) || !$this->bulkAction) {
+            session()->flash('error', 'Please select items and choose an action.');
+            return;
+        }
+
+        FinishedGood::whereIn('id', $this->selectedItems)->update(['purpose' => $this->bulkAction]);
+        $this->selectedItems = [];
+        $this->selectAll = false;
+        $this->bulkAction = '';
+        session()->flash('success', 'Selected finished goods updated successfully!');
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedItems = FinishedGood::pluck('id')->toArray();
+        } else {
+            $this->selectedItems = [];
+        }
+    }
+
+    public function updatedSelectedItems()
+    {
+        $this->selectAll = count($this->selectedItems) === FinishedGood::count();
+    }
+
+    public function clearFilters()
+    {
+        $this->reset(['search', 'filter_product', 'filter_customer', 'filter_purpose', 'filter_type', 'date_from', 'date_to']);
+        $this->resetPage();
+    }
+
+    public function exportToCsv()
+    {
+        $query = FinishedGood::with(['product', 'customer', 'producedBy'])
+            ->when($this->search, function($q) {
+                $q->where(function($query) {
+                    $query->where('batch_number', 'like', '%' . $this->search . '%')
+                          ->orWhere('size', 'like', '%' . $this->search . '%')
+                          ->orWhereHas('product', function($q) {
+                              $q->where('name', 'like', '%' . $this->search . '%');
+                          });
+                });
+            })
+            ->when($this->filter_product, function($q) {
+                $q->where('product_id', $this->filter_product);
+            })
+            ->when($this->filter_customer, function($q) {
+                $q->where('customer_id', $this->filter_customer);
+            })
+            ->when($this->filter_purpose, function($q) {
+                $q->where('purpose', $this->filter_purpose);
+            })
+            ->when($this->filter_type, function($q) {
+                $q->where('type', $this->filter_type);
+            })
+            ->when($this->date_from, function($q) {
+                $q->whereDate('production_date', '>=', $this->date_from);
+            })
+            ->when($this->date_to, function($q) {
+                $q->whereDate('production_date', '<=', $this->date_to);
+            })
+            ->orderBy('created_at', 'desc');
+
+        $finishedGoods = $query->get();
+
+        $filename = 'finished_goods_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($finishedGoods) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, [
+                'ID', 'Product', 'Type', 'Quantity', 'Length (m)', 'Batch Number', 'Production Date', 
+                'Purpose', 'Customer', 'Size', 'Outer Diameter', 'Surface', 'Thickness',
+                'Start Ovality', 'End Ovality', 'Stripe Color', 'Total Weight', 'Produced By', 'Notes', 'Created At'
+            ]);
+
+            // CSV Data
+            foreach ($finishedGoods as $good) {
+                fputcsv($file, [
+                    $good->id,
+                    $good->product->name ?? '',
+                    ucfirst($good->type),
+                    $good->quantity,
+                    $good->length_m,
+                    $good->batch_number ?? '',
+                    $good->production_date->format('Y-m-d'),
+                    ucfirst(str_replace('_', ' ', $good->purpose)),
+                    $good->customer->name ?? '',
+                    $good->size ?? '',
+                    $good->outer_diameter ?? '',
+                    $good->surface ?? '',
+                    $good->thickness ?? '',
+                    $good->start_ovality ?? '',
+                    $good->end_ovality ?? '',
+                    $good->stripe_color ?? '',
+                    $good->total_weight ?? '',
+                    $good->producedBy->name ?? '',
+                    $good->notes ?? '',
+                    $good->created_at->format('Y-m-d H:i:s')
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    private function calculateWeight()
+    {
+        if ($this->product_id && $this->length_m && $this->quantity) {
+            $product = Product::find($this->product_id);
+            $weightPerMeter = $product->weight_per_meter ?? 1.0;
+            return $this->length_m * $this->quantity * $weightPerMeter;
+        }
+        return null;
+    }
+
+    private function resetForm()
+    {
+        $this->reset([
+            'product_id', 'type', 'length_m', 'quantity', 'batch_number', 'production_date', 'purpose',
+            'customer_id', 'notes', 'size', 'total_weight', 'outer_diameter', 'surface', 'thickness',
+            'start_ovality', 'end_ovality', 'stripe_color'
+        ]);
+        $this->type = 'roll';
+        $this->purpose = 'for_stock';
+        $this->production_date = now()->format('Y-m-d');
+        $this->resetValidation();
+    }
+
+    public function updatedSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterProduct()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterCustomer()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterPurpose()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterType()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateFrom()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedDateTo()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPurpose()
+    {
+        if ($this->purpose === 'for_stock') {
+            $this->customer_id = null;
+        }
   }
 }

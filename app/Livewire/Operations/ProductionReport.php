@@ -89,8 +89,8 @@ class ProductionReport extends Component
 
         foreach ($finishedGoods as $fg) {
             $productName = $fg->product->name ?? 'Unknown';
-            $size = $fg->product->name ?? 'Unknown';
-            $wieghtPrMeter = $fg->product->weight_per_meter ?? 0;
+            $size = $fg->size ?? $fg->product->name ?? 'Unknown';
+            $weightPrMeter = $fg->product->weight_per_meter ?? 0;
             $length = $fg->length_m ?? 0;
             $fgQty = (float) ($fg->quantity ?? 0);
             $fgWeight = (float) ($fg->total_weight ?? 0);
@@ -99,11 +99,12 @@ class ProductionReport extends Component
             $thickness = $fg->thickness ?? null;
             $outer = $fg->outer_diameter ?? null;
 
+            // Get raw materials from the pivot table relationship
             foreach ($fg->materialStockOutLines as $line) {
                 $rmName = $line->materialStockOut->rawMaterial->name ?? 'Unknown';
-                $rmQty = (float) ($line->quantity_consumed ?? 0);
-                $lineShift = $line->shift ?? ($line->materialStockOut->shift ?? '');
-                $prodLineId = $line->production_line_id ?? ($line->productionLine->id ?? 'no-line');
+                $rmQty = (float) ($line->pivot->quantity_used ?? $line->quantity_consumed ?? 0);
+                $lineShift = $line->shift ?? '';
+                $prodLineId = $line->production_line_id ?? 'no-line';
                 $prodLineName = $line->productionLine->name ?? ('Line ' . $prodLineId);
 
                 $key = implode('|', [
@@ -117,7 +118,7 @@ class ProductionReport extends Component
                 if (!isset($merged[$key])) {
                     $merged[$key] = [
                         'product' => $productName,
-                        'weight_per_meter' => $wieghtPrMeter,
+                        'weight_per_meter' => $weightPrMeter,
                         'size' => $size,
                         'length' => $length,
                         'shift' => $lineShift,
@@ -127,6 +128,7 @@ class ProductionReport extends Component
                         'total_raw_consumed' => 0.0,
                         'total_product_weight' => 0.0,
                         'total_product_qty' => 0.0,
+                        'total_rolls' => 0.0, // Add roll count tracking
                         'qty_by_length' => [],
                         'start_ovality' => 0.0,
                         'end_ovality' => 0.0,
@@ -144,6 +146,7 @@ class ProductionReport extends Component
 
                 $merged[$key]['total_product_weight'] += $fgWeight;
                 $merged[$key]['total_product_qty'] += $fgQty;
+                $merged[$key]['total_rolls'] += $fgQty; // Count actual rolls/units
 
                 $lenKey = $length;
                 $merged[$key]['qty_by_length'][$lenKey] =
@@ -159,10 +162,6 @@ class ProductionReport extends Component
                         $merged[$key]['ovality_count']++;
                     }
                 }
-                // if (!is_null($thickness)) {
-                //     $merged[$key]['thickness_sum'] += (float) $thickness;
-                //     $merged[$key]['thickness_count']++;
-                // }
                 if (!is_null($outer)) {
                     $merged[$key]['outer_sum'] += (float) $outer;
                     $merged[$key]['outer_count']++;
@@ -181,7 +180,6 @@ class ProductionReport extends Component
             // Calculate averages
             $item['avg_start_ovality'] = $item['ovality_count'] > 0 ? $item['start_ovality'] / $item['ovality_count'] : 0;
             $item['avg_end_ovality'] = $item['ovality_count'] > 0 ? $item['end_ovality'] / $item['ovality_count'] : 0;
-            // $item['avg_thickness'] = $item['thickness_count'] > 0 ? $item['thickness_sum'] / $item['thickness_count'] : 0;
             $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : 0;
             
             return $item;

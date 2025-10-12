@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             QualityReportSeeder::class,
             CustomerSeeder::class,
+            WorkflowTestSeeder::class,
         ]);
     }
 }
