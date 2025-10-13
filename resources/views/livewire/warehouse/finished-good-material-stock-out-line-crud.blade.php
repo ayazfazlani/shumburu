@@ -28,6 +28,7 @@
                                     {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }}
                                     | Batch: {{ $line->materialStockOut->batch_number ?? '-' }}
                                     | Line: {{ $line->productionLine->name ?? '-' }}
+                                    | Qty: {{ $line->materialStockOut->quantity ?? '-' }}
                                 </option>
                             @endforeach
                         </select>
@@ -88,6 +89,7 @@
                                 <div><strong>Raw Material:</strong> {{ $line->materialStockOut->rawMaterial->name ?? 'N/A' }}</div>
                                 <div><strong>Batch:</strong> {{ $line->materialStockOut->batch_number ?? '-' }}</div>
                                 <div><strong>Production Line:</strong> {{ $line->productionLine->name ?? '-' }}</div>
+                                <div><strong>Qty:</strong> {{ $line->materialStockOut->quantity ?? '-' }}</div>
                             @else
                                 #{{ $link->material_stock_out_line_id }}
                             @endif

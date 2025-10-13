@@ -144,7 +144,8 @@
                                 
                                 // Use actual recorded waste instead of calculated waste
                                 $waste = $row['total_waste'] ?? 0;
-                                $gross = $qtyConsumed;
+                                // Gross (kg) = Total Product Weight (kg) + Waste (kg)
+                                $gross = $productWeight + $waste;
 
                                 $grandRawQty += $qtyConsumed;
                                 $grandProductWeight += $productWeight;
@@ -168,11 +169,18 @@
                                     <td class="border border-gray-300 p-1">{{ $rm['name'] }}</td>
                                     <td class="border border-gray-300 p-1 text-right">{{ number_format($rm['qty'], 2) }}</td>
 
-                                    @if($index === 0)
-                                        <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
-                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['weight_per_meter'] ?: '-' }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
+                                     @if($index === 0)
+                                         <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">
+                                             {{ $row['size'] }}
+                                             @if(isset($row['batches']) && count($row['batches']) > 1)
+                                                 <br><small class="text-gray-500">Batches: {{ implode(', ', $row['batches']) }}</small>
+                                             @elseif(isset($row['batches']) && count($row['batches']) == 1)
+                                                 <br><small class="text-gray-500">Batch: {{ $row['batches'][0] }}</small>
+                                             @endif
+                                         </td>
+                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
+                                          <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['weight_per_meter'] ?: '-' }}</td>
+                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
 
                                         @foreach($lengths as $l)
                                             @php
@@ -187,7 +195,7 @@
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($totalMeters, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $startOval }}={{$endOval}}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $startOval }}-{{$endOval}}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thickness ?? '-' }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $outerAvg ?? '-' }}</td>
                                     @endif

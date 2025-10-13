@@ -1,25 +1,28 @@
 <div>
-<div class="container mx-auto py-6">
+
+    {{-- {{ dd($data) }} --}}
+<div class="container mx-auto py-6" wire:poll(render).2s>
     <div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2">
                 <div class="app-logo">SPF</div>
                 <div>
                     <div class="font-bold text-lg">SHUMBRO PLASTIC FACTORY</div>
-                    <div class="text-xs text-gray-600">Quality Control Weekly Production of Pipe & Raw Material Reports</div>
+                    <div class="text-xs text-gray-600">Quality Control Daily Production of Pipe & Raw Material Reports</div>
                 </div>
             </div>
             <div class="text-right text-xs">
-                <div><span class="font-semibold">Document no</span> S/P/E/PR QC:003</div>
-                <div><span class="font-semibold">Week:</span> {{ \Carbon\Carbon::parse($startDate)->format('M d') }} - {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}</div>
+                <div><span class="font-semibold">Document no</span> S/P/E/PR QC:001</div>
+                <div><span class="font-semibold">Date:</span> {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}</div>
             </div>
         </div>
 
         <div class="flex flex-wrap gap-2 justify-between text-xs mb-2">
             <div class="flex items-center gap-2">
+
+
                 <span class="font-semibold">Filters:</span>
-                <input type="date" wire:model.live="startDate" class="border rounded px-2 py-1 text-xs" />
-                <input type="date" wire:model.live="endDate" class="border rounded px-2 py-1 text-xs" />
+                <input type="date" wire:model.live="date" class="border rounded px-2 py-1 text-xs"  wire:change="$refresh" />
                 <select wire:model.live="shift" class="border rounded px-2 py-1 text-xs">
                     <option value="">All Shifts</option>
                     @foreach($shifts as $s)
@@ -39,18 +42,15 @@
                     @endforeach
                 </select>
 
-                <button wire:click="refreshPage" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
-                    Apply Filters
-                </button>
-                <button wire:click="clearFilters" class="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
-                    Clear Filters
-                </button>
+                <button  class="btn btn-primary btn-xs" wire:click="refreshPage"
+                 wire:loading.attr="disabled" wire:target="refreshPage">Apply filters</button>
             </div>
             <div class="flex gap-2">
                 {{-- <button wire:click="exportToPdf" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">
                     Export PDF
                 </button> --}}
-                       <button 
+
+                <button 
     wire:click="exportToPdf" 
     wire:loading.attr="disabled"
     wire:target="exportToPdf"
@@ -71,13 +71,17 @@
         {{-- Exporting... --}}
     </span>
 </button>
+
             </div>
         </div>
 
         <div class="bg-blue-50 border border-blue-200 rounded p-2 mb-3 text-xs">
-            <span class="font-semibold">Report Period: </span>
-            {{ \Carbon\Carbon::parse($startDate)->format('F d, Y') }} to {{ \Carbon\Carbon::parse($endDate)->format('F d, Y') }}
+            <span class="font-semibold">Report Date: </span>
+            {{ \Carbon\Carbon::parse($date)->format('F d, Y') }}
+            <br>
+            <span class="text-gray-600">Note: Length columns show quantities (pieces) for each length. Total Products column shows sum of all pieces.</span>
         </div>
+
 
         <div class="overflow-x-auto mt-2">
             <table class="w-full text-xs border border-collapse border-gray-400">
@@ -121,6 +125,7 @@
                     @forelse($grouped as $productName => $rows)
                         @foreach($rows as $row)
                             @php
+                                // raw_materials_list already aggregated in PHP
                                 $raws = $row['raw_materials_list'] ?? [];
                                 $rawCount = count($raws) ?: 1;
 
@@ -137,13 +142,9 @@
                                 // Calculate total products: sum of all quantities
                                 $totalProducts = array_sum($qtyByLength);
                                 
-                                // Debug: Log the qtyByLength data
-                                // \Log::info('qtyByLength for ' . $row['product'] . ':', $qtyByLength);
-                                
                                 // Use actual recorded waste instead of calculated waste
                                 $waste = $row['total_waste'] ?? 0;
-                                // Gross (kg) = Total Product Weight (kg) + Waste (kg)
-                                $gross = $productWeight + $waste;
+                                $gross = $qtyConsumed;
 
                                 $grandRawQty += $qtyConsumed;
                                 $grandProductWeight += $productWeight;
@@ -152,10 +153,14 @@
                                 $grandWaste += $waste;
                                 $grandGross += $gross;
 
-                                $startOval = $row['avg_start_ovality'] ?? 0;
-                                $endOval = $row['avg_end_ovality'] ?? 0;
-                                $thicknessAvg = $row['thickness'] ?? null;
-                                $outerAvg = $row['avg_outer'] ?? null;
+                                $ovalityAvg = null;
+                                if (!empty($row['ovality_count']) && $row['ovality_count'] > 0) {
+                                    $startOval = $row['start_ovality'] / max(1, $row['ovality_count']);
+                                    $endOval = $row['end_ovality'] / max(1, $row['ovality_count']);
+                                    $ovalityAvg = round(($startOval + $endOval) / 2, 3);
+                                }
+                                $thickness=  round($row['thickness']);
+                                $outerAvg = ($row['outer_count'] > 0) ? round($row['outer_sum'] / $row['outer_count'], 3) : null;
                             @endphp
 
                             @foreach($raws as $index => $rm)
@@ -164,22 +169,16 @@
                                     <td class="border border-gray-300 p-1 text-right">{{ number_format($rm['qty'], 2) }}</td>
 
                                     @if($index === 0)
-                                        <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">
-                                            {{ $row['size'] }}
-                                            @if(isset($row['batches']) && count($row['batches']) > 1)
-                                                <br><small class="text-gray-500">Batches: {{ implode(', ', $row['batches']) }}</small>
-                                            @elseif(isset($row['batches']) && count($row['batches']) == 1)
-                                                <br><small class="text-gray-500">Batch: {{ $row['batches'][0] }}</small>
-                                            @endif
-                                        </td>
+                                        <td class="border border-gray-300 p-1" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
-                                        <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($row['weight_per_meter'] ?? 0, 3) }}</td>
+                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['weight_per_meter'] ?: '-' }}</td>
                                         <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
 
                                         @foreach($lengths as $l)
                                             @php
                                                 $qtyL = $qtyByLength[$l] ?? 0;
                                                 $totalsByLength[$l] += $qtyL;
+                                                // dd($totalsByLength);
                                             @endphp
                                             <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
                                         @endforeach
@@ -189,9 +188,9 @@
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($totalMeters, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                         <td class="border border-gray-300 p-1 text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ number_format($startOval, 3) }} - {{ number_format($endOval, 3) }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thicknessAvg ? number_format($thicknessAvg, 3) : '-' }}</td>
-                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $outerAvg ? number_format($outerAvg, 3) : '-' }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $startOval }}={{$endOval}}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $thickness ?? '-' }}</td>
+                                        <td class="border border-gray-300 p-1 text-center" rowspan="{{ $rawCount }}">{{ $outerAvg ?? '-' }}</td>
                                     @endif
                                 </tr>
                             @endforeach
@@ -206,7 +205,6 @@
                         <tr class="font-bold bg-gray-100">
                             <td class="border border-gray-400 p-1">Total</td>
                             <td class="border border-gray-400 p-1 text-right">{{ number_format($grandRawQty, 2) }}</td>
-                            {{-- <td class="border border-gray-400 p-1"></td> --}}
                             <td class="border border-gray-400 p-1"></td>
                             <td class="border border-gray-400 p-1"></td>
                             <td class="border border-gray-400 p-1"></td>
@@ -230,11 +228,11 @@
             </table>
         </div>
 
-        {{-- Quality comment area --}}
+        {{-- Quality comment area (same style) --}}
         <div class="mt-4 text-xs border border-gray-300 rounded p-3 bg-gray-50">
             @if($qualityReport)
                 <div class="font-semibold underline mb-1">Comment of Quality</div>
-                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:' }}</div>
+                <div class="mb-2">{{ $qualityReport->quality_comment ?: 'Today all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following:' }}</div>
 
                 @if($qualityReport->problems)
                     <div class="font-semibold underline mb-1">Problems:</div>
@@ -253,7 +251,7 @@
             @else
                 @if($grouped->count() > 0)
                     <div class="font-semibold underline mb-1">Comment of Quality</div>
-                    <div class="mb-2">In this week all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following for the next products:</div>
+                    <div class="mb-2">Today all products were produced according to the standards and in a good quality, but we have observed some problems and recommended the following:</div>
                     <div class="font-semibold underline mb-1">Problems:</div>
                     <ul class="list-disc pl-5 mb-2">
                         <li>Example: 110mm PN10 products had a problem of weight (over), thickness, high ovality difference, blue stripe fluctuation, electric power fluctuation, and Outer Diameter problem.</li>
@@ -261,21 +259,6 @@
                 @endif
             @endif
         </div>
-
-        @if($grouped->count() > 0)
-        <div class="mt-6 flex flex-wrap justify-between text-xs">
-            <div>
-                <div class="mb-1">Prepared by <span class="underline">{{ $qualityReport->prepared_by ?? 'Yohannes Choma' }}</span></div>
-                <div>Checked by <span class="underline">{{ $qualityReport->checked_by ?? 'Yeshiamb A.' }}</span></div>
-                <div>Approved by <span class="underline">{{ $qualityReport->approved_by ?? 'Aschalew' }}</span></div>
-            </div>
-            <div class="text-right">
-                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-                <div>Date <span class="underline">{{ $qualityReport ? $qualityReport->created_at->format('d-m-Y') : now()->format('d-m-Y') }}</span></div>
-            </div>
-        </div>
-        @endif
     </div>
 </div>
 

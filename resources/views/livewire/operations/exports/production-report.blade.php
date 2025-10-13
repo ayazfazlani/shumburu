@@ -47,21 +47,29 @@
 
     <table>
         <thead>
+            <!-- Main header row -->
             <tr>
-                <th>Raw Material</th>
-                <th>Qty (kg)</th>
-                <th>Size of Pipe</th>
-                <th>Shift</th>
-                <th>Line</th>
+                <th rowspan="2">Raw Material</th>
+                <th rowspan="2">Used Qty (kg)</th>
+                <th rowspan="2">Size of Pipe</th>
+                <th rowspan="2">Shift</th>
+                <th rowspan="2">Weight/Meter</th>
+                <th rowspan="2">Line</th>
+                <th colspan="{{ count($lengths) }}">Production Length in m/roll</th>
+                <th rowspan="2">Total Products</th>
+                <th rowspan="2">Total Product Weight (kg)</th>
+                <th rowspan="2">Total Meters</th>
+                <th rowspan="2">Waste (kg)</th>
+                <th rowspan="2">Gross (kg)</th>
+                <th rowspan="2">Ovality (start-end)</th>
+                <th rowspan="2">Thickness</th>
+                <th rowspan="2">Outer Diameter</th>
+            </tr>
+            <!-- Sub header row for length columns -->
+            <tr>
                 @foreach($lengths as $length)
                     <th>{{ $length }}m</th>
                 @endforeach
-                <th>Total Product Weight (kg)</th>
-                <th>Waste (kg)</th>
-                <th>Gross (kg)</th>
-                <th>Ovality (start-end)</th>
-                <th>Thickness</th>
-                <th>Outer Diameter</th>
             </tr>
         </thead>
         <tbody>
@@ -69,6 +77,8 @@
                 $totalsByLength = array_fill_keys($lengths->toArray(), 0);
                 $grandRawQty = 0;
                 $grandProductWeight = 0;
+                $grandTotalMeters = 0;
+                $grandTotalProducts = 0;
                 $grandWaste = 0;
                 $grandGross = 0;
             @endphp
@@ -81,15 +91,27 @@
 
                         $qtyConsumed = $row['total_raw_consumed'] ?? 0;
                         $productWeight = $row['total_product_weight'] ?? 0;
-                        $waste = max(0, $qtyConsumed - $productWeight);
-                        $gross = $qtyConsumed;
+                        $qtyByLength = $row['qty_by_length'] ?? [];
+                        
+                        // Calculate total meters: sum of (quantity * length) for all lengths
+                        $totalMeters = 0;
+                        foreach ($qtyByLength as $length => $qty) {
+                            $totalMeters += $qty * $length;
+                        }
+                        
+                        // Calculate total products: sum of all quantities
+                        $totalProducts = array_sum($qtyByLength);
+                        
+                        // Use recorded waste; Gross = Product Weight + Waste
+                        $waste = $row['total_waste'] ?? 0;
+                        $gross = $productWeight + $waste;
 
                         $grandRawQty += $qtyConsumed;
                         $grandProductWeight += $productWeight;
+                        $grandTotalMeters += $totalMeters;
+                        $grandTotalProducts += $totalProducts;
                         $grandWaste += $waste;
                         $grandGross += $gross;
-
-                        $qtyByLength = $row['qty_by_length'] ?? [];
 
                         $startOval = $row['avg_start_ovality'] ?? 0;
                         $endOval = $row['avg_end_ovality'] ?? 0;
@@ -103,8 +125,16 @@
                             <td class="text-right">{{ number_format($rm['qty'], 2) }}</td>
 
                             @if($index === 0)
-                                <td class="text-left" rowspan="{{ $rawCount }}">{{ $row['size'] }}</td>
+                                <td class="text-left" rowspan="{{ $rawCount }}">
+                                    {{ $row['size'] }}
+                                    @if(isset($row['batches']) && count($row['batches']) > 1)
+                                        <br><small>Batches: {{ implode(', ', $row['batches']) }}</small>
+                                    @elseif(isset($row['batches']) && count($row['batches']) == 1)
+                                        <br><small>Batch: {{ $row['batches'][0] }}</small>
+                                    @endif
+                                </td>
                                 <td rowspan="{{ $rawCount }}">{{ $row['shift'] ?: '-' }}</td>
+                                <td rowspan="{{ $rawCount }}">{{ number_format($row['weight_per_meter'] ?? 0, 3) }}</td>
                                 <td rowspan="{{ $rawCount }}">{{ $row['production_line_name'] ?? $row['production_line_id'] ?? '-' }}</td>
 
                                 @foreach($lengths as $l)
@@ -115,7 +145,9 @@
                                     <td class="text-right" rowspan="{{ $rawCount }}">{{ $qtyL ? number_format($qtyL, 2) : '' }}</td>
                                 @endforeach
 
+                                <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($totalProducts, 0) }}</td>
                                 <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($productWeight, 2) }}</td>
+                                <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($totalMeters, 2) }}</td>
                                 <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($waste, 2) }}</td>
                                 <td class="text-right" rowspan="{{ $rawCount }}">{{ number_format($gross, 2) }}</td>
                                 <td rowspan="{{ $rawCount }}">{{ number_format($startOval, 3) }} - {{ number_format($endOval, 3) }}</td>

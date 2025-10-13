@@ -85,6 +85,7 @@ class WeeklyProductionReport extends Component
         foreach ($finishedGoods as $fg) {
             $productName = $fg->product->name ?? 'Unknown';
             $size = $fg->product->name ?? 'Unknown';
+            $wieghtPrMeter = $fg->product->weight_per_meter ?? 0;
             $length = $fg->length_m ?? 0;
             $fgQty = (float) ($fg->quantity ?? 0);
             $fgWeight = (float) ($fg->total_weight ?? 0);
@@ -93,71 +94,114 @@ class WeeklyProductionReport extends Component
             $thickness = $fg->thickness ?? null;
             $outer = $fg->outer_diameter ?? null;
 
+            // Get unique raw materials and their total quantities for this FG
+            $rawMaterialsData = [];
+            $totalRawConsumed = 0;
+            $lineShift = '';
+            $prodLineId = '';
+            $prodLineName = '';
+
             foreach ($fg->materialStockOutLines as $line) {
                 $rmName = $line->materialStockOut->rawMaterial->name ?? 'Unknown';
                 $rmQty = (float) ($line->quantity_consumed ?? 0);
-                $lineShift = $line->shift ?? ($line->materialStockOut->shift ?? '');
-                $prodLineId = $line->production_line_id ?? ($line->productionLine->id ?? 'no-line');
-                $prodLineName = $line->productionLine->name ?? ('Line ' . $prodLineId);
-
-                $key = implode('|', [
-                    $productName,
-                    $size,
-                    $length,
-                    $lineShift,
-                    $prodLineId
-                ]);
-
-                if (!isset($merged[$key])) {
-                    $merged[$key] = [
-                        'product' => $productName,
-                        'size' => $size,
-                        'length' => $length,
-                        'shift' => $lineShift,
-                        'production_line_id' => $prodLineId,
-                        'production_line_name' => $prodLineName,
-                        'raw_materials' => [],
-                        'total_raw_consumed' => 0.0,
-                        'total_product_weight' => 0.0,
-                        'total_product_qty' => 0.0,
-                        'qty_by_length' => [],
-                        'start_ovality' => 0.0,
-                        'end_ovality' => 0.0,
-                        'ovality_count' => 0,
-                        'thickness' => $thickness,
-                        'outer_sum' => 0.0,
-                        'outer_count' => 0,
-                    ];
+                
+                // Aggregate raw material quantities
+                $rawMaterialsData[$rmName] = ($rawMaterialsData[$rmName] ?? 0.0) + $rmQty;
+                $totalRawConsumed += $rmQty;
+                
+                // Get shift and production line info (should be same for all lines of same FG)
+                if (empty($lineShift)) {
+                    $lineShift = $line->shift ?? ($line->materialStockOut->shift ?? '');
+                    $prodLineId = $line->production_line_id ?? ($line->productionLine->id ?? 'no-line');
+                    $prodLineName = $line->productionLine->name ?? ('Line ' . $prodLineId);
                 }
+            }
 
+            // Group by product name, shift, and production line (ignore batch and length differences)
+            // This will merge same products from different batches and lengths
+            $key = implode('|', [
+                $productName,
+                $lineShift,
+                $prodLineId
+            ]);
+
+            if (!isset($merged[$key])) {
+                $merged[$key] = [
+                    'product' => $productName,
+                    'weight_per_meter' => $wieghtPrMeter,
+                    'size' => $size,
+                    'shift' => $lineShift,
+                    'production_line_id' => $prodLineId,
+                    'production_line_name' => $prodLineName,
+                    'raw_materials' => [],
+                    'total_raw_consumed' => 0.0,
+                    'total_product_weight' => 0.0,
+                    'total_product_qty' => 0.0,
+                    'total_waste' => 0.0,
+                    'qty_by_length' => [],
+                    'start_ovality' => 0.0,
+                    'end_ovality' => 0.0,
+                    'ovality_count' => 0,
+                    'thickness' => $thickness,
+                    'thickness_count' => 0,
+                    'outer_sum' => 0.0,
+                    'outer_count' => 0,
+                    'batches' => [], // Track batch numbers
+                ];
+            }
+
+            // Track batch and length information
+            $batchNumber = $fg->batch_number ?? 'N/A';
+            $batchInfo = $batchNumber . ' (' . $length . 'm)';
+            if (!in_array($batchInfo, $merged[$key]['batches'])) {
+                $merged[$key]['batches'][] = $batchInfo;
+            }
+
+            // Add raw materials to the group
+            foreach ($rawMaterialsData as $rmName => $rmQty) {
                 $merged[$key]['raw_materials'][$rmName] =
                     ($merged[$key]['raw_materials'][$rmName] ?? 0.0) + $rmQty;
-                $merged[$key]['total_raw_consumed'] += $rmQty;
+            }
+            
+            $merged[$key]['total_raw_consumed'] += $totalRawConsumed;
+            $merged[$key]['total_product_weight'] += $fgWeight;
+            $merged[$key]['total_product_qty'] += $fgQty;
+            
+            // Aggregate waste quantities
+            $wasteQty = (float) ($fg->waste_quantity ?? 0);
+            $merged[$key]['total_waste'] += $wasteQty;
 
-                $merged[$key]['total_product_weight'] += $fgWeight;
-                $merged[$key]['total_product_qty'] += $fgQty;
+            // Group quantities by length
+            $lenKey = $length;
+            
+            // Check if quantity looks like weight (large number) vs piece count (small integer)
+            // If quantity > 100, it's likely weight and we need to convert to pieces
+            $actualQty = $fgQty;
+            if ($fgQty > 100 && $wieghtPrMeter > 0) {
+                // Convert weight to pieces: weight / (weight_per_meter * length)
+                $actualQty = $fgQty / ($wieghtPrMeter * $length);
+            }
+            
+            $merged[$key]['qty_by_length'][$lenKey] =
+                ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $actualQty;
 
-                $lenKey = $length;
-                $merged[$key]['qty_by_length'][$lenKey] =
-                    ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $fgQty;
-
-                if (!is_null($startOval)) {
-                    $merged[$key]['start_ovality'] += (float) $startOval;
+            if (!is_null($startOval)) {
+                $merged[$key]['start_ovality'] += (float) $startOval;
+                $merged[$key]['ovality_count']++;
+            }
+            if (!is_null($endOval)) {
+                $merged[$key]['end_ovality'] += (float) $endOval;
+                if ($startOval === null) {
                     $merged[$key]['ovality_count']++;
                 }
-                if (!is_null($endOval)) {
-                    $merged[$key]['end_ovality'] += (float) $endOval;
-                    if ($startOval === null) {
-                        $merged[$key]['ovality_count']++;
-                    }
-                }
-                if (!is_null($thickness)) {
-                    $merged[$key]['thickness'];;
-                }
-                if (!is_null($outer)) {
-                    $merged[$key]['outer_sum'] += (float) $outer;
-                    $merged[$key]['outer_count']++;
-                }
+            }
+            if (!is_null($thickness)) {
+                $merged[$key]['thickness'] = $thickness; // Keep the latest thickness
+                $merged[$key]['thickness_count']++;
+            }
+            if (!is_null($outer)) {
+                $merged[$key]['outer_sum'] += (float) $outer;
+                $merged[$key]['outer_count']++;
             }
         }
 
