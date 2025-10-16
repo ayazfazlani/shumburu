@@ -85,7 +85,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');
         //daily production report
-        Route::get('/production-report', \App\Livewire\Operations\ProductionReport::class)->name('production-report');
+        Route::get('/production-report', \App\Livewire\Reports\ProductionReport::class)->name('production-report');
         //weekly and monthly production report
         Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
         //monthly production report

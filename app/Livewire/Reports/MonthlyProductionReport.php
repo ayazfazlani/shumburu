@@ -50,7 +50,6 @@ class MonthlyProductionReport extends Component
     {
         $this->reset(['shift', 'product_id', 'raw_material']);
         $this->resetPage();
-        $this->dispatch('filters-cleared');
     }
 
     // ✅ Reset to current month
@@ -68,12 +67,6 @@ class MonthlyProductionReport extends Component
         }
     }
 
-    // This method dispatches a browser event to trigger a full page reload
-    public function forceFullReload()
-    {
-        $this->dispatch('force-full-reload');
-    }
-
     private function buildMergedGroups($finishedGoods): Collection
     {
         $merged = [];
@@ -81,7 +74,7 @@ class MonthlyProductionReport extends Component
         foreach ($finishedGoods as $fg) {
             $productName = $fg->product->name ?? 'Unknown';
             $size = $fg->product->name ?? 'Unknown';
-            $wieghtPrMeter = $fg->product->weight_per_meter ?? 0;
+            $weightPerMeter = $fg->product->weight_per_meter ?? 0;
             $length = $fg->length_m ?? 0;
             $fgQty = (float) ($fg->quantity ?? 0);
             $fgWeight = (float) ($fg->total_weight ?? 0);
@@ -114,7 +107,6 @@ class MonthlyProductionReport extends Component
             }
 
             // Group by product name, shift, and production line (ignore batch and length differences)
-            // This will merge same products from different batches and lengths
             $key = implode('|', [
                 $productName,
                 $lineShift,
@@ -124,7 +116,7 @@ class MonthlyProductionReport extends Component
             if (!isset($merged[$key])) {
                 $merged[$key] = [
                     'product' => $productName,
-                    'weight_per_meter' => $wieghtPrMeter,
+                    'weight_per_meter' => $weightPerMeter,
                     'size' => $size,
                     'shift' => $lineShift,
                     'production_line_id' => $prodLineId,
@@ -138,11 +130,11 @@ class MonthlyProductionReport extends Component
                     'start_ovality' => 0.0,
                     'end_ovality' => 0.0,
                     'ovality_count' => 0,
-                    'thickness' => $thickness,
+                    'thickness_sum' => 0.0,
                     'thickness_count' => 0,
                     'outer_sum' => 0.0,
                     'outer_count' => 0,
-                    'batches' => [], // Track batch numbers
+                    'batches' => [],
                 ];
             }
 
@@ -171,16 +163,16 @@ class MonthlyProductionReport extends Component
             $lenKey = $length;
             
             // Check if quantity looks like weight (large number) vs piece count (small integer)
-            // If quantity > 100, it's likely weight and we need to convert to pieces
             $actualQty = $fgQty;
-            if ($fgQty > 100 && $wieghtPrMeter > 0) {
+            if ($fgQty > 100 && $weightPerMeter > 0) {
                 // Convert weight to pieces: weight / (weight_per_meter * length)
-                $actualQty = $fgQty / ($wieghtPrMeter * $length);
+                $actualQty = $fgQty / ($weightPerMeter * $length);
             }
             
             $merged[$key]['qty_by_length'][$lenKey] =
                 ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $actualQty;
 
+            // Aggregate quality measurements
             if (!is_null($startOval)) {
                 $merged[$key]['start_ovality'] += (float) $startOval;
                 $merged[$key]['ovality_count']++;
@@ -192,7 +184,7 @@ class MonthlyProductionReport extends Component
                 }
             }
             if (!is_null($thickness)) {
-                $merged[$key]['thickness'] = $thickness; // Keep the latest thickness
+                $merged[$key]['thickness_sum'] += (float) $thickness;
                 $merged[$key]['thickness_count']++;
             }
             if (!is_null($outer)) {
@@ -208,13 +200,13 @@ class MonthlyProductionReport extends Component
             }
             usort($materials, fn($a, $b) => strcmp($a['name'], $b['name']));
             $item['raw_materials_list'] = $materials;
-
-            // Calculate averages
+            
+            // Calculate averages for quality measurements
             $item['avg_start_ovality'] = $item['ovality_count'] > 0 ? $item['start_ovality'] / $item['ovality_count'] : 0;
             $item['avg_end_ovality'] = $item['ovality_count'] > 0 ? $item['end_ovality'] / $item['ovality_count'] : 0;
-            $item['thickness'] = $item['thickness'];
-            $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : 0;
-
+            $item['avg_thickness'] = $item['thickness_count'] > 0 ? $item['thickness_sum'] / $item['thickness_count'] : null;
+            $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : null;
+            
             return $item;
         });
 
@@ -264,20 +256,6 @@ class MonthlyProductionReport extends Component
             ? QualityReport::forMonth($this->month, 'monthly')->first()
             : null;
 
-        // Monthly totals (unfiltered for comparison)
-        $monthlyTotalsQuery = FinishedGood::with(['materialStockOutLines'])
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-
-        $monthlyFinishedGoods = $monthlyTotalsQuery->get();
-
-        $monthlyTotals = [
-            'quantity_consumed' => $monthlyFinishedGoods->sum(fn($fg) => $fg->materialStockOutLines->sum('quantity_consumed')),
-            'product_weight' => $monthlyFinishedGoods->sum('total_weight'),
-            'product_qty' => $monthlyFinishedGoods->sum('quantity'),
-        ];
-        $monthlyTotals['waste'] = $monthlyFinishedGoods->sum('waste_quantity');
-        $monthlyTotals['gross'] = $monthlyTotals['product_weight'] + $monthlyTotals['waste'];
-
         return view('livewire.reports.monthly-production-report', [
             'lengths' => $lengths,
             'grouped' => $grouped,
@@ -291,15 +269,9 @@ class MonthlyProductionReport extends Component
             'product_id' => $this->product_id,
             'raw_material' => $this->raw_material,
             'qualityReport' => $qualityReport,
-            'monthlyTotals' => $monthlyTotals,
             'totalRecords' => $allFinishedGoods->count(),
             'currentPageRecords' => $paginatedFinishedGoods->count(),
         ]);
-    }
-
-    public function reload()
-    {
-        $this->dispatchBrowserEvent('refresh-page');
     }
 
     public function refreshPage()
@@ -312,8 +284,7 @@ class MonthlyProductionReport extends Component
         $startOfMonth = Carbon::parse($this->month . '-01')->startOfMonth();
         $endOfMonth = Carbon::parse($this->month . '-01')->endOfMonth();
 
-        // Main query with pagination
-        $finishedGoodsQuery = FinishedGood::with([
+        $finishedGoods = FinishedGood::with([
             'product',
             'materialStockOutLines.materialStockOut.rawMaterial',
             'materialStockOutLines.productionLine'
@@ -332,57 +303,27 @@ class MonthlyProductionReport extends Component
                     $qq->where('name', $this->raw_material);
                 });
             })
-            ->orderBy('created_at', 'desc');
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        // Get paginated results for display
-        $paginatedFinishedGoods = $finishedGoodsQuery->paginate(50);
-
-        // Get all results for grouping calculations
-        $allFinishedGoods = $finishedGoodsQuery->get();
-
-        $grouped = $this->buildMergedGroups($allFinishedGoods);
-        $lengths = $allFinishedGoods->pluck('length_m')->unique()->sort()->values();
-        $shifts = MaterialStockOutLine::select('shift')->distinct()->whereNotNull('shift')->pluck('shift')->filter();
-        $products = Product::select('id', 'name')->orderBy('name')->get();
-        $rawMaterials = RawMaterial::select('name')->orderBy('name')->pluck('name')->filter()->values();
-
-        $qualityReport = $allFinishedGoods->count() > 0
+        $grouped = $this->buildMergedGroups($finishedGoods);
+        $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
+        $qualityReport = $finishedGoods->count() > 0
             ? QualityReport::forMonth($this->month, 'monthly')->first()
             : null;
-
-        // Monthly totals (unfiltered for comparison)
-        $monthlyTotalsQuery = FinishedGood::with(['materialStockOutLines'])
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
-
-        $monthlyFinishedGoods = $monthlyTotalsQuery->get();
-
-        $monthlyTotals = [
-            'quantity_consumed' => $monthlyFinishedGoods->sum(fn($fg) => $fg->materialStockOutLines->sum('quantity_consumed')),
-            'product_weight' => $monthlyFinishedGoods->sum('total_weight'),
-            'product_qty' => $monthlyFinishedGoods->sum('quantity'),
-        ];
-        $monthlyTotals['waste'] = $monthlyFinishedGoods->sum('waste_quantity');
-        $monthlyTotals['gross'] = $monthlyTotals['product_weight'] + $monthlyTotals['waste'];
 
         $data = [
             'lengths' => $lengths,
             'grouped' => $grouped,
-            'finishedGoods' => $paginatedFinishedGoods,
-            'allFinishedGoods' => $allFinishedGoods,
+            'finishedGoods' => $finishedGoods,
             'month' => $this->month,
-            'shifts' => $shifts,
-            'products' => $products,
-            'rawMaterials' => $rawMaterials,
             'shift' => $this->shift,
             'product_id' => $this->product_id,
             'raw_material' => $this->raw_material,
             'qualityReport' => $qualityReport,
-            'monthlyTotals' => $monthlyTotals,
-            'totalRecords' => $allFinishedGoods->count(),
-            'currentPageRecords' => $paginatedFinishedGoods->count(),
             'filters' => [
-                'shift' => $this->shift ?: '',
-                'product' => $this->product_id ? (Product::find($this->product_id)->name ?? 'All') : 'All',
+                'shift' => $this->shift,
+                'product' => Product::find($this->product_id)->name ?? 'All',
                 'raw_material' => $this->raw_material ?: 'All',
             ]
         ];
@@ -395,57 +336,4 @@ class MonthlyProductionReport extends Component
             "monthly-production-report-{$this->month}.pdf"
         );
     }
-
-    // public function exportToPdf()
-    // {
-    //     $startOfMonth = Carbon::parse($this->month . '-01')->startOfMonth();
-    //     $endOfMonth = Carbon::parse($this->month . '-01')->endOfMonth();
-
-    //     $finishedGoods = FinishedGood::with([
-    //         'product',
-    //         'materialStockOutLines.materialStockOut.rawMaterial',
-    //         'materialStockOutLines.productionLine'
-    //     ])
-    //         ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-    //         ->when($this->shift, function ($q) {
-    //             return $q->whereHas('materialStockOutLines', function ($qq) {
-    //                 $qq->where('shift', $this->shift);
-    //             });
-    //         })
-    //         ->when($this->product_id, function ($q) {
-    //             return $q->where('product_id', $this->product_id);
-    //         })
-    //         ->when($this->raw_material, function ($q) {
-    //             return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function ($qq) {
-    //                 $qq->where('name', $this->raw_material);
-    //             });
-    //         })
-    //         ->orderBy('created_at', 'desc')
-    //         ->get();
-
-    //     $grouped = $this->buildMergedGroups($finishedGoods);
-    //     $lengths = $finishedGoods->pluck('length_m')->unique()->sort()->values();
-
-    //     $qualityReport = $finishedGoods->count() > 0
-    //         ? QualityReport::forMonth($this->month, 'monthly')->first()
-    //         : null;
-
-    //     $data = [
-    //         'lengths' => $lengths,
-    //         'grouped' => $grouped,
-    //         'finishedGoods' => $finishedGoods,
-    //         'month' => $this->month,
-    //         'qualityReport' => $qualityReport,
-    //         'filters' => [
-    //             'shift' => $this->shift ?: '',
-    //             'product' => $this->product_id ? (Product::find($this->product_id)->name ?? 'All') : 'All',
-    //             'raw_material' => $this->raw_material ?: 'All',
-    //         ]
-    //     ];
-
-    //     $pdf = Pdf::loadView('livewire.reports.exports.monthly-production-report', $data)
-    //         ->setPaper('a4', 'landscape');
-
-    //     return $pdf->download("monthly-production-report-{$this->month}.pdf");
-    // }
 }

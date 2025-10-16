@@ -53,7 +53,6 @@ class WeeklyProductionReport extends Component
     {
         $this->reset(['shift', 'product_id', 'raw_material']);
         $this->resetPage();
-        $this->dispatch('filters-cleared');
     }
 
     // ✅ Reset to current week
@@ -85,7 +84,7 @@ class WeeklyProductionReport extends Component
         foreach ($finishedGoods as $fg) {
             $productName = $fg->product->name ?? 'Unknown';
             $size = $fg->product->name ?? 'Unknown';
-            $wieghtPrMeter = $fg->product->weight_per_meter ?? 0;
+            $weightPerMeter = $fg->product->weight_per_meter ?? 0;
             $length = $fg->length_m ?? 0;
             $fgQty = (float) ($fg->quantity ?? 0);
             $fgWeight = (float) ($fg->total_weight ?? 0);
@@ -118,7 +117,6 @@ class WeeklyProductionReport extends Component
             }
 
             // Group by product name, shift, and production line (ignore batch and length differences)
-            // This will merge same products from different batches and lengths
             $key = implode('|', [
                 $productName,
                 $lineShift,
@@ -128,7 +126,7 @@ class WeeklyProductionReport extends Component
             if (!isset($merged[$key])) {
                 $merged[$key] = [
                     'product' => $productName,
-                    'weight_per_meter' => $wieghtPrMeter,
+                    'weight_per_meter' => $weightPerMeter,
                     'size' => $size,
                     'shift' => $lineShift,
                     'production_line_id' => $prodLineId,
@@ -142,11 +140,11 @@ class WeeklyProductionReport extends Component
                     'start_ovality' => 0.0,
                     'end_ovality' => 0.0,
                     'ovality_count' => 0,
-                    'thickness' => $thickness,
+                    'thickness_sum' => 0.0,
                     'thickness_count' => 0,
                     'outer_sum' => 0.0,
                     'outer_count' => 0,
-                    'batches' => [], // Track batch numbers
+                    'batches' => [],
                 ];
             }
 
@@ -175,16 +173,16 @@ class WeeklyProductionReport extends Component
             $lenKey = $length;
             
             // Check if quantity looks like weight (large number) vs piece count (small integer)
-            // If quantity > 100, it's likely weight and we need to convert to pieces
             $actualQty = $fgQty;
-            if ($fgQty > 100 && $wieghtPrMeter > 0) {
+            if ($fgQty > 100 && $weightPerMeter > 0) {
                 // Convert weight to pieces: weight / (weight_per_meter * length)
-                $actualQty = $fgQty / ($wieghtPrMeter * $length);
+                $actualQty = $fgQty / ($weightPerMeter * $length);
             }
             
             $merged[$key]['qty_by_length'][$lenKey] =
                 ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $actualQty;
 
+            // Aggregate quality measurements
             if (!is_null($startOval)) {
                 $merged[$key]['start_ovality'] += (float) $startOval;
                 $merged[$key]['ovality_count']++;
@@ -196,7 +194,7 @@ class WeeklyProductionReport extends Component
                 }
             }
             if (!is_null($thickness)) {
-                $merged[$key]['thickness'] = $thickness; // Keep the latest thickness
+                $merged[$key]['thickness_sum'] += (float) $thickness;
                 $merged[$key]['thickness_count']++;
             }
             if (!is_null($outer)) {
@@ -212,13 +210,13 @@ class WeeklyProductionReport extends Component
             }
             usort($materials, fn($a, $b) => strcmp($a['name'], $b['name']));
             $item['raw_materials_list'] = $materials;
-
-            // Calculate averages
+            
+            // Calculate averages for quality measurements
             $item['avg_start_ovality'] = $item['ovality_count'] > 0 ? $item['start_ovality'] / $item['ovality_count'] : 0;
             $item['avg_end_ovality'] = $item['ovality_count'] > 0 ? $item['end_ovality'] / $item['ovality_count'] : 0;
-            $item['thickness'] = $item['thickness'];
-            $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : 0;
-
+            $item['avg_thickness'] = $item['thickness_count'] > 0 ? $item['thickness_sum'] / $item['thickness_count'] : null;
+            $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : null;
+            
             return $item;
         });
 
@@ -227,8 +225,8 @@ class WeeklyProductionReport extends Component
 
     public function render()
     {
-        $startOfWeek = Carbon::parse($this->startDate)->startOfDay();
-        $endOfWeek = Carbon::parse($this->endDate)->endOfDay();
+        $startOfPeriod = Carbon::parse($this->startDate)->startOfDay();
+        $endOfPeriod = Carbon::parse($this->endDate)->endOfDay();
 
         // Main query with pagination
         $finishedGoodsQuery = FinishedGood::with([
@@ -236,7 +234,7 @@ class WeeklyProductionReport extends Component
             'materialStockOutLines.materialStockOut.rawMaterial',
             'materialStockOutLines.productionLine'
         ])
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
             ->when($this->shift, function ($q) {
                 return $q->whereHas('materialStockOutLines', function ($qq) {
                     $qq->where('shift', $this->shift);
@@ -287,11 +285,6 @@ class WeeklyProductionReport extends Component
         ]);
     }
 
-    public function reload()
-    {
-        $this->dispatchBrowserEvent('refresh-page');
-    }
-
     public function refreshPage()
     {
         return redirect(request()->header('referer'));
@@ -299,15 +292,15 @@ class WeeklyProductionReport extends Component
 
     public function exportToPdf()
     {
-        $startOfWeek = Carbon::parse($this->startDate)->startOfDay();
-        $endOfWeek = Carbon::parse($this->endDate)->endOfDay();
+        $startOfPeriod = Carbon::parse($this->startDate)->startOfDay();
+        $endOfPeriod = Carbon::parse($this->endDate)->endOfDay();
 
         $finishedGoods = FinishedGood::with([
             'product',
             'materialStockOutLines.materialStockOut.rawMaterial',
             'materialStockOutLines.productionLine'
         ])
-            ->whereBetween('created_at', [$startOfWeek, $endOfWeek])
+            ->whereBetween('created_at', [$startOfPeriod, $endOfPeriod])
             ->when($this->shift, function ($q) {
                 return $q->whereHas('materialStockOutLines', function ($qq) {
                     $qq->where('shift', $this->shift);
@@ -347,7 +340,7 @@ class WeeklyProductionReport extends Component
             ]
         ];
 
-        $pdf = Pdf::loadView('livewire.operations.exports.weekly-production-report', $data)
+        $pdf = Pdf::loadView('livewire.reports.exports.weekly-production-report', $data)
             ->setPaper('a4', 'landscape');
 
         return response()->streamDownload(

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Operations;
+namespace App\Livewire\Reports;
 
 use Carbon\Carbon;
 use App\Models\Product;
@@ -275,7 +275,7 @@ class ProductionReport extends Component
             ? QualityReport::forDate($this->date, 'daily')->first()
             : null;
 
-        return view('livewire.operations.production-report', [
+        return view('livewire.reports.production-report', [
             'lengths' => $lengths,
             'grouped' => $grouped,
             'finishedGoods' => $paginatedFinishedGoods,
