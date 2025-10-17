@@ -14,28 +14,81 @@ class PermissionSeeder extends Seeder
     {
         $permissions = [
             // Dashboard access
-            'access dashboard',
+            'Selse',
 
             // User impersonation
-            'impersonate',
+            'can manage customers',
 
             // User management
-            'view users',
-            'create users',
-            'update users',
-            'delete users',
+            'can see customer name',
+            'can manage quality control',
+            'can manage fya-warehouse',
+            'can view orders',
 
-            // Role management
-            'view roles',
-            'create roles',
-            'update roles',
-            'delete roles',
+            // Order management
+            'can record order payments',
+            'can deliver orders',
+            'can create orders',
+            'can see sales dashboard',
 
-            // Permission management
-            'view permissions',
-            'create permissions',
+            // Production Report management
+            'can see monthly production report',
+            'can see weekly production report',
+            'can see daily production report',
+            'can see scrape or waste report',
+            'can see weekly sales reports',
+            'can see daily sales reports',
+            'can see raw meterial balance',
+            'can see monthly sales reports',
+             'can add downtime record',
+            // operations 
+            'can see operation dashboard',
+            'can see material stock out lines',
+            'can see scrap waste',
+            'can see FG material stock out links',
+            'can record finished goods',
+            'can perform material stock out',
+            'can perform material stock in',
+            'can view finance section',
+            'can view operations section',
+            'can view reports section',
+            'can view sales section',
+            'can see material stock out lines',
+            'can view users section',
+            'view customer names',
+            'view inventory reports',
+            'view revenue reports',
+            'access finance',
+            'view sales reports',
+            'record payments',
+            'record deliveries',
+            'create orders',
+            'access sales',
+            'view production reports',
+            'view waste reports',
+            'record downtime',
+            'access operations',
+            'record scrap waste',
+            'record finished goods',
+            'perform stock-out',
+            'perform stock-in',
+            'access warehouse',
             'update permissions',
+            'create permissions',
+            'view permissions',
             'delete permissions',
+
+            'delete roles',
+            'update roles',
+            'create roles',
+            'view roles',
+            
+            'delete users',
+            'update users',
+            'create users',
+            'view users',
+            'impersonate',
+            'access dashboard',
 
             // Warehouse permissions
             'access warehouse',
@@ -62,6 +115,11 @@ class PermissionSeeder extends Seeder
             'view revenue reports',
             'view inventory reports',
             'view waste reports',
+
+
+            'create orders'
+
+
         ];
 
         foreach ($permissions as $permission) {
