@@ -1,7 +1,7 @@
 <div>
 
     {{-- {{ dd($data) }} --}}
-<div class="container mx-auto py-6" wire:poll(render).2s>
+<div class="container mx-auto py-6" wire:poll(render).60s>
     <div class="p-6 bg-white text-black max-w-6xl mx-auto border border-gray-300 rounded shadow">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2">
