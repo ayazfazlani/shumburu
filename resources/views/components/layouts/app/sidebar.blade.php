@@ -10,12 +10,12 @@
             background-color: rgb(59 130 246);
             color: white;
         }
-        
+
         .flux-navlist-item[aria-current="page"] .flux-icon,
         .flux-navlist-item.active .flux-icon {
             color: white;
         }
-        
+
         .dark .flux-navlist-item[aria-current="page"],
         .dark .flux-navlist-item.active {
             background-color: rgb(37 99 235);
@@ -24,7 +24,7 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
-    
+
     <flux:sidebar sticky stashable
         class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 lg:dark:bg-zinc-900/50">
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
@@ -37,7 +37,7 @@
             <flux:button href="{{ route('home') }}" icon="arrow-left" size="sm" wire:navigate>
                 {{ __('global.go_to_frontend') }}
             </flux:button>
-            
+
             <!-- Notification Center -->
             <div class="w-full mb-4">
                 @livewire('components.notification-center')
@@ -62,10 +62,10 @@
                     class="{{ request()->routeIs('admin.roles-crud') ? 'active' : '' }}">
                     {{ __('roles.title') }}
                 </flux:navlist.item>
-                <flux:navlist.item icon="key" href="{{ route('admin.permissions-crud') }}" wire:navigate
+                {{-- <flux:navlist.item icon="key" href="{{ route('admin.permissions-crud') }}" wire:navigate
                     class="{{ request()->routeIs('admin.permissions-crud') ? 'active' : '' }}">
                     {{ __('permissions.title') }}
-                </flux:navlist.item>
+                </flux:navlist.item> --}}
                 <flux:navlist.item icon="cube" href="{{ route('admin.admin.raw-materials.index') }}" wire:navigate
                     class="{{ request()->routeIs('admin.admin.raw-materials.index') ? 'active' : '' }}">
                     {{ __('Raw materials') }}
@@ -76,7 +76,7 @@
                     {{ __('customers') }}
                 </flux:navlist.item>
                 @endcan
-            </flux:navlist.group>              
+            </flux:navlist.group>
             @endcan
             @can(['can view warehouse section'])
             <!-- Warehouse Section -->
@@ -93,55 +93,57 @@
                 <flux:navlist.item icon="view-columns" href="{{ route('warehouse.lines') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.lines') ? 'active' : '' }}">
                     Lines
-                </flux:navlist.item>                                   
+                </flux:navlist.item>
                 @endcan
 
                 @can('can perform material stock in')
                 <flux:navlist.item icon="arrow-down-tray" href="{{ route('warehouse.stock-in') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.stock-in') ? 'active' : '' }}">
                     Stock In
-                </flux:navlist.item>                                   
+                </flux:navlist.item>
                 @endcan
                 @can('can perform material stock out')
                 <flux:navlist.item icon="arrow-up-tray" href="{{ route('warehouse.stock-out') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.stock-out') ? 'active' : '' }}">
                     Stock Out
-                </flux:navlist.item>                                    
+                </flux:navlist.item>
                 @endcan
                 @can('can record finished goods')
                 <flux:navlist.item icon="check-badge" href="{{ route('warehouse.finished-goods') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.finished-goods') ? 'active' : '' }}">
                     Finished Goods
-                </flux:navlist.item>                                   
+                </flux:navlist.item>
                 @endcan
                 @can('can see FG material stock out links')
-                      <flux:navlist.item icon="link" href="{{ route('warehouse.finished-good-material') }}" wire:navigate
+                <flux:navlist.item icon="link" href="{{ route('warehouse.finished-good-material') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.finished-good-material') ? 'active' : '' }}">
                     FG Material Stock Out Links
                 </flux:navlist.item>
                 @endcan
-              @can('can see scrap waste')
+                @can('can see scrap waste')
                 <flux:navlist.item icon="trash" href="{{ route('warehouse.scrap-wastes') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.scrap-wastes') ? 'active' : '' }}">
                     Scrap/Waste
-                </flux:navlist.item>                  
-              @endcan
-              @can('can see material stock out lines')
-                <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}" wire:navigate
+                </flux:navlist.item>
+                @endcan
+                @can('can see material stock out lines')
+                <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}"
+                    wire:navigate
                     class="{{ request()->routeIs('warehouse.material-stock-out-lines') ? 'active' : '' }}">
                     Material Stock Out Lines
-                </flux:navlist.item>                
-              @endcan
+                </flux:navlist.item>
+                @endcan
             </flux:navlist.group>
             @endcan
             @can('can manage fya-warehouse')
-             <flux:navlist.group heading="FYA Warehouse" class="grid">
+            <flux:navlist.group heading="FYA Warehouse" class="grid">
                 <flux:navlist.item icon="squares-2x2" href="{{ route('fya werehouse') }}" wire:navigate
-                    class="{{ request()->routeIs('fya werehouse') ? 'active' : '' }}">in/out products</flux:navlist.item>
-                  
+                    class="{{ request()->routeIs('fya werehouse') ? 'active' : '' }}">in/out products
+                </flux:navlist.item>
+
             </flux:navlist.group>
             @endcan
-            @can(['can view reports section'])  
+            @can(['can view reports section'])
             <!-- Reports Section -->
             <flux:navlist.group heading="Reports" class="grid">
                 @can('can see daily sales reports')
@@ -181,8 +183,8 @@
                 </flux:navlist.item>
                 @endcan
                 @can('can manage production orders')
-                <flux:navlist.item icon="clipboard-document-list" href="{{ route('operations.production-orders') }}" wire:navigate
-                    class="{{ request()->routeIs('operations.production-orders') ? 'active' : '' }}">
+                <flux:navlist.item icon="clipboard-document-list" href="{{ route('operations.production-orders') }}"
+                    wire:navigate class="{{ request()->routeIs('operations.production-orders') ? 'active' : '' }}">
                     Production Orders
                 </flux:navlist.item>
                 @endcan
@@ -192,7 +194,7 @@
                     Downtime Record
                 </flux:navlist.item>
                 @endcan
-                @can('can see scrape  or waste report')
+                @can('can see scrape or waste report')
                 <flux:navlist.item icon="trash" href="{{ route('operations.waste-report') }}" wire:navigate
                     class="{{ request()->routeIs('operations.waste-report') ? 'active' : '' }}">
                     Waste Report
@@ -217,9 +219,9 @@
                 </flux:navlist.item>
                 @endcan
             </flux:navlist.group>
-             @endcan
+            @endcan
 
-             @can(['can view sales section'])  
+            @can(['can view sales section'])
             <!-- Sales Section -->
             <flux:navlist.group heading="Sales" class="grid">
                 @can('can see sales dashboard')
@@ -246,7 +248,7 @@
                     Payments
                 </flux:navlist.item>
                 @endcan
-             
+
                 <flux:navlist.item icon="document-chart-bar" href="{{ route('sales.reports') }}" wire:navigate
                     class="{{ request()->routeIs('sales.reports') ? 'active' : '' }}">
                     Reports
@@ -258,9 +260,9 @@
                 </flux:navlist.item>
                 @endcan
             </flux:navlist.group>
-             @endcan
+            @endcan
 
-             @can(['can view finance section'])
+            @can(['can view finance section'])
 
             <!-- Finance Section -->
             <flux:navlist.group heading="Finance" class="grid">
@@ -272,13 +274,13 @@
                     class="{{ request()->routeIs('finance.revenue-report') ? 'active' : '' }}">
                     Revenue Report
                 </flux:navlist.item>
-            </flux:navlist.group>  
-             @endcan
-             @can('can manage quality control')
+            </flux:navlist.group>
+            @endcan
+            @can('can manage quality control')
             <!-- Settings Section -->
             <flux:navlist.group heading="Settings" class="grid">
-                <flux:navlist.item icon="clipboard-document-check" href="{{ route('settings.quality-reports') }}" wire:navigate
-                    class="{{ request()->routeIs('settings.quality-reports') ? 'active' : '' }}">
+                <flux:navlist.item icon="clipboard-document-check" href="{{ route('settings.quality-reports') }}"
+                    wire:navigate class="{{ request()->routeIs('settings.quality-reports') ? 'active' : '' }}">
                     Quality Reports
                 </flux:navlist.item>
             </flux:navlist.group>
@@ -290,8 +292,8 @@
                     class="{{ request()->routeIs('notifications.index') ? 'active' : '' }}">
                     All Notifications
                 </flux:navlist.item>
-                <flux:navlist.item icon="bell-alert" href="{{ route('notifications.index', ['filter' => 'unread']) }}" wire:navigate
-                    class="{{ request()->get('filter') === 'unread' ? 'active' : '' }}">
+                <flux:navlist.item icon="bell-alert" href="{{ route('notifications.index', ['filter' => 'unread']) }}"
+                    wire:navigate class="{{ request()->get('filter') === 'unread' ? 'active' : '' }}">
                     Unread Only
                 </flux:navlist.item>
             </flux:navlist.group>
@@ -300,65 +302,64 @@
         <flux:spacer />
 
         @if (Session::has('admin_user_id'))
-            <div
-                class="py-2 flex items-center justify-center bg-zinc-100 dark:bg-zinc-600 dark:text-white mb-6 rounded">
-                <form id="stop-impersonating" class="flex flex-col items-center gap-3"
-                    action="{{ route('impersonate.destroy') }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <p class="text-xs">
-                        {{ __('users.you_are_impersonating') }}:
-                        <strong>{{ auth()->user()->name }}</strong>
-                    </p>
-                    <flux:button type="submit" size="sm" variant="danger" form="stop-impersonating"
-                        class="!w-full !flex !flex-row">
-                        <div>
-                            {{ __('users.stop_impersonating') }}
-                        </div>
-                    </flux:button>
-                </form>
-            </div>
+        <div class="py-2 flex items-center justify-center bg-zinc-100 dark:bg-zinc-600 dark:text-white mb-6 rounded">
+            <form id="stop-impersonating" class="flex flex-col items-center gap-3"
+                action="{{ route('impersonate.destroy') }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <p class="text-xs">
+                    {{ __('users.you_are_impersonating') }}:
+                    <strong>{{ auth()->user()->name }}</strong>
+                </p>
+                <flux:button type="submit" size="sm" variant="danger" form="stop-impersonating"
+                    class="!w-full !flex !flex-row">
+                    <div>
+                        {{ __('users.stop_impersonating') }}
+                    </div>
+                </flux:button>
+            </form>
+        </div>
         @endif
 
         @auth
-            <flux:dropdown position="bottom" align="start">
-                <flux:menu class="w-[220px]">
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ auth()->user()->initials() }}
-                                    </span>
+        <flux:dropdown position="bottom" align="start">
+            <flux:menu class="w-[220px]">
+                <flux:menu.radio.group>
+                    <div class="p-0 text-sm font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span
+                                    class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
                                 </span>
+                            </span>
 
-                                <div class="grid flex-1 text-left text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                </div>
+                            <div class="grid flex-1 text-left text-sm leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                             </div>
                         </div>
-                    </flux:menu.radio.group>
+                    </div>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item href="/settings/profile" icon="cog-6-tooth" wire:navigate>
-                            {{ __('global.settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
+                <flux:menu.radio.group>
+                    <flux:menu.item href="/settings/profile" icon="cog-6-tooth" wire:navigate>
+                        {{ __('global.settings') }}
+                    </flux:menu.item>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right" class="w-full">
-                            {{ __('global.log_out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right" class="w-full">
+                        {{ __('global.log_out') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
         @endauth
     </flux:sidebar>
 
@@ -368,45 +369,44 @@
         <flux:spacer />
 
         @auth
-            <flux:dropdown position="top" align="end">
-                <flux:menu>
-                    <flux:menu.radio.group>
-                        <div class="p-0 text-sm font-normal">
-                            <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                                <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                    <span
-                                        class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ auth()->user()->initials() }}
-                                    </span>
+        <flux:dropdown position="top" align="end">
+            <flux:menu>
+                <flux:menu.radio.group>
+                    <div class="p-0 text-sm font-normal">
+                        <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                            <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                                <span
+                                    class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                    {{ auth()->user()->initials() }}
                                 </span>
+                            </span>
 
-                                <div class="grid flex-1 text-left text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                    <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                </div>
+                            <div class="grid flex-1 text-left text-sm leading-tight">
+                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
                             </div>
                         </div>
-                    </flux:menu.radio.group>
+                    </div>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <flux:menu.radio.group>
-                        <flux:menu.item href="/settings/profile" icon="cog-6-tooth" wire:navigate>
-                            {{ __('global.settings') }}
-                        </flux:menu.item>
-                    </flux:menu.radio.group>
+                <flux:menu.radio.group>
+                    <flux:menu.item href="/settings/profile" icon="cog-6-tooth" wire:navigate>
+                        {{ __('global.settings') }}
+                    </flux:menu.item>
+                </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                <flux:menu.separator />
 
-                    <form method="POST" action="{{ route('logout') }}" class="w-full">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right"
-                            class="w-full">
-                            {{ __('global.log_out') }}
-                        </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <flux:menu.item as="button" type="submit" icon="arrow-right" class="w-full">
+                        {{ __('global.log_out') }}
+                    </flux:menu.item>
+                </form>
+            </flux:menu>
+        </flux:dropdown>
         @endauth
     </flux:header>
 
@@ -415,7 +415,7 @@
     @fluxScripts
     <x-livewire-alert::scripts />
     <x-livewire-alert::flash />
-    
+
     <script>
         // Add active class based on current URL for better client-side navigation
         document.addEventListener('livewire:navigated', () => {

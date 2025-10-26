@@ -2,38 +2,49 @@
 
 namespace App\Livewire\FYA;
 
-use Livewire\Component;
 use App\Models\Customer;
 use App\Models\FinishedGood;
 use App\Models\FyaWarehouse;
-use Livewire\WithPagination;
-use Livewire\Attributes\Layout;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Warehouse2 extends Component
 {
-
-     use WithPagination;
+    use WithPagination;
 
     protected $paginationTheme = 'tailwind';
 
     public $movement_type = 'in';
+
     public $finished_good_id;
+
     public $quantity;
+
     public $batch_number;
+
     public $purpose = 'for_stock';
+
     public $customer_id;
+
     public $movement_date;
+
     public $notes;
 
     // Filters
     public $filter_type;
+
     public $filter_product_id;
+
     public $filter_batch;
+
     public $filter_purpose;
+
     public $filter_customer_id;
+
     public $filter_date_from;
+
     public $filter_date_to;
 
     protected $rules = [
@@ -70,6 +81,7 @@ class Warehouse2 extends Component
             $available = $this->calculateAvailableForBatch($this->finished_good_id, $this->batch_number, $this->purpose, $this->customer_id);
             if ($this->quantity > $available) {
                 session()->flash('error', 'Insufficient stock available for this batch and purpose.');
+
                 return;
             }
         }
@@ -88,7 +100,7 @@ class Warehouse2 extends Component
 
         session()->flash('message', 'Movement recorded successfully.');
 
-        $this->reset(['movement_type','finished_good_id','quantity','batch_number','purpose','customer_id','notes']);
+        $this->reset(['movement_type', 'finished_good_id', 'quantity', 'batch_number', 'purpose', 'customer_id', 'notes']);
         $this->movement_type = 'in';
         $this->purpose = 'for_stock';
         $this->movement_date = now()->format('Y-m-d');
@@ -124,13 +136,13 @@ class Warehouse2 extends Component
         $customers = Customer::where('is_active', true)->get();
 
         $movements = FyaWarehouse::with(['finishedGood.product', 'customer', 'createdBy'])
-            ->when($this->filter_type, fn($q) => $q->where('movement_type', $this->filter_type))
-            ->when($this->filter_product_id, fn($q) => $q->where('finished_good_id', $this->filter_product_id))
-            ->when($this->filter_batch, fn($q) => $q->where('batch_number', 'like', "%{$this->filter_batch}%"))
-            ->when($this->filter_purpose, fn($q) => $q->where('purpose', $this->filter_purpose))
-            ->when($this->filter_customer_id, fn($q) => $q->where('customer_id', $this->filter_customer_id))
-            ->when($this->filter_date_from, fn($q) => $q->whereDate('movement_date', '>=', $this->filter_date_from))
-            ->when($this->filter_date_to, fn($q) => $q->whereDate('movement_date', '<=', $this->filter_date_to))
+            ->when($this->filter_type, fn ($q) => $q->where('movement_type', $this->filter_type))
+            ->when($this->filter_product_id, fn ($q) => $q->where('finished_good_id', $this->filter_product_id))
+            ->when($this->filter_batch, fn ($q) => $q->where('batch_number', 'like', "%{$this->filter_batch}%"))
+            ->when($this->filter_purpose, fn ($q) => $q->where('purpose', $this->filter_purpose))
+            ->when($this->filter_customer_id, fn ($q) => $q->where('customer_id', $this->filter_customer_id))
+            ->when($this->filter_date_from, fn ($q) => $q->whereDate('movement_date', '>=', $this->filter_date_from))
+            ->when($this->filter_date_to, fn ($q) => $q->whereDate('movement_date', '<=', $this->filter_date_to))
             ->orderByDesc('movement_date')
             ->paginate(10);
 
@@ -140,7 +152,14 @@ class Warehouse2 extends Component
             ->with('finishedGood.product')
             ->having('balance', '>', 0)
             ->orderBy('finished_good_id')
-            ->get();
+            ->with('customer')->get();
+
+        // dd(
+        //     $finishedGoods->toArray(),
+        //     $customers->toArray(),
+        //     $movements->toArray(),
+        //     $stockBalance->toArray(),
+        // );
 
         return view('livewire.f-y-a.warehouse2', [
             'finishedGoods' => $finishedGoods,
@@ -151,5 +170,5 @@ class Warehouse2 extends Component
     }
 
     // #[Layout('components.layouts.app')]
-    
+
 }

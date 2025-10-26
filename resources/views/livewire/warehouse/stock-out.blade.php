@@ -21,23 +21,23 @@
     <div class="container mx-auto px-4 py-6">
         <!-- Success/Error Messages -->
         @if (session()->has('message'))
-            <div class="alert alert-success mb-6">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session('message') }}</span>
-            </div>
+        <div class="alert alert-success mb-6">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{{ session('message') }}</span>
+        </div>
         @endif
 
         @if (session()->has('error'))
-            <div class="alert alert-error mb-6">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <span>{{ session('error') }}</span>
-            </div>
+        <div class="alert alert-error mb-6">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>{{ session('error') }}</span>
+        </div>
         @endif
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -63,15 +63,16 @@
                                     class="select select-bordered w-full @error('raw_material_id') select-error @enderror">
                                     <option value="">Select Raw Material</option>
                                     @foreach ($rawMaterials as $material)
-                                        <option value="{{ $material->id }}">{{ $material->name }}
-                                            ({{ $material->code }}) - {{ number_format($material->quantity, 3) }} {{ $material->unit }}
-                                        </option>
+                                    <option value="{{ $material->id }}">{{ $material->name }}
+                                        ({{ $material->code }}) - {{ number_format($material->quantity, 3) }} {{
+                                        $material->unit }}
+                                    </option>
                                     @endforeach
                                 </select>
                                 @error('raw_material_id')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
                                 @enderror
                             </div>
 
@@ -87,9 +88,9 @@
                                     <span class="btn btn-square btn-outline">kg</span>
                                 </div>
                                 @error('quantity')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
                                 @enderror
                             </div>
 
@@ -102,9 +103,9 @@
                                     class="input input-bordered w-full @error('batch_number') input-error @enderror"
                                     placeholder="Enter batch number">
                                 @error('batch_number')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
                                 @enderror
                             </div>
 
@@ -116,9 +117,9 @@
                                 <input type="date" wire:model="issued_date"
                                     class="input input-bordered w-full @error('issued_date') input-error @enderror">
                                 @error('issued_date')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
                                 @enderror
                             </div>
 
@@ -127,12 +128,13 @@
                                 <label class="label">
                                     <span class="label-text font-semibold">Notes</span>
                                 </label>
-                                <textarea wire:model="notes" rows="3" class="textarea textarea-bordered @error('notes') textarea-error @enderror"
+                                <textarea wire:model="notes" rows="3"
+                                    class="textarea textarea-bordered @error('notes') textarea-error @enderror"
                                     placeholder="Additional notes (optional)"></textarea>
                                 @error('notes')
-                                    <label class="label">
-                                        <span class="label-text-alt text-error">{{ $message }}</span>
-                                    </label>
+                                <label class="label">
+                                    <span class="label-text-alt text-error">{{ $message }}</span>
+                                </label>
                                 @enderror
                             </div>
 
@@ -234,26 +236,33 @@
                         <th>Batch No</th>
                         <th>Received Date</th>
                         <th>Issued By</th>
+                        <th>Status</th>
                         <th>note</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($stockOuts as $item)
-                        <tr>
-                            <th></th>
-                            <td>{{ $item->rawMaterial->name }}</td>
-                            <td>{{ round($item->quantity, 2) }} -kg</td>
-                            <td>{{ $item->batch_number }}</td>
-                            <td>{{ $item->issued_date }}</td>
-                            <td>{{ $item->issuedBy->name }}</td>
-                            <td>{{ $item->notes }}</td>
-                        </tr>
+                    <tr>
+                        <th></th>
+                        <td>{{ $item->rawMaterial->name }}</td>
+                        <td>{{ round($item->quantity, 2) }} -kg</td>
+                        <td>{{ $item->batch_number }}</td>
+                        <td>{{ $item->issued_date }}</td>
+                        <td>{{ $item->issuedBy->name }}</td>
+                        <td>
+                            <div class="badge badge-{{$item->status == 'material_on_process' ? 'warning' : 'succes' }}">
+                                {{ $item->status == 'material_on_process' ? 'material on process' : 'completed'}}
+                            </div>
+
+                        </td>
+                        <td>{{ $item->notes }}</td>
+                    </tr>
                     @endforeach
 
 
                 </tbody>
             </table>
-          <div class="mt-4">
+            <div class="mt-4">
                 {{ $stockOuts->links('components.pagination') }}
             </div>
         </div>
