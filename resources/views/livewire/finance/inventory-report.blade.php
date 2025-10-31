@@ -15,21 +15,21 @@
             <thead>
                 <tr>
                     <th>Product</th>
-                    <th>Stock In</th>
-                    <th>Stock Out</th>
-                    <th>Finished Goods</th>
-                    <th>Current Inventory</th>
+                    <th> In</th>
+                    <th> Out</th>
+                    <th> Finished Goods qty</th>
+                    <th> Current Inventory</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($inventory as $row)
-                    <tr>
-                        <td>{{ $row['product']->name }}</td>
-                        <td>{{ $row['stock_in'] }}</td>
-                        <td>{{ $row['stock_out'] }}</td>
-                        <td>{{ $row['finished_goods'] }}</td>
-                        <td class="font-bold">{{ $row['current'] }}</td>
-                    </tr>
+                <tr>
+                    <td>{{ $row['product']->name }}</td>
+                    <td>{{ $row['stock_in'] }}</td>
+                    <td>{{ $row['stock_out'] }}</td>
+                    <td>{{ $row['finished_goods'] }}</td>
+                    <td class="font-bold">{{ $row['current'] }}</td>
+                </tr>
                 @endforeach
             </tbody>
         </table>
