@@ -2,24 +2,27 @@
 
 namespace App\Livewire\Reports;
 
-use Carbon\Carbon;
-use App\Models\Product;
-use Livewire\Component;
 use App\Models\FinishedGood;
-use App\Models\QualityReport;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\MaterialStockOutLine;
+use App\Models\Product;
+use App\Models\QualityReport;
 use App\Models\RawMaterial;
-use Livewire\WithPagination;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class ProductionReport extends Component
 {
     use WithPagination;
 
     public $date;
+
     public $shift = '';
+
     public $product_id = '';
+
     public $raw_material = '';
 
     // ✅ Enable query string to maintain filter state in URL
@@ -30,8 +33,6 @@ class ProductionReport extends Component
         'raw_material' => ['except' => '', 'as' => 'rm'],
     ];
 
-
-   
     public function mount()
     {
         // Initialize from query string parameters or use defaults
@@ -41,7 +42,6 @@ class ProductionReport extends Component
         $this->raw_material = request()->query('rm', '');
     }
 
-    
     // ✅ Apply filters and reload the page with URL parameters
     public function applyFilters()
     {
@@ -54,7 +54,7 @@ class ProductionReport extends Component
     {
         $this->reset(['shift', 'product_id', 'raw_material']);
         $this->resetPage();
-        
+
         // Force a page reload to update URL
         $this->dispatch('filters-cleared');
     }
@@ -90,10 +90,10 @@ class ProductionReport extends Component
         foreach ($finishedGoods as $fg) {
             $productName = $fg->product->name ?? 'Unknown';
             $size = $fg->product->name ?? 'Unknown';
-            $wieghtPrMeter = $fg->product->weight_per_meter ?? 0;
+            $wieghtPrMeter = $fg->weight_per_meter ?? 0;
             $length = $fg->length_m ?? 0;
             $fgQty = (float) ($fg->quantity ?? 0);
-            $fgWeight = (float) ($fg->total_weight ?? 0);
+            $fgWeight = (float) ($fg->weight_per_meter * $fg->quantity ?? 0);
             $startOval = $fg->start_ovality ?? null;
             $endOval = $fg->end_ovality ?? null;
             $thickness = $fg->thickness ?? null;
@@ -109,16 +109,16 @@ class ProductionReport extends Component
             foreach ($fg->materialStockOutLines as $line) {
                 $rmName = $line->materialStockOut->rawMaterial->name ?? 'Unknown';
                 $rmQty = (float) ($line->quantity_consumed ?? 0);
-                
+
                 // Aggregate raw material quantities
                 $rawMaterialsData[$rmName] = ($rawMaterialsData[$rmName] ?? 0.0) + $rmQty;
                 $totalRawConsumed += $rmQty;
-                
+
                 // Get shift and production line info (should be same for all lines of same FG)
                 if (empty($lineShift)) {
                     $lineShift = $line->shift ?? ($line->materialStockOut->shift ?? '');
                     $prodLineId = $line->production_line_id ?? ($line->productionLine->id ?? 'no-line');
-                    $prodLineName = $line->productionLine->name ?? ('Line ' . $prodLineId);
+                    $prodLineName = $line->productionLine->name ?? ('Line '.$prodLineId);
                 }
             }
 
@@ -127,10 +127,10 @@ class ProductionReport extends Component
             $key = implode('|', [
                 $productName,
                 $lineShift,
-                $prodLineId
+                $prodLineId,
             ]);
 
-            if (!isset($merged[$key])) {
+            if (! isset($merged[$key])) {
                 $merged[$key] = [
                     'product' => $productName,
                     'weight_per_meter' => $wieghtPrMeter,
@@ -157,8 +157,8 @@ class ProductionReport extends Component
 
             // Track batch and length information
             $batchNumber = $fg->batch_number ?? 'N/A';
-            $batchInfo = $batchNumber . ' (' . $length . 'm)';
-            if (!in_array($batchInfo, $merged[$key]['batches'])) {
+            $batchInfo = $batchNumber.' ('.$length.'m)';
+            if (! in_array($batchInfo, $merged[$key]['batches'])) {
                 $merged[$key]['batches'][] = $batchInfo;
             }
 
@@ -167,18 +167,18 @@ class ProductionReport extends Component
                 $merged[$key]['raw_materials'][$rmName] =
                     ($merged[$key]['raw_materials'][$rmName] ?? 0.0) + $rmQty;
             }
-            
+
             $merged[$key]['total_raw_consumed'] += $totalRawConsumed;
             $merged[$key]['total_product_weight'] += $fgWeight;
             $merged[$key]['total_product_qty'] += $fgQty;
-            
+
             // Aggregate waste quantities
             $wasteQty = (float) ($fg->waste_quantity ?? 0);
             $merged[$key]['total_waste'] += $wasteQty;
 
             // Group quantities by length
             $lenKey = $length;
-            
+
             // Check if quantity looks like weight (large number) vs piece count (small integer)
             // If quantity > 100, it's likely weight and we need to convert to pieces
             $actualQty = $fgQty;
@@ -186,25 +186,25 @@ class ProductionReport extends Component
                 // Convert weight to pieces: weight / (weight_per_meter * length)
                 $actualQty = $fgQty / ($wieghtPrMeter * $length);
             }
-            
+
             $merged[$key]['qty_by_length'][$lenKey] =
                 ($merged[$key]['qty_by_length'][$lenKey] ?? 0.0) + $actualQty;
 
-            if (!is_null($startOval)) {
+            if (! is_null($startOval)) {
                 $merged[$key]['start_ovality'] += (float) $startOval;
                 $merged[$key]['ovality_count']++;
             }
-            if (!is_null($endOval)) {
+            if (! is_null($endOval)) {
                 $merged[$key]['end_ovality'] += (float) $endOval;
                 if ($startOval === null) {
                     $merged[$key]['ovality_count']++;
                 }
             }
-            if (!is_null($thickness)) {
+            if (! is_null($thickness)) {
                 $merged[$key]['thickness'] = $thickness; // Keep the latest thickness
                 $merged[$key]['thickness_count']++;
             }
-            if (!is_null($outer)) {
+            if (! is_null($outer)) {
                 $merged[$key]['outer_sum'] += (float) $outer;
                 $merged[$key]['outer_count']++;
             }
@@ -215,18 +215,18 @@ class ProductionReport extends Component
             foreach ($item['raw_materials'] as $name => $qty) {
                 $materials[] = ['name' => $name, 'qty' => (float) $qty];
             }
-            usort($materials, fn($a, $b) => strcmp($a['name'], $b['name']));
+            usort($materials, fn ($a, $b) => strcmp($a['name'], $b['name']));
             $item['raw_materials_list'] = $materials;
-            
+
             // Calculate averages
             $item['avg_start_ovality'] = $item['ovality_count'] > 0 ? $item['start_ovality'] / $item['ovality_count'] : 0;
             $item['avg_end_ovality'] = $item['ovality_count'] > 0 ? $item['end_ovality'] / $item['ovality_count'] : 0;
             $item['avg_outer'] = $item['outer_count'] > 0 ? $item['outer_sum'] / $item['outer_count'] : 0;
-            
+
             return $item;
         });
 
-        return $prepared->mapToGroups(fn($item) => [$item['product'] => $item]);
+        return $prepared->mapToGroups(fn ($item) => [$item['product'] => $item]);
     }
 
     public function render()
@@ -237,33 +237,32 @@ class ProductionReport extends Component
         $finishedGoodsQuery = FinishedGood::with([
             'product',
             'materialStockOutLines.materialStockOut.rawMaterial',
-            'materialStockOutLines.productionLine'
+            'materialStockOutLines.productionLine',
         ])
-        ->whereBetween('created_at', [$startOfDay, $endOfDay])
-        ->when($this->shift, function($q) {
-            return $q->whereHas('materialStockOutLines', function($qq) {
-                $qq->where('shift', $this->shift);
-            });
-        })
-        ->when($this->product_id, function($q) {
-            return $q->where('product_id', $this->product_id);
-        })
-        ->when($this->raw_material, function($q) {
-            return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($qq) {
-                $qq->where('name', $this->raw_material);
-            });
-        })
-        ->orderBy('created_at', 'desc');
-    
+            ->whereBetween('created_at', [$startOfDay, $endOfDay])
+            ->when($this->shift, function ($q) {
+                return $q->whereHas('materialStockOutLines', function ($qq) {
+                    $qq->where('shift', $this->shift);
+                });
+            })
+            ->when($this->product_id, function ($q) {
+                return $q->where('product_id', $this->product_id);
+            })
+            ->when($this->raw_material, function ($q) {
+                return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function ($qq) {
+                    $qq->where('name', $this->raw_material);
+                });
+            })
+            ->orderBy('created_at', 'desc');
+
         // Clone the query for all results
         $allFinishedGoodsQuery = clone $finishedGoodsQuery;
-        
+
         // Use paginate on the original
         $paginatedFinishedGoods = $finishedGoodsQuery->paginate(50);
-        
+
         // Use get() on the cloned query
         $allFinishedGoods = $allFinishedGoodsQuery->get();
-    
 
         $grouped = $this->buildMergedGroups($allFinishedGoods);
         $lengths = $allFinishedGoods->pluck('length_m')->unique()->sort()->values();
@@ -293,37 +292,39 @@ class ProductionReport extends Component
         ]);
     }
 
-    public function reload(){
+    public function reload()
+    {
         $this->dispatchBrowserEvent('refresh-page');
     }
 
-       public function refreshPage()
+    public function refreshPage()
     {
         return redirect(request()->header('referer'));
         // Alternatively, you can use:
         // return redirect(request()->url());
     }
+
     public function exportToPdf()
     {
         $startOfDay = Carbon::parse($this->date)->startOfDay();
         $endOfDay = Carbon::parse($this->date)->endOfDay();
 
         $finishedGoods = FinishedGood::with([
-                'product',
-                'materialStockOutLines.materialStockOut.rawMaterial',
-                'materialStockOutLines.productionLine'
-            ])
+            'product',
+            'materialStockOutLines.materialStockOut.rawMaterial',
+            'materialStockOutLines.productionLine',
+        ])
             ->whereBetween('created_at', [$startOfDay, $endOfDay])
-            ->when($this->shift, function($q) {
-                return $q->whereHas('materialStockOutLines', function($qq) {
+            ->when($this->shift, function ($q) {
+                return $q->whereHas('materialStockOutLines', function ($qq) {
                     $qq->where('shift', $this->shift);
                 });
             })
-            ->when($this->product_id, function($q) {
+            ->when($this->product_id, function ($q) {
                 return $q->where('product_id', $this->product_id);
             })
-            ->when($this->raw_material, function($q) {
-                return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function($qq) {
+            ->when($this->raw_material, function ($q) {
+                return $q->whereHas('materialStockOutLines.materialStockOut.rawMaterial', function ($qq) {
                     $qq->where('name', $this->raw_material);
                 });
             })
@@ -349,14 +350,14 @@ class ProductionReport extends Component
                 'shift' => $this->shift,
                 'product' => Product::find($this->product_id)->name ?? 'All',
                 'raw_material' => $this->raw_material ?: 'All',
-            ]
+            ],
         ];
 
         $pdf = Pdf::loadView('livewire.operations.exports.production-report', $data)
             ->setPaper('a4', 'landscape');
 
         return response()->streamDownload(
-            fn() => print($pdf->output()),
+            fn () => print ($pdf->output()),
             "daily-production-report-{$this->date}.pdf"
         );
     }

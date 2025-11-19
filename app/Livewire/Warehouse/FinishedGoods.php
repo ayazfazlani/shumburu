@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Warehouse;
 
+use App\Models\Customer;
 use App\Models\FinishedGood;
 use App\Models\Product;
-use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,27 +15,46 @@ class FinishedGoods extends Component
 
     // Form fields
     public $product_id;
+
     public $type = 'roll';
+
     public $length_m;
+
     public $quantity;
+
     public $waste_quantity = 0;
+
     public $batch_number;
+
     public $production_date;
+
     public $purpose = 'for_stock';
+
     public $customer_id;
+
     public $notes;
-    
+
     // Additional fields
     public $size;
+
     public $outerDiameter;
+
     public $Surface;
+
     public $thickness;
+
     public $startOvality;
+
     public $endOvality;
+
     public $stripeColor;
+
+    // New field
+    public $weightPerMeter;
 
     // Edit mode variables
     public $editingId = null;
+
     public $isEditing = false;
 
     protected $rules = [
@@ -55,7 +74,8 @@ class FinishedGoods extends Component
         'thickness' => 'nullable|string',
         'startOvality' => 'nullable|string',
         'endOvality' => 'nullable|string',
-        'stripeColor' => 'nullable|string'
+        'stripeColor' => 'nullable|string',
+        'weightPerMeter' => 'nullable|numeric|min:0',
     ];
 
     public function mount()
@@ -76,10 +96,12 @@ class FinishedGoods extends Component
         $this->validate();
         $user = Auth::user();
 
-        if ($this->product_id) {
-            $weightPerMeter = Product::where('id', $this->product_id)->value('weight_per_meter');
-            $totalWeight = $weightPerMeter * $this->quantity * $this->length_m;
-        }
+        // if ($this->product_id) {
+        //     $weightPerMeter = Product::where('id', $this->product_id)->value('weight_per_meter');
+        //     $totalWeight = $weightPerMeter * $this->quantity * $this->length_m;
+        // }
+
+        $totalWeight = $this->weightPerMeter ? $this->weightPerMeter * $this->quantity * $this->length_m : null;
 
         $data = [
             'product_id' => $this->product_id,
@@ -100,7 +122,8 @@ class FinishedGoods extends Component
             'thickness' => $this->thickness,
             'start_ovality' => $this->startOvality,
             'end_ovality' => $this->endOvality,
-            'stripe_color' => $this->stripeColor
+            'stripe_color' => $this->stripeColor,
+            'weight_per_meter' => $this->weightPerMeter,
         ];
 
         if ($this->isEditing) {
@@ -117,10 +140,10 @@ class FinishedGoods extends Component
     public function edit($id)
     {
         $finishedGood = FinishedGood::findOrFail($id);
-        
+
         $this->editingId = $id;
         $this->isEditing = true;
-        
+
         // Fill form fields
         $this->product_id = $finishedGood->product_id;
         $this->type = $finishedGood->type;
@@ -139,6 +162,7 @@ class FinishedGoods extends Component
         $this->startOvality = $finishedGood->start_ovality;
         $this->endOvality = $finishedGood->end_ovality;
         $this->stripeColor = $finishedGood->stripe_color;
+        $this->weightPerMeter = $finishedGood->weight_per_meter;
 
         // Scroll to form
         $this->dispatch('scroll-to-form');
@@ -148,7 +172,7 @@ class FinishedGoods extends Component
     {
         $finishedGood = FinishedGood::findOrFail($id);
         $finishedGood->delete();
-        
+
         session()->flash('message', 'Finished goods record deleted successfully.');
     }
 
@@ -160,10 +184,12 @@ class FinishedGoods extends Component
     private function resetForm()
     {
         $this->reset([
-            'product_id', 'type', 'length_m', 'quantity', 'waste_quantity', 
+            'product_id', 'type', 'length_m', 'quantity', 'waste_quantity',
             'batch_number', 'customer_id', 'notes', 'size', 'outerDiameter',
             'Surface', 'thickness', 'startOvality', 'endOvality', 'stripeColor',
-            'editingId', 'isEditing'
+            'editingId', 'isEditing',
+            'weightPerMeter',
+
         ]);
         $this->production_date = now()->format('Y-m-d');
         $this->purpose = 'for_stock';
