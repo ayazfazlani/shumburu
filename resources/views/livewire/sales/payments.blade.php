@@ -29,30 +29,36 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>Orders</th>
-                    <th>Customer</th>
-                    <th>Amount</th>
-                    <th>Payment Method</th>
-                    <th>Slip Ref</th>
-                    <th>Slip File</th>
-                    <th>Proforma Invoice</th>
-                    <th>Payment Date</th>
-                    <th>Notes</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">Orders</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Amount</th>
+                    <th class="py-3 px-4">Payment Method</th>
+                    <th class="py-3 px-4">Slip Ref</th>
+                    <th class="py-3 px-4">Slip File</th>
+                    <th class="py-3 px-4">Proforma Invoice</th>
+                    <th class="py-3 px-4">Payment Date</th>
+                    <th class="py-3 px-4">Notes</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($payments as $payment)
                     <tr>
-                        <td>{{ $payment->productionOrder->order_number ?? '-' }}</td>
-                        <td>{{ $payment->customer->name ?? '-' }}</td>
-                        <td>{{ $payment->amount }}</td>
-                        <td>{{ $payment->payment_method }}</td>
-                        <td>{{ $payment->bank_slip_reference }}</td>
-                        <td>
+                        <td class="py-3 px-4">{{ $payment->productionOrder->order_number ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $payment->customer->name ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ number_format($payment->amount, 2) }}</td>
+                        <td class="py-3 px-4">
+                            @if($payment->payment_method)
+                                <span class="badge badge-outline whitespace-nowrap">{{ $payment->payment_method }}</span>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
+                        <td class="py-3 px-4">{{ Str::limit($payment->bank_slip_reference ?? '-', 20) }}</td>
+                        <td class="py-3 px-4">
                             @if ($payment->bank_slip_reference && Storage::disk('public')->exists($payment->bank_slip_reference))
                                 @php
                                     $fileUrl = asset('storage/' . $payment->bank_slip_reference);
@@ -76,12 +82,14 @@
                                 <span class="text-gray-400">-</span>
                             @endif
                         </td>
-                        <td>{{ $payment->proforma_invoice_number }}</td>
-                        <td>{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : '' }}</td>
-                        <td>{{ $payment->notes }}</td>
-                        <td class="text-right flex gap-2 justify-end">
-                            <button class="btn btn-xs btn-outline" wire:click="openPaymentEditModal({{ $payment->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error" wire:click="confirmPaymentDelete({{ $payment->id }})">Delete</button>
+                        <td class="py-3 px-4">{{ $payment->proforma_invoice_number ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : '-' }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($payment->notes ?? '-', 30) }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary" wire:click="openPaymentEditModal({{ $payment->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error" wire:click="confirmPaymentDelete({{ $payment->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

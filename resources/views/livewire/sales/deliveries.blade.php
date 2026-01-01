@@ -29,36 +29,40 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>Order #</th>
-                    <th>Customer</th>
-                    <th>Product</th>
-                    <th>Quantity</th>
-                    <th>Batch #</th>
-                    <th>Unit Price</th>
-                    <th>Total Amount</th>
-                    <th>Delivery Date</th>
-                    <th>Notes</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">Order #</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Product</th>
+                    <th class="py-3 px-4">Quantity</th>
+                    <th class="py-3 px-4">Batch #</th>
+                    <th class="py-3 px-4">Unit Price</th>
+                    <th class="py-3 px-4">Total Amount</th>
+                    <th class="py-3 px-4">Delivery Date</th>
+                    <th class="py-3 px-4">Notes</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($deliveries as $delivery)
                     <tr>
-                        <td>{{ $delivery->productionOrder->order_number ?? '-' }}</td>
-                        <td>{{ $delivery->customer->name ?? '-' }}</td>
-                        <td>{{ $delivery->product->name ?? '-' }}</td>
-                        <td>{{ $delivery->quantity }}</td>
-                        <td>{{ $delivery->batch_number }}</td>
-                        <td>{{ $delivery->unit_price }}</td>
-                        <td>{{ $delivery->total_amount }}</td>
-                        <td>{{ $delivery->delivery_date ? $delivery->delivery_date->format('Y-m-d') : '' }}</td>
-                        <td>{{ $delivery->notes }}</td>
-                        <td class="text-right flex gap-2 justify-end">
-                            <button class="btn btn-xs btn-outline" wire:click="openDeliveryEditModal({{ $delivery->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error" wire:click="confirmDeliveryDelete({{ $delivery->id }})">Delete</button>
+                        <td class="py-3 px-4">{{ $delivery->productionOrder->order_number ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $delivery->customer->name ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $delivery->product->name ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ number_format($delivery->quantity, 2) }}</td>
+                        <td class="py-3 px-4">
+                            <span class="badge badge-outline whitespace-nowrap">{{ $delivery->batch_number }}</span>
+                        </td>
+                        <td class="py-3 px-4">{{ number_format($delivery->unit_price, 2) }}</td>
+                        <td class="py-3 px-4">{{ number_format($delivery->total_amount, 2) }}</td>
+                        <td class="py-3 px-4">{{ $delivery->delivery_date ? $delivery->delivery_date->format('Y-m-d') : '-' }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($delivery->notes ?? '-', 30) }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary" wire:click="openDeliveryEditModal({{ $delivery->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error" wire:click="confirmDeliveryDelete({{ $delivery->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

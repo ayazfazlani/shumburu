@@ -27,24 +27,26 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($permissions as $permission)
                     <tr>
-                        <td>{{ $permission->id }}</td>
-                        <td>{{ $permission->name }}</td>
-                        <td class="text-right flex space-x-2">
-                            <button class="btn  btn-xs btn-outline"
-                                wire:click="openEditModal({{ $permission->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error"
-                                wire:click="confirmDelete({{ $permission->id }})">Delete</button>
+                        <td class="py-3 px-4">{{ $permission->id }}</td>
+                        <td class="py-3 px-4">{{ $permission->name }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $permission->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $permission->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

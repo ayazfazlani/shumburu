@@ -255,51 +255,59 @@
                 </h2>
 
                 <div class="overflow-x-auto">
-                    <table class="table table-zebra">
+                    <table class="table table-zebra w-full">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Raw Material</th>
-                                <th>Quantity</th>
-                                <th>Batch No</th>
-                                <th>Issued Date</th>
-                                <th>Issued By</th>
-                                <th>Status</th>
-                                <th>Notes</th>
-                                <th>Actions</th>
+                                <th class="py-3 px-4">ID</th>
+                                <th class="py-3 px-4">Raw Material</th>
+                                <th class="py-3 px-4">Quantity</th>
+                                <th class="py-3 px-4">Batch No</th>
+                                <th class="py-3 px-4">Issued Date</th>
+                                <th class="py-3 px-4">Issued By</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4">Notes</th>
+                                <th class="py-3 px-4">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($stockOuts as $item)
                             <tr>
-                                <td>{{ $item->id }}</td>
-                                <td>{{ $item->rawMaterial->name }}</td>
-                                <td>{{ number_format($item->quantity, 3) }} kg</td>
-                                <td>{{ $item->batch_number }}</td>
-                                <td>{{ $item->issued_date }}</td>
-                                <td>{{ $item->issuedBy->name }}</td>
-                                <td>
+                                <td class="py-3 px-4">{{ $item->id }}</td>
+                                <td class="py-3 px-4">{{ $item->rawMaterial->name ?? 'N/A' }}</td>
+                                <td class="py-3 px-4">{{ number_format($item->quantity, 3) }} kg</td>
+                                <td class="py-3 px-4">
+                                    <span class="badge badge-outline whitespace-nowrap">{{ $item->batch_number }}</span>
+                                </td>
+                                <td class="py-3 px-4">{{ $item->issued_date->format('d-m-Y') }}</td>
+                                <td class="py-3 px-4">{{ $item->issuedBy->name ?? 'N/A' }}</td>
+                                <td class="py-3 px-4">
                                     <div class="dropdown dropdown-end">
+                                        @php
+                                            $statusLabels = [
+                                                'material_on_process' => 'On Process',
+                                                'completed' => 'Completed',
+                                                'scrapped' => 'Scrapped'
+                                            ];
+                                            $statusLabel = $statusLabels[$item->status] ?? ucfirst(str_replace('_', ' ', $item->status));
+                                            $statusColor = $item->status == 'material_on_process' ? 'warning' : ($item->status == 'completed' ? 'success' : 'error');
+                                        @endphp
                                         <label tabindex="0"
-                                            class="badge badge-{{ $item->status == 'material_on_process' ? 'warning' : ($item->status == 'completed' ? 'success' : 'error') }} cursor-pointer">
-                                            {{ str_replace('_', ' ', $item->status) }}
+                                            class="badge badge-{{ $statusColor }} cursor-pointer whitespace-nowrap">
+                                            {{ $statusLabel }}
                                         </label>
                                         <ul tabindex="0"
-                                            class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                                            <li><a wire:click="updateStatus({{ $item->id }}, 'material_on_process')">Material
-                                                    on Process</a></li>
-                                            <li><a wire:click="updateStatus({{ $item->id }}, 'completed')">Completed</a>
-                                            </li>
-                                            <li><a wire:click="updateStatus({{ $item->id }}, 'scrapped')">Scrapped</a>
-                                            </li>
+                                            class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-50">
+                                            <li><a wire:click="updateStatus({{ $item->id }}, 'material_on_process')">On Process</a></li>
+                                            <li><a wire:click="updateStatus({{ $item->id }}, 'completed')">Completed</a></li>
+                                            <li><a wire:click="updateStatus({{ $item->id }}, 'scrapped')">Scrapped</a></li>
                                         </ul>
                                     </div>
                                 </td>
-                                <td>{{ $item->notes ?? '-' }}</td>
-                                <td>
-                                    <div class="flex space-x-2">
+                                <td class="py-3 px-4">{{ $item->notes ?? '-' }}</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex gap-2">
                                         <button wire:click="edit({{ $item->id }})"
-                                            class="btn btn-sm btn-outline btn-primary">
+                                            class="btn btn-xs btn-primary">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
@@ -309,7 +317,7 @@
                                         </button>
                                         <button
                                             onclick="document.getElementById('delete_modal_{{$item->id}}').showModal()"
-                                            class="btn btn-sm btn-outline btn-error">
+                                            class="btn btn-xs btn-error">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
@@ -354,6 +362,19 @@
 @script
 <script>
     // Scroll to form when editing
+    document.addEventListener('livewire:initialized', () => {
+        $wire.on('scroll-to-form', () => {
+            document.querySelector('form').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        });
+    });
+</script>
+@endscript
+
+@script
+<script>
+    // Scroll to form when editing for stock in
     document.addEventListener('livewire:initialized', () => {
         $wire.on('scroll-to-form', () => {
             document.querySelector('form').scrollIntoView({ 

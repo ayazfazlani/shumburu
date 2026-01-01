@@ -27,50 +27,52 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Code</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Code</th>
                     @can('can see customer name')
-                    <th>Name</th>
+                    <th class="py-3 px-4">Name</th>
                     @endcan
-                    <th>Contact Person</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Address</th>
-                    <th>Active</th>
-                    <th>Created At</th>
-                    <th>Updated At</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">Contact Person</th>
+                    <th class="py-3 px-4">Phone</th>
+                    <th class="py-3 px-4">Email</th>
+                    <th class="py-3 px-4">Address</th>
+                    <th class="py-3 px-4">Active</th>
+                    <th class="py-3 px-4">Created At</th>
+                    <th class="py-3 px-4">Updated At</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($customers as $customer)
                     <tr>
-                        <td>{{ $customer->id }}</td>
-                        <td>{{ $customer->code }}</td>
+                        <td class="py-3 px-4">{{ $customer->id }}</td>
+                        <td class="py-3 px-4">{{ $customer->code }}</td>
                         @can('can see customer name')
-                        <td>{{ $customer->name }}</td>
+                        <td class="py-3 px-4">{{ $customer->name }}</td>
                         @endcan
-                        <td>{{ $customer->contact_person }}</td>
-                        <td>{{ $customer->phone }}</td>
-                        <td>{{ $customer->email }}</td>
-                        <td>{{ $customer->address }}</td>
-                        <td>
+                        <td class="py-3 px-4">{{ $customer->contact_person ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $customer->phone ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $customer->email ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($customer->address ?? '-', 30) }}</td>
+                        <td class="py-3 px-4">
                             @if ($customer->is_active)
-                                <span class="badge badge-success">Yes</span>
+                                <span class="badge badge-sm badge-success whitespace-nowrap">Yes</span>
                             @else
-                                <span class="badge badge-error">No</span>
+                                <span class="badge badge-sm badge-error whitespace-nowrap">No</span>
                             @endif
                         </td>
-                        <td>{{ $customer->created_at ? $customer->created_at->format('Y-m-d H:i') : '' }}</td>
-                        <td>{{ $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i') : '' }}</td>
-                        <td class="text-right flex space-x-2">
-                            <button class="btn btn-sm btn-outline"
-                                wire:click="openEditModal({{ $customer->id }})">Edit</button>
-                            <button class="btn btn-sm btn-error"
-                                wire:click="confirmDelete({{ $customer->id }})">Delete</button>
+                        <td class="py-3 px-4">{{ $customer->created_at ? $customer->created_at->format('Y-m-d H:i') : '-' }}</td>
+                        <td class="py-3 px-4">{{ $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i') : '-' }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $customer->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $customer->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

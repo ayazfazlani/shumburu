@@ -69,64 +69,64 @@
     <div class="card bg-base-100 shadow-sm">
         <div class="card-body">
             <div class="overflow-x-auto">
-                <table class="table table-zebra">
+                <table class="table table-zebra w-full">
                     <thead>
                         <tr>
-                            <th wire:click="sortBy('order_number')" class="cursor-pointer">
+                            <th wire:click="sortBy('order_number')" class="py-3 px-4 cursor-pointer">
                                 Order #
                                 @if($sortField === 'order_number')
                                     @if($sortDirection === 'asc') ↑ @else ↓ @endif
                                 @endif
                             </th>
-                            <th wire:click="sortBy('requested_date')" class="cursor-pointer">
+                            <th wire:click="sortBy('requested_date')" class="py-3 px-4 cursor-pointer">
                                 Date
                                 @if($sortField === 'requested_date')
                                     @if($sortDirection === 'asc') ↑ @else ↓ @endif
                                 @endif
                             </th>
-                            <th>Customer</th>
-                            <th>Items</th>
-                            <th>Total</th>
-                            <th>Paid</th>
-                            <th>Progress</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="py-3 px-4">Customer</th>
+                            <th class="py-3 px-4">Items</th>
+                            <th class="py-3 px-4">Total</th>
+                            <th class="py-3 px-4">Paid</th>
+                            <th class="py-3 px-4">Progress</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($orders as $order)
                             <tr wire:key={$order->id}>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="font-medium">{{ $order->order_number }}</div>
                                 </td>
-                                <td>{{ $order->requested_date->format('M d, Y') }}</td>
-                                <td>
+                                <td class="py-3 px-4">{{ $order->requested_date->format('M d, Y') }}</td>
+                                <td class="py-3 px-4">
                                     <div class="font-medium">{{ $order->customer->name }}</div>
                                     <div class="text-sm text-gray-500">{{ $order->customer->code }}</div>
                                 </td>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="text-sm">{{ $order->items->count() }} items</div>
                                     <div class="text-xs text-gray-500">{{ $order->items->sum('quantity') }} total qty</div>
                                 </td>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="font-medium">{{ number_format($this->getOrderTotal($order), 2) }}</div>
                                 </td>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="font-medium">{{ number_format($this->getTotalPaid($order), 2) }}</div>
                                 </td>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="flex items-center gap-2">
                                         <progress class="progress progress-primary w-16" 
                                                   value="{{ $this->getPaymentProgress($order) }}" max="100"></progress>
                                         <span class="text-xs">{{ round($this->getPaymentProgress($order)) }}%</span>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="badge {{ $this->getStatusColor($order->status) }}">
+                                <td class="py-3 px-4">
+                                    <span class="badge {{ $this->getStatusColor($order->status) }} whitespace-nowrap">
                                         {{ ucfirst(str_replace('_', ' ', $order->status)) }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="py-3 px-4">
                                     <div class="dropdown dropdown-end">
                                         <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
                                             Actions

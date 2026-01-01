@@ -27,44 +27,48 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Code</th>
-                    <th>Description</th>
-                    <th>Unit</th>
-                    <th>Current Stock</th>
-                    <th>Active</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Code</th>
+                    <th class="py-3 px-4">Description</th>
+                    <th class="py-3 px-4">Unit</th>
+                    <th class="py-3 px-4">Current Stock</th>
+                    <th class="py-3 px-4">Active</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($rawMaterials as $rawMaterial)
                     <tr>
-                        <td>{{ $rawMaterial->id }}</td>
-                        <td>{{ $rawMaterial->name }}</td>
-                        <td>{{ $rawMaterial->code }}</td>
-                        <td>{{ $rawMaterial->description }}</td>
-                        <td>{{ $rawMaterial->unit }}</td>
-                        <td>
-                            <span class="badge badge-outline badge-sm {{ $rawMaterial->quantity > 0 ? 'badge-info' : 'badge-warning' }}">
-                                {{ number_format($rawMaterial->quantity,2) }} {{ $rawMaterial->unit }}
+                        <td class="py-3 px-4">{{ $rawMaterial->id }}</td>
+                        <td class="py-3 px-4">{{ $rawMaterial->name }}</td>
+                        <td class="py-3 px-4">{{ $rawMaterial->code }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($rawMaterial->description ?? '-', 50) }}</td>
+                        <td class="py-3 px-4">
+                            <span class="badge badge-outline whitespace-nowrap">{{ $rawMaterial->unit }}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="badge badge-outline badge-sm {{ $rawMaterial->quantity > 0 ? 'badge-info' : 'badge-warning' }} whitespace-nowrap">
+                                {{ number_format($rawMaterial->quantity, 2) }} {{ $rawMaterial->unit }}
                             </span>
                         </td>
-                        <td>
+                        <td class="py-3 px-4">
                             @if ($rawMaterial->is_active)
-                                <span class="badge badge-sm badge-success">Yes</span>
+                                <span class="badge badge-sm badge-success whitespace-nowrap">Yes</span>
                             @else
-                                <span class="badge badge-sm badge-error">No</span>
+                                <span class="badge badge-sm badge-error whitespace-nowrap">No</span>
                             @endif
                         </td>
-                        <td class="text-right flex space-x-2">
-                            <button class="btn btn-xs btn-outline"
-                                wire:click="openEditModal({{ $rawMaterial->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error"
-                                wire:click="confirmDelete({{ $rawMaterial->id }})">Delete</button>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $rawMaterial->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $rawMaterial->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

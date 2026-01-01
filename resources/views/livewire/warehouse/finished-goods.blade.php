@@ -415,100 +415,99 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table table-zebra w-full text-sm">
+                        <table class="table table-zebra w-full">
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Type</th>
-                                    <th>Length</th>
-                                    <th>Surface</th>
-                                    <th>Outer Diameter</th>
-                                    <th>Quantity</th>
-                                    <th>Total Weight</th>
-                                    <th>Waste</th>
-                                    <th>Batch No</th>
-                                    <th>Ovality</th>
-                                    <th>Stripe Color</th>
-                                    <th>Weight/Meter</th>
-                                    <th>Production Date</th>
-                                    <th>Purpose</th>
-                                    <th>Actions</th>
+                                    <th class="py-3 px-4">Product</th>
+                                    <th class="py-3 px-4">Type</th>
+                                    <th class="py-3 px-4">Length</th>
+                                    <th class="py-3 px-4">Surface</th>
+                                    <th class="py-3 px-4">Outer Diameter</th>
+                                    <th class="py-3 px-4">Quantity</th>
+                                    <th class="py-3 px-4">Total Weight</th>
+                                    <th class="py-3 px-4">Waste</th>
+                                    <th class="py-3 px-4">Batch No</th>
+                                    <th class="py-3 px-4">Ovality</th>
+                                    <th class="py-3 px-4">Stripe Color</th>
+                                    <th class="py-3 px-4">Weight/Meter</th>
+                                    <th class="py-3 px-4">Production Date</th>
+                                    <th class="py-3 px-4">Purpose</th>
+                                    <th class="py-3 px-4">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($finishedGoods as $item)
                                 <tr>
-                                    <td class="font-semibold">{{ $item->product->name }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ $item->type == 'roll' ? 'primary' : 'secondary' }}">
-                                            {{ ucfirst($item->type) }}
+                                    <td class="py-3 px-4 font-semibold">{{ $item->product->name ?? 'N/A' }}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="badge badge-{{ $item->type == 'roll' ? 'primary' : 'secondary' }} whitespace-nowrap">
+                                            {{ ucfirst($item->type ?? '-') }}
                                         </span>
                                     </td>
-                                    <td>{{ number_format($item->length_m, 2) }}m</td>
-                                    <td>
-                                        <span class="badge badge-outline">{{ ucfirst($item->surface) }}</span>
+                                    <td class="py-3 px-4">{{ number_format($item->length_m ?? 0, 2) }}m</td>
+                                    <td class="py-3 px-4">
+                                        @if($item->surface)
+                                            <span class="badge badge-outline whitespace-nowrap">{{ ucfirst($item->surface) }}</span>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
                                     </td>
-                                    <td>{{ $item->outer_diameter ? number_format($item->outer_diameter, 2) : 'N/A' }}
-                                    </td>
-                                    <td>{{ number_format($item->quantity, 2) }} pcs</td>
-                                    <td>{{ number_format($item->weight_per_meter, 2) *
-                                        number_format($item->waste_quantity, 2) }} kg</td>
-                                    <td>
-                                        <span class="badge badge-{{ $item->waste_quantity > 0 ? 'error' : 'success' }}">
-                                            {{ number_format($item->waste_quantity, 2) }} kg
+                                    <td class="py-3 px-4">{{ $item->outer_diameter ? number_format($item->outer_diameter, 2) : '-' }}</td>
+                                    <td class="py-3 px-4">{{ number_format($item->quantity ?? 0, 2) }} pcs</td>
+                                    <td class="py-3 px-4">{{ number_format(($item->weight_per_meter ?? 0) * ($item->quantity ?? 0), 2) }} kg</td>
+                                    <td class="py-3 px-4">
+                                        <span class="badge badge-{{ ($item->waste_quantity ?? 0) > 0 ? 'error' : 'success' }} whitespace-nowrap">
+                                            {{ number_format($item->waste_quantity ?? 0, 2) }} kg
                                         </span>
                                     </td>
-                                    <td>
-                                        <span class="badge badge-info">{{ $item->batch_number }}</span>
+                                    <td class="py-3 px-4">
+                                        <span class="badge badge-outline whitespace-nowrap">{{ $item->batch_number ?? '-' }}</span>
                                     </td>
-                                    <td>
+                                    <td class="py-3 px-4">
                                         @if($item->start_ovality && $item->end_ovality)
-                                        {{ number_format($item->start_ovality, 2) }} - {{
-                                        number_format($item->end_ovality, 2) }}
+                                            {{ number_format($item->start_ovality, 2) }} - {{ number_format($item->end_ovality, 2) }}
                                         @else
-                                        N/A
+                                            <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="py-3 px-4">
                                         @if($item->stripe_color)
-                                        <span class="badge"
-                                            style="background-color: {{ $item->stripe_color }}; color: white;">
-                                            {{ $item->stripe_color }}
-                                        </span>
+                                            <span class="badge whitespace-nowrap" style="background-color: {{ $item->stripe_color }}; color: white;">
+                                                {{ $item->stripe_color }}
+                                            </span>
                                         @else
-                                        N/A
+                                            <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
-                                    <td>{{ number_format($item->weight_per_meter, 2) }} kg/m</td>
-                                    <td>{{ $item->production_date }}</td>
-                                    <td>
-                                        <span
-                                            class="badge badge-{{ $item->purpose == 'for_stock' ? 'success' : 'warning' }}">
-                                            {{ str_replace('_', ' ', ucfirst($item->purpose)) }}
-                                        </span>
+                                    <td class="py-3 px-4">{{ number_format($item->weight_per_meter ?? 0, 2) }} kg/m</td>
+                                    <td class="py-3 px-4">{{ $item->production_date ? $item->production_date->format('Y-m-d') : '-' }}</td>
+                                    <td class="py-3 px-4">
+                                        @if($item->purpose)
+                                            <span class="badge badge-{{ $item->purpose == 'for_stock' ? 'success' : 'warning' }} whitespace-nowrap">
+                                                {{ str_replace('_', ' ', ucfirst($item->purpose)) }}
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">-</span>
+                                        @endif
                                     </td>
-                                    <td>
-                                        <div class="flex space-x-2">
-                                            <button wire:click="edit({{ $item->id }})" class="btn btn-warning btn-xs"
-                                                title="Edit">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
+                                    <td class="py-3 px-4">
+                                        <div class="flex gap-2">
+                                            <button wire:click="edit({{ $item->id }})" class="btn btn-xs btn-primary" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
                                                     </path>
                                                 </svg>
+                                                Edit
                                             </button>
-                                            <button wire:click="delete({{ $item->id }})" class="btn btn-error btn-xs"
-                                                onclick="return confirm('Are you sure you want to delete this record?')"
-                                                title="Delete">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2"
+                                            <button wire:click="delete({{ $item->id }})" class="btn btn-xs btn-error"
+                                                onclick="return confirm('Are you sure?')" title="Delete">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                                                     </path>
                                                 </svg>
+                                                Delete
                                             </button>
                                         </div>
                                     </td>

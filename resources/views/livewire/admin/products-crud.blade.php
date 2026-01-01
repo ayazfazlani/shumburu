@@ -27,51 +27,51 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th colspan="3">Name</th>
-                    <th>Code</th>
-                    <th>Size</th>
-                    <th>PN</th>
-                    <th>Weight per Meter</th>
-                    <th>Meter Length</th>
-                    <th>Description</th>
-                    <th>Active</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Code</th>
+                    <th class="py-3 px-4">Size</th>
+                    <th class="py-3 px-4">PN</th>
+                    <th class="py-3 px-4">Weight per Meter</th>
+                    <th class="py-3 px-4">Meter Length</th>
+                    <th class="py-3 px-4">Description</th>
+                    <th class="py-3 px-4">Active</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($products as $product)
                     <tr>
-                        <td>{{ $product->id }}</td>
-                        <td colspan="3" class="whitespace-nowrap overflow-hidden">
-                        {{ $product->name }}
-                    </td>
-                        <td>{{ $product->code }}</td>
-                        <td>{{ $product->size }}</td>
-                        <td>{{ $product->pn }}</td>
-                        <td>{{ $product->weight_per_meter }}</td>
-                        <td>{{ $product->meter_length }}</td>
-                        <td>{{ $product->description }}</td>
-                        <td>
+                        <td class="py-3 px-4">{{ $product->id }}</td>
+                        <td class="py-3 px-4">{{ $product->name }}</td>
+                        <td class="py-3 px-4">{{ $product->code }}</td>
+                        <td class="py-3 px-4">{{ $product->size ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $product->pn ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $product->weight_per_meter ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $product->meter_length ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($product->description ?? '-', 50) }}</td>
+                        <td class="py-3 px-4">
                             @if ($product->is_active)
-                                <span class="badge badge-sm badge-success">Yes</span>
+                                <span class="badge badge-sm badge-success whitespace-nowrap">Yes</span>
                             @else
-                                <span class="badge badge-sm badge-error">No</span>
+                                <span class="badge badge-sm badge-error whitespace-nowrap">No</span>
                             @endif
                         </td>
-                        <td class="text-right flex space-x-2">
-                            <button class="btn btn-xs btn-outline"
-                                wire:click="openEditModal({{ $product->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error"
-                                wire:click="confirmDelete({{ $product->id }})">Delete</button>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $product->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $product->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center text-gray-400 py-6">No products found.</td>
+                        <td colspan="10" class="text-center text-gray-400 py-6">No products found.</td>
                     </tr>
                 @endforelse
             </tbody>

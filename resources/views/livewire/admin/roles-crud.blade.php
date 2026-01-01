@@ -27,46 +27,39 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Permissions</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Permissions</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($roles as $role)
                     <tr>
-                        <td>{{ $role->id }}</td>
-                        <td>{{ $role->name }}</td>
-                        {{-- <td>
-                            <div class="flex flex-wrap  gap-1 overflow-hidden">
+                        <td class="py-3 px-4">{{ $role->id }}</td>
+                        <td class="py-3 px-4">{{ $role->name }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
                                 @foreach ($role->permissions as $permission)
-                                    <span class="badge badge-outline badge-xs">{{ $permission->name }}</span>
+                                    <span class="badge badge-outline badge-sm whitespace-nowrap" title="{{ $permission->name }}">
+                                        {{ $permission->name }}
+                                    </span>
                                 @endforeach
+                                @if($role->permissions->isEmpty())
+                                    <span class="text-gray-400 text-xs">No permissions</span>
+                                @endif
                             </div>
-                        </td> --}}
-                        <td>
-                        <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto p-1">
-                            @foreach ($role->permissions as $permission)
-                                <span 
-                                    class="badge badge-sm rounded-full px-2 py-1 
-                                        bg-blue-100 text-blue-700 border border-blue-300 
-                                        hover:bg-blue-200 transition"
-                                    title="Permission: {{ $permission->name }}">
-                                    {{ ucfirst($permission->name) }}
-                                </span>
-                            @endforeach
-                        </div>
-                    </td>
-
-                        <td class="text-right flex space-x-2">
-                            <button class="btn btn-xs btn-outline"
-                                wire:click="openEditModal({{ $role->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error"
-                                wire:click="confirmDelete({{ $role->id }})">Delete</button>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $role->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $role->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

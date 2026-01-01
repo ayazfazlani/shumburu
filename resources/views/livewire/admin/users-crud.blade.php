@@ -27,34 +27,39 @@
     @endif
 
     <div class="overflow-x-auto">
-        <table class="table w-full">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Roles</th>
-                    <th class="text-right">Actions</th>
+                    <th class="py-3 px-4">ID</th>
+                    <th class="py-3 px-4">Name</th>
+                    <th class="py-3 px-4">Email</th>
+                    <th class="py-3 px-4">Roles</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($users as $user)
                     <tr>
-                        <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
+                        <td class="py-3 px-4">{{ $user->id }}</td>
+                        <td class="py-3 px-4">{{ $user->name }}</td>
+                        <td class="py-3 px-4">{{ $user->email }}</td>
+                        <td class="py-3 px-4">
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($user->roles as $role)
-                                    <span class="badge badge-outline badge-sm">{{ $role->name }}</span>
+                                    <span class="badge badge-outline badge-sm whitespace-nowrap">{{ $role->name }}</span>
                                 @endforeach
+                                @if($user->roles->isEmpty())
+                                    <span class="text-gray-400 text-xs">No roles</span>
+                                @endif
                             </div>
                         </td>
-                        <td class="text-right flex space-x-2">
-                            <button class="btn btn-xs btn-outline"
-                                wire:click="openEditModal({{ $user->id }})">Edit</button>
-                            <button class="btn btn-xs btn-error"
-                                wire:click="confirmDelete({{ $user->id }})">Delete</button>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button class="btn btn-xs btn-primary"
+                                    wire:click="openEditModal({{ $user->id }})">Edit</button>
+                                <button class="btn btn-xs btn-error"
+                                    wire:click="confirmDelete({{ $user->id }})">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty

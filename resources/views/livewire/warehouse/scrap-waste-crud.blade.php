@@ -40,35 +40,37 @@
 
     <!-- Table of Scrap/Waste Records -->
     <div class="overflow-x-auto">
-        <table class="min-w-full bg-white rounded shadow">
+        <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th class="px-4 py-2">#</th>
-                    <th class="px-4 py-2">Stock Out Line</th>
-                    <th class="px-4 py-2">Reason</th>
-                    <th class="px-4 py-2">Waste Date</th>
-                    <th class="px-4 py-2">Recorded By</th>
-                    <th class="px-4 py-2">Notes</th>
-                    <th class="px-4 py-2">Actions</th>
+                    <th class="py-3 px-4">#</th>
+                    <th class="py-3 px-4">Stock Out Line</th>
+                    <th class="py-3 px-4">Reason</th>
+                    <th class="py-3 px-4">Waste Date</th>
+                    <th class="py-3 px-4">Recorded By</th>
+                    <th class="py-3 px-4">Notes</th>
+                    <th class="py-3 px-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($scrapWastes as $sw)
                     <tr>
-                        <td class="border px-4 py-2">{{ $sw->id }}</td>
-                        <td class="border px-4 py-2">#{{ $sw->material_stock_out_line_id }}</td>
-                        <td class="border px-4 py-2">{{ $sw->reason }}</td>
-                        <td class="border px-4 py-2">{{ $sw->waste_date }}</td>
-                        <td class="border px-4 py-2">{{ $sw->recorded_by }}</td>
-                        <td class="border px-4 py-2">{{ $sw->notes }}</td>
-                        <td class="border px-4 py-2">
-                            <button wire:click="edit({{ $sw->id }})" class="btn btn-sm btn-info">Edit</button>
-                            <button wire:click="delete({{ $sw->id }})" class="btn btn-sm btn-danger ml-2">Delete</button>
+                        <td class="py-3 px-4">{{ $sw->id }}</td>
+                        <td class="py-3 px-4">#{{ $sw->material_stock_out_line_id }}</td>
+                        <td class="py-3 px-4">{{ $sw->reason ?? '-' }}</td>
+                        <td class="py-3 px-4">{{ $sw->waste_date ? $sw->waste_date->format('Y-m-d') : '-' }}</td>
+                        <td class="py-3 px-4">{{ $sw->recordedBy->name ?? 'N/A' }}</td>
+                        <td class="py-3 px-4">{{ Str::limit($sw->notes ?? '-', 30) }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2">
+                                <button wire:click="edit({{ $sw->id }})" class="btn btn-xs btn-primary">Edit</button>
+                                <button wire:click="delete({{ $sw->id }})" class="btn btn-xs btn-error">Delete</button>
+                            </div>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center py-4">No scrap/waste records found.</td>
+                        <td colspan="7" class="text-center text-gray-400 py-6">No scrap/waste records found.</td>
                     </tr>
                 @endforelse
             </tbody>
