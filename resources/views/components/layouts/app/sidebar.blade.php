@@ -108,6 +108,13 @@
                     Stock Out
                 </flux:navlist.item>
                 @endcan
+                @can('can see material stock out lines')
+                <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}"
+                    wire:navigate
+                    class="{{ request()->routeIs('warehouse.material-stock-out-lines') ? 'active' : '' }}">
+                    Material Stock Out Lines
+                </flux:navlist.item>
+                @endcan
                 @can('can record finished goods')
                 <flux:navlist.item icon="check-badge" href="{{ route('warehouse.finished-goods') }}" wire:navigate
                     class="{{ request()->routeIs('warehouse.finished-goods') ? 'active' : '' }}">
@@ -126,13 +133,7 @@
                     Scrap/Waste
                 </flux:navlist.item>
                 @endcan
-                @can('can see material stock out lines')
-                <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}"
-                    wire:navigate
-                    class="{{ request()->routeIs('warehouse.material-stock-out-lines') ? 'active' : '' }}">
-                    Material Stock Out Lines
-                </flux:navlist.item>
-                @endcan
+               
             </flux:navlist.group>
             @endcan
             @can('can manage fya-warehouse')
@@ -296,6 +297,17 @@
                     wire:navigate class="{{ request()->get('filter') === 'unread' ? 'active' : '' }}">
                     Unread Only
                 </flux:navlist.item>
+            </flux:navlist.group>
+
+
+            <flux:navlist.group heading="Account" class="grid">
+                <form action="{{ route('logout') }}" method="POST" class="w-full">
+                    @csrf
+                    @method('POST')
+                    <flux:navlist.item as="button" type="submit" icon="arrow-right" class="w-full text-left">
+                        Logout
+                    </flux:navlist.item>
+                </form>
             </flux:navlist.group>
         </flux:navlist>
 

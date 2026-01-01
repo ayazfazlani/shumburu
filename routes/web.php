@@ -1,46 +1,25 @@
 <?php
 
-use App\Livewire\Home;
-use Livewire\Livewire;
-use App\Livewire\Dashboard;
-use App\Livewire\Sales\Reports;
-use App\Livewire\FYA\Warehouse2;
-use App\Livewire\Sales\Payments;
-use App\Livewire\Settings\Locale;
-use App\Livewire\Sales\Deliveries;
-use App\Livewire\Sales\OrderItems;
-use App\Livewire\Settings\Profile;
-use App\Livewire\Sales\CreateOrder;
-use App\Livewire\Settings\Password;
-use App\Livewire\Warehouse\StockIn;
-use App\Livewire\Admin\ProductsCrud;
-use App\Livewire\Warehouse\StockOut;
-use App\Livewire\Finance\WasteReport;
-use App\Livewire\Settings\Appearance;
-use App\Livewire\TestReportComponent;
-use Illuminate\Support\Facades\Route;
-use App\Livewire\Warehouse\Production;
-use App\Livewire\Finance\RevenueReport;
-use App\Livewire\Admin\RawMaterialsCrud;
-use App\Livewire\Warehouse\FinishedGoods;
-use App\Livewire\Warehouse\ScrapWasteCrud;
-use App\Livewire\Operations\DowntimeRecord;
-use App\Livewire\Sales\Index as SalesIndex;
-use App\Livewire\Warehouse\ScrapWasteRecord;
-use App\Livewire\Operations\ProductionReport;
-use App\Livewire\Warehouse\ProductionMachine;
-use App\Livewire\Finance\Index as FinanceIndex;
-use App\Livewire\Reports\WeeklyProductionReport;
 use App\Http\Controllers\ImpersonationController;
+use App\Livewire\Admin\ProductsCrud;
+use App\Livewire\Admin\RawMaterialsCrud;
+use App\Livewire\FYA\Warehouse2;
+use App\Livewire\Home;
 use App\Livewire\Reports\MonthlyProductionReport;
-use App\Livewire\Warehouse\Index as WarehouseIndex;
-use App\Livewire\Warehouse\MaterialStockOutLineCrud;
-use App\Livewire\Operations\Index as OperationsIndex;
 use App\Livewire\Reports\RawMaterialStockBalanceReport;
+use App\Livewire\Reports\WeeklyProductionReport;
+use App\Livewire\Sales\OrderItems;
+use App\Livewire\Settings\Appearance;
+use App\Livewire\Settings\Password;
+use App\Livewire\Settings\Profile;
+use App\Livewire\TestReportComponent;
 use App\Livewire\Warehouse\FinishedGoodMaterialStockOutLineCrud;
-use App\Livewire\Operations\WasteReport as OperationsWasteReport;
-
-
+use App\Livewire\Warehouse\MaterialStockOutLineCrud;
+use App\Livewire\Warehouse\Production;
+use App\Livewire\Warehouse\ProductionMachine;
+use App\Livewire\Warehouse\ScrapWasteCrud;
+use App\Livewire\Warehouse\ScrapWasteRecord;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth'])->group(function (): void {
     Route::get('/', \App\Livewire\Home::class)->name('home');
@@ -84,11 +63,11 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/production-orders', \App\Livewire\Operations\ProductionOrders::class)->name('production-orders');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');
-        //daily production report
+        // daily production report
         Route::get('/production-report', \App\Livewire\Reports\ProductionReport::class)->name('production-report');
-        //weekly and monthly production report
+        // weekly and monthly production report
         Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
-        //monthly production report
+        // monthly production report
         Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
     });
 
@@ -106,7 +85,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/sales-reports-dashboard', \App\Livewire\Sales\SalesReportsDashboard::class)->name('sales-reports-dashboard');
     });
 
-    Route::get('/fya-warehouse',Warehouse2::class)->name('fya werehouse');
+    Route::get('/fya-warehouse', Warehouse2::class)->name('fya werehouse');
     // Finance Management
     Route::prefix('finance')->as('finance.')->group(function (): void {
         Route::get('/', \App\Livewire\Finance\Index::class)->name('index');
@@ -117,7 +96,7 @@ Route::middleware(['auth'])->group(function (): void {
 
     // Admin
     Route::prefix('admin')->as('admin.')->group(function (): void {
-        Route::get('/', \App\Livewire\Admin\Index::class)->middleware(['auth', 'verified'])->name('index');
+        Route::get('/', Home::class)->middleware(['auth', 'verified'])->name('index');
         // Route::get('/users', \App\Livewire\Admin\Users::class)->name('users.index');
         // Route::get('/users/create', \App\Livewire\Admin\Users\CreateUser::class)->name('users.create');
         // Route::get('/users/{user}', \App\Livewire\Admin\Users\ViewUser::class)->name('users.show');
@@ -139,16 +118,13 @@ Route::middleware(['auth'])->group(function (): void {
     });
 });
 
-
-
-Route::get('test',TestReportComponent::class);
+Route::get('test', TestReportComponent::class);
 
 Route::get('/reports/raw-material-stock-balance', RawMaterialStockBalanceReport::class)->name('reports.raw-material-stock-balance');
 
 // Quality Report Management
 Route::get('/settings/quality-reports', \App\Livewire\Settings\QualityReportManager::class)->name('settings.quality-reports');
 
-
 // order item route with production order id
 Route::get('/order-items/{productionOrderId}', OrderItems::class)->name('order-items');
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

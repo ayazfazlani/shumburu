@@ -44,6 +44,24 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
     {
         $this->validate();
 
+        // Validate available quantities before creating
+        foreach ($this->usages as $index => $usage) {
+            $stockOutLine = MaterialStockOutLine::find($usage['material_stock_out_line_id']);
+            if (!$stockOutLine) {
+                $this->addError("usages.{$index}.material_stock_out_line_id", "Invalid stock out line selected.");
+                return;
+            }
+
+            $available = $stockOutLine->available_quantity;
+            $quantityUsed = (float) $usage['quantity_used'];
+
+            if ($quantityUsed > $available) {
+                $this->addError("usages.{$index}.quantity_used", 
+                    "Available quantity is only {$available}. Cannot use {$quantityUsed}.");
+                return;
+            }
+        }
+
         foreach ($this->usages as $usage) {
             FinishedGoodMaterialStockOutLine::create([
                 'finished_good_id' => $this->finished_good_id,
@@ -53,6 +71,7 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
         }
 
         $this->resetForm();
+        session()->flash('message', 'Finished good material usage recorded successfully.');
     }
 
     public function edit($id)
@@ -71,8 +90,25 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
     {
         $this->validate();
 
-        // update first usage (for simplicity in edit mode)
         $link = FinishedGoodMaterialStockOutLine::findOrFail($this->link_id);
+        $stockOutLine = MaterialStockOutLine::find($this->usages[0]['material_stock_out_line_id']);
+        
+        if (!$stockOutLine) {
+            $this->addError("usages.0.material_stock_out_line_id", "Invalid stock out line selected.");
+            return;
+        }
+
+        // Calculate available quantity: current available + what was previously used in this link
+        $previousUsed = $link->quantity_used ?? 0;
+        $newUsed = (float) $this->usages[0]['quantity_used'];
+        $available = $stockOutLine->available_quantity + $previousUsed; // Add back what was used
+
+        if ($newUsed > $available) {
+            $this->addError("usages.0.quantity_used", 
+                "Available quantity is only {$available}. Cannot use {$newUsed}.");
+            return;
+        }
+
         $link->update([
             'finished_good_id' => $this->finished_good_id,
             'material_stock_out_line_id' => $this->usages[0]['material_stock_out_line_id'],
@@ -80,11 +116,43 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
         ]);
 
         $this->resetForm();
+        session()->flash('message', 'Finished good material usage updated successfully.');
     }
 
     public function delete($id)
     {
         FinishedGoodMaterialStockOutLine::destroy($id);
+        session()->flash('message', 'Finished good material usage deleted successfully.');
+    }
+
+    /**
+     * Real-time validation when quantity changes
+     */
+    public function updatedUsages($value, $key)
+    {
+        if (str_contains($key, 'quantity_used') || str_contains($key, 'material_stock_out_line_id')) {
+            $parts = explode('.', $key);
+            $index = $parts[0];
+            
+            if (isset($this->usages[$index]['material_stock_out_line_id']) && 
+                isset($this->usages[$index]['quantity_used'])) {
+                
+                $stockOutLineId = $this->usages[$index]['material_stock_out_line_id'];
+                $quantity = (float) $this->usages[$index]['quantity_used'];
+                
+                if ($stockOutLineId && $quantity > 0) {
+                    $stockOutLine = MaterialStockOutLine::find($stockOutLineId);
+                    if ($stockOutLine) {
+                        $available = $stockOutLine->available_quantity;
+                        
+                        if ($quantity > $available) {
+                            $this->addError("usages.{$index}.quantity_used", 
+                                "Available quantity is only {$available}. You cannot use more than what's available.");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private function resetForm()
