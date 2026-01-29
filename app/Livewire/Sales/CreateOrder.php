@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Sales;
 
-use App\Models\ProductionOrder;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\ProductionOrder;
 use App\Services\NotificationService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -16,20 +16,35 @@ class CreateOrder extends Component
 
     // CRUD State
     public $showOrderModal = false;
+
     public $isOrderEdit = false;
+
     public $orderId = null;
+
     public $order_number = '';
+
     public $customer_id = '';
+
     public $customerSearch = '';
+
     public $selectedCustomerName = '';
+
     public $status = 'pending';
+
     public $requested_date = '';
+
     public $requested_by = '';
+
     public $notes = '';
+
     public $showOrderDeleteModal = false;
+
     public $deleteOrderId = null;
+
     public $orderSearch = '';
+
     public $orderPerPage = 10;
+
     public $filteredCustomers = [];
 
     protected function rules()
@@ -57,7 +72,7 @@ class CreateOrder extends Component
         $this->resetOrderForm();
         $this->isOrderEdit = false;
         $this->showOrderModal = true;
-        $this->order_number = 'PO-' . date('Ymd') . '-' . str_pad(ProductionOrder::count() + 1, 4, '0', STR_PAD_LEFT);
+        $this->order_number = 'PO-'.date('Ymd').'-'.str_pad(ProductionOrder::count() + 1, 4, '0', STR_PAD_LEFT);
         $this->requested_date = now()->format('Y-m-d');
     }
 
@@ -85,12 +100,12 @@ class CreateOrder extends Component
                 ->toArray();
         } else {
             $this->filteredCustomers = Customer::where('is_active', true)
-                ->where('name', 'like', '%' . $this->customerSearch . '%')
+                ->where('name', 'like', '%'.$this->customerSearch.'%')
                 ->orderBy('name')
                 ->get()
                 ->toArray();
         }
-        
+
         // Reset selection if search doesn't match
         if ($this->customer_id && $this->selectedCustomerName) {
             $found = false;
@@ -100,8 +115,8 @@ class CreateOrder extends Component
                     break;
                 }
             }
-            
-            if (!$found) {
+
+            if (! $found) {
                 $this->customer_id = '';
                 $this->selectedCustomerName = '';
             }
@@ -140,11 +155,11 @@ class CreateOrder extends Component
                 'requested_by' => $user ? $user->id : null,
                 'notes' => $this->notes,
             ]);
-            
+
             // Send notifications for new order
             $notificationService = app(NotificationService::class);
             $notificationService->notifyOrderCreated($order);
-            
+
             session()->flash('message', 'Production order created and notifications sent.');
         }
         $this->showOrderModal = false;
@@ -191,9 +206,9 @@ class CreateOrder extends Component
             })
             ->latest()
             ->paginate($this->orderPerPage);
-            
+
         $products = Product::where('is_active', true)->get();
-        
+
         return view('livewire.sales.create-order', [
             'orders' => $orders,
             'products' => $products,

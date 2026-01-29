@@ -39,6 +39,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Since this is a performance concern only, don't halt
         // production for violations.
-        Model::preventLazyLoading(! $this->app->isProduction());
+        // Model::preventLazyLoading(! $this->app->isProduction());
     }
 }

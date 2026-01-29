@@ -5265,9 +5265,9 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport query()
-     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forPeriod(mixed $startDate, mixed $endDate, mixed $reportType = 'weekly')
-     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forMonth(mixed $month, mixed $reportType = 'monthly')
-     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forDate(mixed $date, mixed $reportType = 'daily')
+     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forPeriod(mixed $startDate, mixed $endDate, mixed $reportType = 'weekly') {@see App\Models\QualityReport::scopeForPeriod()}
+     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forMonth(mixed $month, mixed $reportType = 'monthly') {@see App\Models\QualityReport::scopeForMonth()}
+     * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport forDate(mixed $date, mixed $reportType = 'daily') {@see App\Models\QualityReport::scopeForDate()}
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport select(mixed $columns)
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport selectSub(\Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder<mixed>|string $query, string $as)
      * @method static \Illuminate\Database\Eloquent\Builder<QualityReport>|QualityReport selectRaw(string $expression)
@@ -6599,10 +6599,10 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User query()
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User role(mixed $roles, mixed $guard = null, mixed $without = false)
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User withoutRole(mixed $roles, mixed $guard = null)
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User permission(mixed $permissions, mixed $without = false)
-     * @method static \Illuminate\Database\Eloquent\Builder<User>|User withoutPermission(mixed $permissions)
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User role(mixed $roles, mixed $guard = null, mixed $without = false) {@see App\Models\User::scopeRole()}
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User withoutRole(mixed $roles, mixed $guard = null) {@see App\Models\User::scopeWithoutRole()}
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User permission(mixed $permissions, mixed $without = false) {@see App\Models\User::scopePermission()}
+     * @method static \Illuminate\Database\Eloquent\Builder<User>|User withoutPermission(mixed $permissions) {@see App\Models\User::scopeWithoutPermission()}
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User select(mixed $columns)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User selectSub(\Closure|\Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Builder<mixed>|string $query, string $as)
      * @method static \Illuminate\Database\Eloquent\Builder<User>|User selectRaw(string $expression)

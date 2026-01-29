@@ -124,7 +124,7 @@
                             @if($returned > 0)
                                 <span class="text-green-600 font-semibold">{{ number_format($returned, 2) }}</span>
                                 @if($line->returned_at)
-                                    <br><span class="text-xs text-gray-500">Returned: {{ $line->returned_at->format('Y-m-d') }}</span>
+                                    <br><span class="text-xs text-gray-500">Returned: {{ \Carbon\Carbon::parse($line->returned_at)->format('Y-m-d') }}</span>
                                 @endif
                             @else
                                 <span class="text-gray-400">0</span>
