@@ -29,7 +29,7 @@
         <div class="mt-4">
             <h3 class="font-bold mb-2">Materials</h3>
             @foreach($materials as $index => $material)
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2" wire:key="material-row-{{ $index }}">
                     <div>
                         <select wire:model="materials.{{ $index }}.material_stock_out_id" 
                                 wire:change="$refresh" class="form-select w-full">

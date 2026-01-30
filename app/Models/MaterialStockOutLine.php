@@ -106,10 +106,12 @@ class MaterialStockOutLine extends Model
             return 0;
         }
 
-        $totalUsed = self::getTotalUsedForStockOut($materialStockOutId);
-        $totalReturned = self::getTotalReturnedForStockOut($materialStockOutId);
+        // Calculate availability based on allocation quantity and returns
+        // Available = Stock - Allocated + Returned
+        $allocated = self::where('material_stock_out_id', $materialStockOutId)->sum('quantity_consumed');
+        $returned = self::getTotalReturnedForStockOut($materialStockOutId);
         
-        $available = $stockOut->quantity - $totalUsed - $totalReturned;
+        $available = $stockOut->quantity - $allocated + $returned;
         return max(0, $available);
     }
 }

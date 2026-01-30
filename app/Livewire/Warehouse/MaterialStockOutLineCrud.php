@@ -25,13 +25,7 @@ class MaterialStockOutLineCrud extends Component
     public $returnQuantity = '';
     public $returnNotes = '';
 
-    protected $rules = [
-        'shift' => 'required|in:A,B',
-        'production_line_id' => 'required|exists:production_lines,id',
-        'materials.*.material_stock_out_id' => 'required|exists:material_stock_outs,id',
-        'materials.*.quantity_consumed' => 'required|numeric|min:0.01',
-        'returnQuantity' => 'required|numeric|min:0.01',
-    ];
+    // protected $rules = [ ... ] - Removed to avoid conflict
 
     public function mount()
     {
@@ -79,20 +73,23 @@ class MaterialStockOutLineCrud extends Component
         // Validate when material_stock_out_id or quantity_consumed changes
         if (str_contains($key, 'material_stock_out_id') || str_contains($key, 'quantity_consumed')) {
             $parts = explode('.', $key);
-            $index = $parts[0];
-            
-            if (isset($this->materials[$index]['material_stock_out_id']) && 
-                isset($this->materials[$index]['quantity_consumed'])) {
-                
-                $stockOutId = $this->materials[$index]['material_stock_out_id'];
-                $quantity = (float) $this->materials[$index]['quantity_consumed'];
-                
-                if ($stockOutId && $quantity > 0) {
-                    $available = $this->getAvailableQuantity($stockOutId);
+            // $key format could be 'materials.0.quantity_consumed'
+            if (count($parts) >= 2) {
+                 $index = $parts[1]; // materials is 0, index is 1
+
+                 if (isset($this->materials[$index]['material_stock_out_id']) && 
+                     isset($this->materials[$index]['quantity_consumed'])) {
                     
-                    if ($quantity > $available) {
-                        $this->addError("materials.{$index}.quantity_consumed", 
-                            "Available quantity is only {$available}. You cannot use more than what's available.");
+                    $stockOutId = $this->materials[$index]['material_stock_out_id'];
+                    $quantity = (float) $this->materials[$index]['quantity_consumed'];
+                    
+                    if ($stockOutId && $quantity > 0) {
+                        $available = $this->getAvailableQuantity($stockOutId);
+                        
+                        if ($quantity > $available) {
+                            $this->addError("materials.{$index}.quantity_consumed", 
+                                "Available quantity is only {$available}. You cannot use more than what's available.");
+                        }
                     }
                 }
             }
@@ -101,10 +98,17 @@ class MaterialStockOutLineCrud extends Component
 
     public function saveBatch()
     {
-        $this->validate();
+        $this->validate([
+            'shift' => 'required|in:A,B',
+            'production_line_id' => 'required|exists:production_lines,id',
+            'materials.*.material_stock_out_id' => 'required|exists:material_stock_outs,id',
+            'materials.*.quantity_consumed' => 'required|numeric|min:0.01',
+        ]);
 
         // Additional validation: Check available quantities
         foreach ($this->materials as $index => $row) {
+            if (empty($row['material_stock_out_id']) || empty($row['quantity_consumed'])) continue;
+
             $available = $this->getAvailableQuantity($row['material_stock_out_id']);
             $quantity = (float) $row['quantity_consumed'];
             
@@ -116,6 +120,8 @@ class MaterialStockOutLineCrud extends Component
         }
 
         foreach ($this->materials as $row) {
+            if (empty($row['material_stock_out_id']) || empty($row['quantity_consumed'])) continue;
+            
             MaterialStockOutLine::create([
                 'material_stock_out_id' => $row['material_stock_out_id'],
                 'production_line_id' => $this->production_line_id,
