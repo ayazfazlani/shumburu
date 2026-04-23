@@ -48,10 +48,6 @@ class ProductionOrders extends Component
             'production_end_date' => now()->toDateString(),
         ]);
         
-        // Explicitly send notifications as backup (in case model observer doesn't fire)
-        $notificationService = app(NotificationService::class);
-        $notificationService->notifyStatusChanged($order, $oldStatus, 'completed', auth()->id());
-        
         session()->flash('message', "Order #{$order->order_number} marked as completed and notifications sent to sales team!");
     }
 
@@ -65,10 +61,6 @@ class ProductionOrders extends Component
             'status' => 'in_production',
             'production_start_date' => now()->toDateString(),
         ]);
-        
-        // Explicitly send notifications as backup (in case model observer doesn't fire)
-        $notificationService = app(NotificationService::class);
-        $notificationService->notifyStatusChanged($order, $oldStatus, 'in_production', auth()->id());
         
         session()->flash('message', "Order #{$order->order_number} marked as in production and notifications sent!");
     }

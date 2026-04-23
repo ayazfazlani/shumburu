@@ -47,16 +47,20 @@ class ProductionOrder extends Model
         $oldStatus = $productionOrder->getOriginal('status');
         $newStatus = $productionOrder->status;
         
-        // Debug logging
-        \Log::info("ProductionOrder status changed from '{$oldStatus}' to '{$newStatus}' for order #{$productionOrder->order_number}");
-        
-        // Send notification after the update
-        $notificationService = app(NotificationService::class);
-        $notificationService->notifyStatusChanged($productionOrder, $oldStatus, $newStatus, auth()->id() ?? null);
-        
-        \Log::info("Notification sent for status change from '{$oldStatus}' to '{$newStatus}'");
+        // Only notify if the status has actually changed (avoid "Approved to Approved" notifications)
+        if ($oldStatus !== $newStatus) {
+            \Log::info("ProductionOrder status changed from '{$oldStatus}' to '{$newStatus}' for order #{$productionOrder->order_number}");
+            
+            // Send notification after the update
+            $notificationService = app(NotificationService::class);
+            $notificationService->notifyStatusChanged($productionOrder, $oldStatus, $newStatus, auth()->id() ?? null);
+            
+            \Log::info("Notification sent for status change from '{$oldStatus}' to '{$newStatus}'");
+        } else {
+            \Log::info("ProductionOrder status was 'updated' but value stayed the same ('{$newStatus}') for order #{$productionOrder->order_number}");
+        }
       } else {
-        \Log::info("ProductionOrder updated but status did not change for order #{$productionOrder->order_number}");
+        \Log::info("ProductionOrder updated but status field did not change for order #{$productionOrder->order_number}");
       }
     });
 

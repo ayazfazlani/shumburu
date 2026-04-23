@@ -135,10 +135,6 @@ class OrdersOverview extends Component
         // Update status to delivered
         $order->update(['status' => 'delivered']);
         
-        // Explicitly send notifications as backup (in case model observer doesn't fire)
-        $notificationService = app(NotificationService::class);
-        $notificationService->notifyStatusChanged($order, $oldStatus, 'delivered', Auth::id());
-        
         session()->flash('message', 'Order marked as delivered and notifications sent to sales team!');
         $this->mount();
     }
@@ -171,13 +167,8 @@ class OrdersOverview extends Component
         $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
         
         if ($totalDelivered >= $totalOrdered) {
-            $oldStatus = $this->selectedOrder->status;
             // Update status to delivered
             $this->selectedOrder->update(['status' => 'delivered']);
-            
-            // Explicitly send notifications as backup (in case model observer doesn't fire)
-            $notificationService = app(NotificationService::class);
-            $notificationService->notifyStatusChanged($this->selectedOrder, $oldStatus, 'delivered', Auth::id());
         }
 
         session()->flash('message', 'Delivery recorded successfully.');
@@ -191,10 +182,6 @@ class OrdersOverview extends Component
         
         // Update status
         $order->update(['status' => $status]);
-        
-        // Explicitly send notifications as backup (in case model observer doesn't fire)
-        $notificationService = app(NotificationService::class);
-        $notificationService->notifyStatusChanged($order, $oldStatus, $status, Auth::id());
         
         session()->flash('message', "Order status updated from {$oldStatus} to {$status}. Notifications sent!");
     }

@@ -20,7 +20,13 @@ class NotificationCenter extends Component
         'notificationReceived' => 'refreshNotifications',
         'markAsRead' => 'markNotificationAsRead',
         'notifications-refreshed' => 'loadNotifications',
+        'closeNotificationModal' => 'closeModal',
     ];
+
+    public function closeModal()
+    {
+        $this->selectedNotification = null;
+    }
 
     public function mount()
     {

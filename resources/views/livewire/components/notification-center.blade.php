@@ -142,14 +142,32 @@
     <!-- Notification Detail Modal -->
     @if($selectedNotification)
         @teleport('body')
-            <div class="fixed inset-0 flex items-center justify-center z-[10000]" wire:click="$set('selectedNotification', null)">
-                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 ease-out animate-in zoom-in-95 fade-in" wire:click.stop>
+            <div 
+                x-data="{ show: true }" 
+                x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 flex items-center justify-center z-[10000] bg-zinc-900/50 backdrop-blur-sm" 
+                @click="show = false; $wire.closeModal()"
+            >
+                <div 
+                    class="bg-white dark:bg-zinc-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300" 
+                    @click.stop
+                    x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                >
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
                     <div class="flex items-center justify-between">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                             {{ $selectedNotification->data['title'] ?? 'Notification' }}
                         </h3>
-                        <button wire:click="$set('selectedNotification', null)" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700">
+                        <button @click="show = false; $wire.closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -158,7 +176,7 @@
                 </div>
                 
                 <div class="px-6 py-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                    <p class="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">
                         {{ $selectedNotification->data['message'] ?? $selectedNotification->data['title'] }}
                     </p>
                     
@@ -167,14 +185,14 @@
                             href="{{ $selectedNotification->data['action_url'] }}" 
                             class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
                         >
-                            <i class="fas fa-external-link-alt mr-2"></i>
+                            <i class="fas fa-external-link-alt mr-2 text-xs"></i>
                             View Details
                         </a>
                     @endif
                 </div>
                 
-                <div class="px-6 py-3 bg-gray-50 dark:bg-zinc-700 border-t border-gray-200 dark:border-zinc-600 rounded-b-lg">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                <div class="px-6 py-3 bg-gray-50 dark:bg-zinc-700/50 border-t border-gray-200 dark:border-zinc-600 rounded-b-lg">
+                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
                         {{ $selectedNotification->created_at->format('M d, Y \a\t g:i A') }}
                     </p>
                 </div>
