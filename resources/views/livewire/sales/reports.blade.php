@@ -157,7 +157,7 @@
                                             <span class="font-mono font-bold">{{ $order->order_number }}</span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-outline">{{ $order->customer->display_name }}</span>
+                                            <span class="badge badge-outline">{{ $order->customer?->display_name ?? 'Unknown Customer' }}</span>
                                         </td>
                                         <td>
                                             <div class="flex flex-col space-y-1">
@@ -248,12 +248,12 @@
                                             <span class="font-mono font-bold">{{ $delivery->productionOrder->order_number ?? 'N/A' }}</span>
                                         </td>
                                         <td>
-                                            <span class="badge badge-outline">{{ $delivery->customer->display_name }}</span>
+                                            <span class="badge badge-outline">{{ $delivery->customer?->display_name ?? 'Unknown Customer' }}</span>
                                         </td>
                                         <td>
                                             <div class="flex items-center space-x-2">
-                                                <span class="font-medium">{{ $delivery->product->name ?? 'N/A' }}</span>
-                                                <span class="badge badge-sm">{{ $delivery->product->code ?? 'N/A' }}</span>
+                                                <span class="font-medium">{{ $delivery->product?->name ?? 'N/A' }}</span>
+                                                <span class="badge badge-sm">{{ $delivery->product?->code ?? 'N/A' }}</span>
                                             </div>
                                         </td>
                                         <td class="font-mono">{{ number_format($delivery->quantity, 2) }}</td>
@@ -261,8 +261,8 @@
                                         <td class="font-mono font-bold text-success">
                                             ${{ number_format($delivery->total_amount, 2) }}
                                         </td>
-                                        <td>{{ $delivery->delivery_date->format('M d, Y') }}</td>
-                                        <td>{{ $delivery->deliveredBy->name ?? 'N/A' }}</td>
+                                        <td>{{ $delivery->delivery_date ? $delivery->delivery_date->format('M d, Y') : 'N/A' }}</td>
+                                        <td>{{ $delivery->deliveredBy?->name ?? 'N/A' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -315,7 +315,7 @@
                                 @forelse($payments as $payment)
                                     <tr>
                                         <td>
-                                            <span class="badge badge-outline">{{ $payment->customer->display_name }}</span>
+                                            <span class="badge badge-outline">{{ $payment->customer?->display_name ?? 'Unknown Customer' }}</span>
                                         </td>
                                         <td>
                                             <span class="font-mono font-bold">{{ $payment->productionOrder->order_number ?? 'N/A' }}</span>
@@ -340,8 +340,8 @@
                                                 <span class="text-base-content/50">-</span>
                                             @endif
                                         </td>
-                                        <td>{{ $payment->payment_date->format('M d, Y') }}</td>
-                                        <td>{{ $payment->recordedBy->name ?? 'N/A' }}</td>
+                                        <td>{{ $payment->payment_date ? $payment->payment_date->format('M d, Y') : 'N/A' }}</td>
+                                        <td>{{ $payment->recordedBy?->name ?? 'N/A' }}</td>
                                     </tr>
                                 @empty
                                     <tr>

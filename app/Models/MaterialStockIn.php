@@ -39,18 +39,20 @@ class MaterialStockIn extends Model
     {
         static::created(function ($stockIn) {
             $material = $stockIn->rawMaterial;
-            $previousBalance = $material->getBalanceAtDate($stockIn->received_date->subDay());
+            // Use current ledger balance (not yesterday's) to maintain correct chain
+            $previousBalance = round($material->getCurrentBalance(), 2);
+            $qty = round((float) $stockIn->quantity, 2);
 
             StockTransaction::create([
                 'raw_material_id' => $stockIn->raw_material_id,
                 'type' => 'in',
-                'quantity' => $stockIn->quantity,
+                'quantity' => $qty,
                 'balance_before' => $previousBalance,
-                'balance_after' => $previousBalance + $stockIn->quantity,
+                'balance_after' => round($previousBalance + $qty, 2),
                 'reference_type' => self::class,
                 'reference_id' => $stockIn->id,
                 'transaction_date' => $stockIn->received_date,
-                'notes' => "Stock in: {$stockIn->quantity} units",
+                'notes' => "Stock in: {$qty} units",
             ]);
 
             // Update current stock
@@ -69,16 +71,17 @@ class MaterialStockIn extends Model
                 $difference = $newQuantity - $originalQuantity;
 
                 // Create adjustment transaction
+                $currentBalance = $stockIn->rawMaterial->getCurrentBalance();
                 StockTransaction::create([
                     'raw_material_id' => $stockIn->raw_material_id,
                     'type' => $difference > 0 ? 'in' : 'out',
                     'quantity' => abs($difference),
-                    'balance_before' => $stockIn->rawMaterial->getCurrentBalance(),
-                    'balance_after' => $stockIn->rawMaterial->getCurrentBalance() + $difference,
+                    'balance_before' => $currentBalance,
+                    'balance_after' => $currentBalance + $difference,
                     'reference_type' => self::class,
                     'reference_id' => $stockIn->id,
                     'transaction_date' => now(),
-                    'notes' => "Quantity adjusted from {$originalQuantity} to {$newQuantity}",
+                    'notes' => "Stock-in quantity adjusted from {$originalQuantity} to {$newQuantity}",
                     // 'is_adjustment' => true,
                 ]);
 

@@ -58,7 +58,8 @@ class StockIn extends Component
         'notes' => $this->notes,
       ]);
 
-      // Adjust raw material quantities
+      // Adjust raw material quantities (skip auto-transaction — handled by MaterialStockIn model events)
+      RawMaterial::$skipAutoTransaction = true;
       if ($oldRawMaterialId == $this->raw_material_id) {
         // Same material - adjust quantity difference
         $oldRawMaterial = RawMaterial::find($oldRawMaterialId);
@@ -75,6 +76,7 @@ class StockIn extends Component
         $newRawMaterial->quantity -= $this->quantity;
         $newRawMaterial->save();
       }
+      RawMaterial::$skipAutoTransaction = false;
 
       session()->flash('message', 'Stock in record updated successfully.');
     } else {
@@ -88,10 +90,12 @@ class StockIn extends Component
         'notes' => $this->notes,
       ]);
 
-      // Update raw material quantity
+      // Update raw material quantity (skip auto-transaction — handled by MaterialStockIn model events)
+      RawMaterial::$skipAutoTransaction = true;
       $rawMaterial = RawMaterial::find($this->raw_material_id);
       $rawMaterial->quantity += $this->quantity;
       $rawMaterial->save();
+      RawMaterial::$skipAutoTransaction = false;
 
       session()->flash('message', 'Material stock-in recorded successfully.');
     }
@@ -129,10 +133,12 @@ class StockIn extends Component
   {
     $stockIn = MaterialStockIn::findOrFail($this->delete_id);
 
-    // Restore raw material quantity
+    // Restore raw material quantity (skip auto-transaction)
+    RawMaterial::$skipAutoTransaction = true;
     $rawMaterial = $stockIn->rawMaterial;
     $rawMaterial->quantity -= $stockIn->quantity;
     $rawMaterial->save();
+    RawMaterial::$skipAutoTransaction = false;
 
     // Delete the stock in record
     $stockIn->delete();

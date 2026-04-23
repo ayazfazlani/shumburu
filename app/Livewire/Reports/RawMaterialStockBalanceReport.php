@@ -17,12 +17,40 @@ class RawMaterialStockBalanceReport extends Component
 
     public $showInitialization = false;
 
+    public $syncResults = [];
+
+    public $showSyncResults = false;
+
     public function mount()
     {
         $this->date = Carbon::today()->toDateString();
 
         // Check if we need to show initialization button
         $this->showInitialization = ! StockTransaction::exists();
+    }
+
+    /**
+     * Sync stock levels: recalculate RawMaterial.quantity from StockTransaction ledger.
+     * Does NOT modify any transaction history.
+     */
+    public function syncStock()
+    {
+        $this->syncResults = RawMaterial::syncAllStocks();
+        $this->showSyncResults = true;
+
+        $syncedCount = collect($this->syncResults)->where('synced', true)->count();
+
+        if ($syncedCount > 0) {
+            session()->flash('success', "Stock synced! {$syncedCount} material(s) had their quantity corrected to match transaction history.");
+        } else {
+            session()->flash('info', 'All stock levels are already in sync with transaction history.');
+        }
+    }
+
+    public function dismissSyncResults()
+    {
+        $this->showSyncResults = false;
+        $this->syncResults = [];
     }
 
     public function initializeStockData()
@@ -35,7 +63,7 @@ class RawMaterialStockBalanceReport extends Component
             $hasTransactions = $material->transactions()->exists();
 
             if (! $hasTransactions && $material->quantity > 0) {
-                // Create initial transaction (30 days ago)
+                // Create initial transaction (today) - simple opening balance
                 StockTransaction::create([
                     'raw_material_id' => $material->id,
                     'type' => 'in',
@@ -44,25 +72,9 @@ class RawMaterialStockBalanceReport extends Component
                     'balance_after' => $material->quantity,
                     'reference_type' => 'initial_setup',
                     'reference_id' => null,
-                    'transaction_date' => now()->subDays(30),
-                    'notes' => 'Initial stock setup',
+                    'transaction_date' => now(),
+                    'notes' => 'Initial stock setup - opening balance',
                 ]);
-
-                // Create transactions for the last 30 days (to build history)
-                for ($i = 29; $i >= 0; $i--) {
-                    $transactionDate = now()->subDays($i);
-                    StockTransaction::create([
-                        'raw_material_id' => $material->id,
-                        'type' => 'in',
-                        'quantity' => 0,
-                        'balance_before' => $material->quantity,
-                        'balance_after' => $material->quantity,
-                        'reference_type' => 'daily_balance',
-                        'reference_id' => null,
-                        'transaction_date' => $transactionDate,
-                        'notes' => 'Daily balance record',
-                    ]);
-                }
             }
         }
 
@@ -72,8 +84,6 @@ class RawMaterialStockBalanceReport extends Component
 
     public function render()
     {
-        // $data = $this->initializeStockData();
-        // dd($data);
         // Show initialization message if no data
         if ($this->showInitialization) {
             return view('livewire.reports.raw-material-stock-balance-report', [
@@ -108,11 +118,19 @@ class RawMaterialStockBalanceReport extends Component
             // Get ending balance (today's balance)
             $endingBalance = $this->getBalanceAtDate($material->id, $date);
 
+            // Current stock from the RawMaterial table (may be out of sync)
+            $currentStock = (float) $material->quantity;
+
             // If no transactions found, use current stock as fallback
-            if ($beginningBalance == 0 && $endingBalance == 0 && $material->quantity > 0) {
-                $beginningBalance = $material->quantity;
-                $endingBalance = $material->quantity;
+            $hasTransactions = StockTransaction::where('raw_material_id', $material->id)->exists();
+
+            if (! $hasTransactions && $currentStock > 0) {
+                $beginningBalance = $currentStock;
+                $endingBalance = $currentStock;
             }
+
+            // Check if there's a mismatch between transaction ledger and stored quantity
+            $stockMismatch = $hasTransactions ? abs($endingBalance - $currentStock) > 0.01 : false;
 
             $rows[] = [
                 'name' => $material->name,
@@ -122,8 +140,11 @@ class RawMaterialStockBalanceReport extends Component
                 'return' => $dailyMovements['return'],
                 'waste' => $dailyMovements['waste'],
                 'ending' => $endingBalance,
+                'current_stock' => $currentStock,
+                'has_transactions' => $hasTransactions,
+                'stock_mismatch' => $stockMismatch,
                 'min_stock' => $material->min_stock ?? 100,
-                'remark' => $this->getMaterialRemark($beginningBalance, $dailyMovements, $endingBalance, $material->quantity),
+                'remark' => $this->getMaterialRemark($beginningBalance, $dailyMovements, $endingBalance, $currentStock, $hasTransactions, $stockMismatch),
             ];
         }
 
@@ -161,24 +182,31 @@ class RawMaterialStockBalanceReport extends Component
         ];
     }
 
-    private function getMaterialRemark($beginning, $movements, $ending, $currentStock)
+    private function getMaterialRemark($beginning, $movements, $ending, $currentStock, $hasTransactions, $stockMismatch)
     {
-        // If we're using fallback data (no transactions)
-        if ($beginning == $currentStock && $ending == $currentStock) {
-            return 'Using current stock - initialize transactions';
+        // If no transactions exist
+        if (! $hasTransactions) {
+            return 'No transactions — click Initialize or Sync';
         }
 
+        // If stock mismatch detected
+        if ($stockMismatch) {
+            $diff = abs($ending - $currentStock);
+            return "⚠ MISMATCH: Ledger={$ending}, Actual={$currentStock} (diff: " . number_format($diff, 2) . 'kg) — click Sync';
+        }
+
+        // Check calculated vs recorded ending balance
         $calculatedEnding = $beginning + $movements['in'] + $movements['return'] - $movements['out'] - $movements['waste'];
         $discrepancy = abs($calculatedEnding - $ending);
 
         if ($discrepancy > 0.01) {
-            return 'Check: '.number_format($discrepancy, 2).'kg difference';
+            return '⚠ Discrepancy: ' . number_format($discrepancy, 2) . 'kg difference';
         }
 
         if ($ending < 0) {
-            return 'NEGATIVE STOCK';
+            return '🚫 NEGATIVE STOCK';
         }
 
-        return 'OK';
+        return '✓ OK';
     }
 }

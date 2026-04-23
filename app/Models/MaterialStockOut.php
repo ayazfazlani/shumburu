@@ -83,16 +83,18 @@ class MaterialStockOut extends Model
                 $difference = $newQuantity - $originalQuantity;
 
                 // Create adjustment transaction
+                // For stock-out: more quantity = more going out, less quantity = return
+                $currentBalance = $stockIn->rawMaterial->getCurrentBalance();
                 StockTransaction::create([
                     'raw_material_id' => $stockIn->raw_material_id,
-                    'type' => $difference > 0 ? 'in' : 'out',
+                    'type' => $difference > 0 ? 'out' : 'return',
                     'quantity' => abs($difference),
-                    'balance_before' => $stockIn->rawMaterial->getBalanceAtDate(now()),
-                    'balance_after' => $stockIn->rawMaterial->getBalanceAtDate(now()) + $difference,
+                    'balance_before' => $currentBalance,
+                    'balance_after' => $currentBalance - $difference,
                     'reference_type' => self::class,
                     'reference_id' => $stockIn->id,
                     'transaction_date' => now(),
-                    'notes' => "Quantity adjusted from {$originalQuantity} to {$newQuantity}",
+                    'notes' => "Stock-out quantity adjusted from {$originalQuantity} to {$newQuantity}",
                     // 'is_adjustment' => true,
                 ]);
 

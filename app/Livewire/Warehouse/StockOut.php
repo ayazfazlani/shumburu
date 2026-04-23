@@ -80,9 +80,11 @@ class StockOut extends Component
                 'notes' => $this->notes,
             ]);
 
-            // Adjust raw material quantity
+            // Adjust raw material quantity (skip auto-transaction — handled by MaterialStockOut model events)
+            RawMaterial::$skipAutoTransaction = true;
             $rawMaterial->quantity -= $quantity_diff;
             $rawMaterial->save();
+            RawMaterial::$skipAutoTransaction = false;
 
             session()->flash('message', 'Stock out record updated successfully.');
         } else {
@@ -97,9 +99,11 @@ class StockOut extends Component
                 'notes' => $this->notes,
             ]);
 
-            // Update raw material quantity
+            // Update raw material quantity (skip auto-transaction — handled by MaterialStockOut model events)
+            RawMaterial::$skipAutoTransaction = true;
             $rawMaterial->quantity -= $this->quantity;
             $rawMaterial->save();
+            RawMaterial::$skipAutoTransaction = false;
 
             session()->flash('message', 'Material stock-out recorded successfully.');
         }
@@ -137,10 +141,12 @@ class StockOut extends Component
     {
         $stockOut = MaterialStockOut::findOrFail($this->delete_id);
 
-        // Restore raw material quantity
+        // Restore raw material quantity (skip auto-transaction)
+        RawMaterial::$skipAutoTransaction = true;
         $rawMaterial = $stockOut->rawMaterial;
         $rawMaterial->quantity += $stockOut->quantity;
         $rawMaterial->save();
+        RawMaterial::$skipAutoTransaction = false;
 
         // Delete the stock out record
         $stockOut->delete();

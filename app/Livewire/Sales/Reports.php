@@ -88,9 +88,17 @@ class Reports extends Component
         // Calculate summary statistics
         $summary = $this->calculateSummary($deliveredOrders, $deliveries, $payments);
 
-        // Run validations and business insights
-        $this->runValidations($deliveredOrders, $deliveries, $payments);
-        $this->generateBusinessInsights($deliveredOrders, $deliveries, $payments);
+        // Run validations and business insights (wrapped in try-catch to prevent crashes)
+        try {
+            $this->runValidations($deliveredOrders, $deliveries, $payments);
+            $this->generateBusinessInsights($deliveredOrders, $deliveries, $payments);
+        } catch (\Throwable $e) {
+            \Log::error('Sales report validation/insights error: ' . $e->getMessage());
+            $this->validationErrors[] = [
+                'type' => 'error',
+                'message' => 'Error running validations: ' . $e->getMessage(),
+            ];
+        }
 
         return view('livewire.sales.reports', [
             'deliveredOrders' => $deliveredOrders,
