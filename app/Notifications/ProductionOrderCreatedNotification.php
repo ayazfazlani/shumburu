@@ -30,7 +30,7 @@ class ProductionOrderCreatedNotification extends Notification implements ShouldQ
      */
     public function via(object $notifiable): array
     {
-        return ['mail', 'database'];
+        return ['mail'];
     }
 
     /**

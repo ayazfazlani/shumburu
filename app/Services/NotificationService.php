@@ -34,15 +34,20 @@ class NotificationService
 
         // Send notifications with error handling
         foreach ($usersToNotify as $user) {
+            $notification = new ProductionOrderCreatedNotification($productionOrder);
+            
+            // 1. Instant DB notification for UI feedback
             try {
-                $user->notifyNow(new ProductionOrderCreatedNotification($productionOrder), ['database']);
+                $user->notifyNow($notification, ['database']);
             } catch (\Throwable $e) {
                 \Log::error("Failed to send DB notification to {$user->email}: " . $e->getMessage());
             }
+            
+            // 2. Queued Mail notification (handles retry and background processing)
             try {
-                $user->notifyNow(new ProductionOrderCreatedNotification($productionOrder), ['mail']);
+                $user->notify($notification);
             } catch (\Throwable $e) {
-                \Log::warning("Failed to send email notification to {$user->email}: " . $e->getMessage());
+                \Log::warning("Failed to queue email notification for {$user->email}: " . $e->getMessage());
             }
         }
     }
@@ -65,15 +70,20 @@ class NotificationService
         // Send notifications for EVERY status change
         foreach ($usersToNotify as $user) {
             \Log::info("Sending notification to user: {$user->name} ({$user->email})");
+            $notification = new ProductionOrderStatusChangedNotification($productionOrder, $oldStatus, $newStatus);
+            
+            // 1. Instant DB notification
             try {
-                $user->notifyNow(new ProductionOrderStatusChangedNotification($productionOrder, $oldStatus, $newStatus), ['database']);
+                $user->notifyNow($notification, ['database']);
             } catch (\Throwable $e) {
                 \Log::error("Failed to send DB notification to {$user->email}: " . $e->getMessage());
             }
+            
+            // 2. Queued Mail
             try {
-                $user->notifyNow(new ProductionOrderStatusChangedNotification($productionOrder, $oldStatus, $newStatus), ['mail']);
+                $user->notify($notification);
             } catch (\Throwable $e) {
-                \Log::warning("Failed to send email to {$user->email}: " . $e->getMessage());
+                \Log::warning("Failed to queue email for {$user->email}: " . $e->getMessage());
             }
         }
 
@@ -99,10 +109,12 @@ class NotificationService
         $usersToNotify = $this->getUsersForProductionStarted($productionOrder);
 
         // Send notifications with error handling
+        // Send notifications with error handling
         foreach ($usersToNotify as $user) {
+            $notification = new ProductionStartedNotification($productionOrder);
             try {
-                $user->notifyNow(new ProductionStartedNotification($productionOrder), ['database']);
-                $user->notifyNow(new ProductionStartedNotification($productionOrder), ['mail']);
+                $user->notifyNow($notification, ['database']);
+                $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for production started: " . $e->getMessage());
             }
@@ -121,10 +133,12 @@ class NotificationService
         $usersToNotify = $this->getUsersForOrderReady($productionOrder);
 
         // Send notifications with error handling
+        // Send notifications with error handling
         foreach ($usersToNotify as $user) {
+            $notification = new OrderReadyNotification($productionOrder);
             try {
-                $user->notifyNow(new OrderReadyNotification($productionOrder), ['database']);
-                $user->notifyNow(new OrderReadyNotification($productionOrder), ['mail']);
+                $user->notifyNow($notification, ['database']);
+                $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for order ready: " . $e->getMessage());
             }
@@ -143,10 +157,12 @@ class NotificationService
         $usersToNotify = $this->getUsersForOrderDelivered($productionOrder);
 
         // Send notifications with error handling
+        // Send notifications with error handling
         foreach ($usersToNotify as $user) {
+            $notification = new OrderDeliveredNotification($productionOrder);
             try {
-                $user->notifyNow(new OrderDeliveredNotification($productionOrder), ['database']);
-                $user->notifyNow(new OrderDeliveredNotification($productionOrder), ['mail']);
+                $user->notifyNow($notification, ['database']);
+                $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for order delivered: " . $e->getMessage());
             }
