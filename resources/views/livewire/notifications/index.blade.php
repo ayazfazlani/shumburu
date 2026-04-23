@@ -106,7 +106,7 @@
                                         @if(isset($notification->data['total_price']))
                                             <div>
                                                 <span class="text-gray-500 dark:text-gray-400">Total:</span>
-                                                <span class="font-medium text-gray-900 dark:text-white">${{ number_format($notification->data['total_price'], 2) }}</span>
+                                                <span class="font-medium text-gray-900 dark:text-white">${{ number_format((float)($notification->data['total_price'] ?? 0), 2) }}</span>
                                             </div>
                                         @endif
                                     </div>
