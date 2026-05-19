@@ -6,6 +6,7 @@ use App\Models\ProductionOrder;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\Delivery;
+use App\Models\FgStock;
 use App\Services\NotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
@@ -161,6 +162,50 @@ class OrdersOverview extends Component
             'delivered_by' => Auth::id(),
             'notes' => $this->deliveryNotes,
         ]);
+
+        // Phase 2: Update Warehouse Stock using Reservations
+        DB::transaction(function () use ($firstItem) {
+            $remainingToDispatch = $this->deliveryQuantity;
+
+            // 1. Try to consume active reservations for this order item first
+            $reservations = $firstItem->reservations()->where('status', 'active')->get();
+            
+            foreach ($reservations as $res) {
+                if ($remainingToDispatch <= 0) break;
+
+                $consumeAmount = min($remainingToDispatch, $res->quantity);
+                
+                // Deduct from physical stock
+                $res->fgStock->decrement('quantity', $consumeAmount);
+                
+                // Update or close reservation
+                if ($consumeAmount < $res->quantity) {
+                    $res->decrement('quantity', $consumeAmount);
+                } else {
+                    $res->update(['status' => 'consumed']);
+                }
+
+                $remainingToDispatch -= $consumeAmount;
+            }
+
+            // 2. If there's still quantity left to dispatch (unreserved stock), take from any available batch
+            if ($remainingToDispatch > 0) {
+                $stocks = FgStock::where('product_id', $firstItem->product_id)
+                    ->where('quantity', '>', 0)
+                    ->orderBy('created_at', 'asc')
+                    ->get();
+                
+                foreach ($stocks as $stock) {
+                    if ($remainingToDispatch <= 0) break;
+                    
+                    $deduct = min($remainingToDispatch, $stock->available_quantity);
+                    if ($deduct > 0) {
+                        $stock->decrement('quantity', $deduct);
+                        $remainingToDispatch -= $deduct;
+                    }
+                }
+            }
+        });
 
         // Update order status if all items delivered
         $totalOrdered = $this->selectedOrder->items->sum('quantity');

@@ -114,9 +114,11 @@
                                         <button 
                                             wire:click="markAsInProduction({{ $order->id }})"
                                             wire:confirm="Mark this order as in production?"
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            wire:loading.attr="disabled"
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                                         >
-                                            <i class="fas fa-industry mr-1"></i>
+                                            <i wire:loading.remove wire:target="markAsInProduction" class="fas fa-industry mr-1"></i>
+                                            <i wire:loading wire:target="markAsInProduction" class="fas fa-spinner fa-spin mr-1"></i>
                                             Start Production
                                         </button>
                                     @endif
@@ -125,9 +127,11 @@
                                         <button 
                                             wire:click="markAsCompleted({{ $order->id }})"
                                             wire:confirm="Mark this order as completed? This will notify the sales team."
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                            wire:loading.attr="disabled"
+                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                                         >
-                                            <i class="fas fa-check-double mr-1"></i>
+                                            <i wire:loading.remove wire:target="markAsCompleted" class="fas fa-check-double mr-1"></i>
+                                            <i wire:loading wire:target="markAsCompleted" class="fas fa-spinner fa-spin mr-1"></i>
                                             Mark Completed
                                         </button>
                                     @endif

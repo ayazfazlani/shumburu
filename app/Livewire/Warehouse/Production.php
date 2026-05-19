@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\MaterialStockOutLine;
 use Illuminate\Support\Facades\Auth;
 use App\Models\FinishedGood;
+use App\Models\FgStock;
 use App\Models\Customer;
 
 class Production extends Component
@@ -182,6 +183,7 @@ class Production extends Component
                     'surface' => $fg['surface'],
                     'thickness' => $fg['thickness'],
                     'ovality' => $fg['ovality'],
+                    'status' => 'pending',
                 ]);
             }
         });

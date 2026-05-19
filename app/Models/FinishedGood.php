@@ -33,6 +33,9 @@ class FinishedGood extends Model
         'end_ovality',
         'stripe_color',
         'weight_per_meter',
+        'status',
+        'received_quantity',
+        'receipt_notes',
     ];
 
     // pro

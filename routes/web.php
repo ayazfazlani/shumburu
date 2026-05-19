@@ -55,6 +55,8 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/finished-good-material-stock-out', FinishedGoodMaterialStockOutLineCrud::class)->name('finished-good-material');
         // Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
         Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');
+        Route::get('/fg-stock', \App\Livewire\Warehouse\StockOverview::class)->name('fg-stock');
+        Route::get('/pending-receipts', \App\Livewire\Warehouse\PendingReceipts::class)->name('pending-receipts');
     });
 
     // Operations Management

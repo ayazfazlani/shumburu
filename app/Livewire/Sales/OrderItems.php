@@ -5,6 +5,9 @@ namespace App\Livewire\Sales;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\ProductionOrder;
+use App\Models\FgStock;
+use App\Models\StockReservation;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -24,6 +27,10 @@ class OrderItems extends Component
     public $unit = 'meter';
     public $unitPrice;
     public $totalPrice;
+    
+    // Stock info
+    public $availableStock = 0;
+    public $autoReserve = true;
     
     // Search and filters
     public $search = '';
@@ -117,16 +124,43 @@ class OrderItems extends Component
             
             session()->flash('message', 'Order item updated successfully.');
         } else {
-            OrderItem::create([
-                'production_order_id' => $this->productionOrderId,
-                'product_id' => $this->productId,
-                'quantity' => $this->quantity,
-                'unit' => $this->unit,
-                'unit_price' => $this->unitPrice,
-                'total_price' => $this->totalPrice,
-            ]);
+            DB::transaction(function () {
+                $orderItem = OrderItem::create([
+                    'production_order_id' => $this->productionOrderId,
+                    'product_id' => $this->productId,
+                    'quantity' => $this->quantity,
+                    'unit' => $this->unit,
+                    'unit_price' => $this->unitPrice,
+                    'total_price' => $this->totalPrice,
+                ]);
+
+                // Phase 2: Automatic Stock Reservation
+                if ($this->autoReserve) {
+                    $needed = $this->quantity;
+                    $batches = FgStock::where('product_id', $this->productId)
+                        ->where('quantity', '>', 0)
+                        ->get()
+                        ->filter(fn($batch) => $batch->available_quantity > 0)
+                        ->sortBy('created_at'); // FIFO logic
+
+                    foreach ($batches as $batch) {
+                        if ($needed <= 0) break;
+
+                        $reserveAmount = min($needed, $batch->available_quantity);
+                        
+                        StockReservation::create([
+                            'order_item_id' => $orderItem->id,
+                            'fg_stock_id' => $batch->id,
+                            'quantity' => $reserveAmount,
+                            'status' => 'active',
+                        ]);
+
+                        $needed -= $reserveAmount;
+                    }
+                }
+            });
             
-            session()->flash('message', 'Order item added successfully.');
+            session()->flash('message', 'Order item added successfully and stock reserved if available.');
         }
 
         $this->closeModal();
@@ -175,6 +209,17 @@ class OrderItems extends Component
     public function updatedUnitPrice()
     {
         $this->calculateTotalPrice();
+    }
+
+    public function updatedProductId()
+    {
+        if ($this->productId) {
+            $this->availableStock = FgStock::where('product_id', $this->productId)
+                ->get()
+                ->sum('available_quantity');
+        } else {
+            $this->availableStock = 0;
+        }
     }
 
     public function calculateTotalPrice()

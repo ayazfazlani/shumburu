@@ -68,6 +68,9 @@
                         @endif
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Stock Status
+                    </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Actions
                     </th>
                 </tr>
@@ -99,6 +102,17 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {{ $item->formatted_total_price }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            @if($item->reserved_quantity >= $item->quantity)
+                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Fully Reserved</span>
+                            @elseif($item->reserved_quantity > 0)
+                                <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">
+                                    Partial: {{ number_format($item->reserved_quantity, 2) }}
+                                </span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">No Stock Reserved</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex space-x-2">
@@ -155,7 +169,7 @@
             <!-- Product Selection -->
             <div class="mb-4">
                 <label class="label">Product *</label>
-                <select wire:model.defer="productId" class="select select-bordered w-full">
+                <select wire:model.live="productId" class="select select-bordered w-full">
                     <option value="">Select a product</option>
                     @foreach($products as $product)
                         <option value="{{ $product->id }}">
@@ -163,6 +177,14 @@
                         </option>
                     @endforeach
                 </select>
+                @if($productId)
+                    <div class="mt-2 text-sm">
+                        Available Stock to Promise: 
+                        <span class="font-bold {{ $availableStock > 0 ? 'text-green-600' : 'text-red-600' }}">
+                            {{ number_format($availableStock, 2) }}
+                        </span>
+                    </div>
+                @endif
                 @error('productId')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
@@ -210,6 +232,13 @@
                 $totalPrice
                  }}" readonly
                        class="input input-bordered w-full bg-base-200" />
+            </div>
+
+            <div class="mb-4">
+                <label class="cursor-pointer label justify-start gap-4">
+                    <input type="checkbox" wire:model="autoReserve" class="checkbox checkbox-primary" />
+                    <span class="label-text font-semibold">Automatically reserve available stock for this item</span>
+                </label>
             </div>
 
             <div class="modal-action flex gap-2">

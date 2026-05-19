@@ -128,28 +128,32 @@
                             </td>
                             <td class="py-3 px-4">
                                 <div class="dropdown dropdown-end">
-                                    <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
-                                        Actions
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div tabindex="0" role="button" 
+                                        class="btn btn-sm btn-ghost"
+                                        wire:loading.attr="disabled"
+                                    >
+                                        <span wire:loading.remove wire:target="updateOrderStatus, addPayment, addDelivery">Actions</span>
+                                        <span wire:loading wire:target="updateOrderStatus, addPayment, addDelivery" class="loading loading-spinner loading-xs"></span>
+                                        <svg wire:loading.remove wire:target="updateOrderStatus, addPayment, addDelivery" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 9l-7 7-7-7"></path>
                                         </svg>
                                     </div>
                                     <ul tabindex="0"
                                         class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                        <li><a wire:click="viewOrderDetails({{ $order->id }})">View Details</a></li>
-                                        <li><a wire:click="addPayment({{ $order->id }})">Add Payment</a></li>
-                                        <li><a wire:click="addDelivery({{ $order->id }})">Mark as Delivered</a></li>
+                                        <li><a wire:click="viewOrderDetails({{ $order->id }})" wire:loading.class="opacity-50 pointer-events-none">View Details</a></li>
+                                        <li><a wire:click="addPayment({{ $order->id }})" wire:loading.class="opacity-50 pointer-events-none">Add Payment</a></li>
+                                        <li><a wire:click="addDelivery({{ $order->id }})" wire:loading.class="opacity-50 pointer-events-none">Mark as Delivered</a></li>
                                         @if($order->status === 'pending')
-                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'approved')">Approve</a>
+                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'approved')" wire:loading.class="opacity-50 pointer-events-none">Approve</a>
                                         </li>
                                         @endif
                                         @if($order->status === 'approved')
-                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'in_production')">Start
+                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'in_production')" wire:loading.class="opacity-50 pointer-events-none">Start
                                                 Production</a></li>
                                         @endif
                                         @if($order->status === 'in_production')
-                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'completed')">Mark
+                                        <li><a wire:click="updateOrderStatus({{ $order->id }}, 'completed')" wire:loading.class="opacity-50 pointer-events-none">Mark
                                                 Complete</a></li>
                                         @endif
                                     </ul>
