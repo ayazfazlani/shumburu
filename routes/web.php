@@ -57,11 +57,13 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');
         Route::get('/fg-stock', \App\Livewire\Warehouse\StockOverview::class)->name('fg-stock');
         Route::get('/pending-receipts', \App\Livewire\Warehouse\PendingReceipts::class)->name('pending-receipts');
+        Route::get('/demand-control', \App\Livewire\Warehouse\DemandControl::class)->name('demand-control');
     });
 
     // Operations Management
     Route::prefix('operations')->as('operations.')->group(function (): void {
         Route::get('/', \App\Livewire\Operations\Index::class)->name('index');
+        Route::get('/planning', \App\Livewire\Operations\ProductionPlanning::class)->name('planning');
         Route::get('/production-orders', \App\Livewire\Operations\ProductionOrders::class)->name('production-orders');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');

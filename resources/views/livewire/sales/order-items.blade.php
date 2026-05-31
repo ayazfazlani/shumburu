@@ -104,26 +104,49 @@
                             {{ $item->formatted_total_price }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            @if($item->reserved_quantity >= $item->quantity)
-                                <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs">Fully Reserved</span>
-                            @elseif($item->reserved_quantity > 0)
-                                <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs">
-                                    Partial: {{ number_format($item->reserved_quantity, 2) }}
-                                </span>
-                            @else
-                                <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs">No Stock Reserved</span>
-                            @endif
+                            <div class="flex flex-col gap-1">
+                                @if($item->reserved_quantity >= $item->quantity)
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold w-fit">Fully Reserved</span>
+                                @elseif($item->reserved_quantity > 0)
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold w-fit">
+                                        Partial: {{ number_format($item->reserved_quantity, 2) }}
+                                    </span>
+                                @else
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold w-fit">No Stock Reserved</span>
+                                @endif
+
+                                @php
+                                    $demand = \App\Models\StockDemand::where('order_item_id', $item->id)->latest()->first();
+                                @endphp
+
+                                @if($demand)
+                                    @if($demand->status === 'pending')
+                                        <span class="text-[10px] text-blue-600 font-bold uppercase italic">⏳ Awaiting Warehouse Authorization</span>
+                                    @elseif($demand->status === 'raised')
+                                        <span class="text-[10px] text-purple-600 font-bold uppercase italic">🏭 Production Requested by Warehouse</span>
+                                    @endif
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div class="flex space-x-2">
-                                <button wire:click="edit({{ $item->id }})" 
-                                        class="text-blue-600 hover:text-blue-900">
-                                    Edit
-                                </button>
-                                <button wire:click="confirmDelete({{ $item->id }})" 
-                                        class="text-red-600 hover:text-red-900">
-                                    Delete
-                                </button>
+                            <div class="flex flex-col space-y-1">
+                                <div class="flex space-x-2">
+                                    <button wire:click="edit({{ $item->id }})" 
+                                            class="text-blue-600 hover:text-blue-900">
+                                        Edit
+                                    </button>
+                                    <button wire:click="confirmDelete({{ $item->id }})" 
+                                            class="text-red-600 hover:text-red-900">
+                                        Delete
+                                    </button>
+                                </div>
+                                
+                                @if($item->reserved_quantity < $item->quantity && (!$demand || $demand->status === 'fulfilled'))
+                                    <button wire:click="raiseStockRequest({{ $item->id }})" 
+                                            class="btn btn-xs btn-primary font-bold">
+                                        🚀 Request Stock
+                                    </button>
+                                @endif
                             </div>
                         </td>
                     </tr>

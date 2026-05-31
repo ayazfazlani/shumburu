@@ -47,6 +47,16 @@ class OrderItem extends Model
         return $this->hasMany(StockReservation::class, 'order_item_id');
     }
 
+    public function stockDemands(): HasMany
+    {
+        return $this->hasMany(StockDemand::class, 'order_item_id');
+    }
+
+    public function productionRequests(): HasMany
+    {
+        return $this->hasMany(ProductionRequest::class, 'order_item_id');
+    }
+
     public function getReservedQuantityAttribute()
     {
         return $this->reservations()->where('status', 'active')->sum('quantity');

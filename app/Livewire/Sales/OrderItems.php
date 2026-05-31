@@ -7,7 +7,9 @@ use App\Models\Product;
 use App\Models\ProductionOrder;
 use App\Models\FgStock;
 use App\Models\StockReservation;
+use App\Models\StockDemand;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -157,6 +159,17 @@ class OrderItems extends Component
 
                         $needed -= $reserveAmount;
                     }
+
+                    // If we still need more, notify Warehouse via Stock Demand
+                    if ($needed > 0) {
+                        StockDemand::create([
+                            'product_id' => $this->productId,
+                            'order_item_id' => $orderItem->id,
+                            'quantity' => $needed,
+                            'status' => 'pending',
+                            'requested_by' => Auth::id(),
+                        ]);
+                    }
                 }
             });
             
@@ -165,6 +178,34 @@ class OrderItems extends Component
 
         $this->closeModal();
         $this->resetForm();
+    }
+
+    public function raiseStockRequest($itemId)
+    {
+        $item = OrderItem::findOrFail($itemId);
+        $shortfall = $item->quantity - $item->reserved_quantity;
+
+        if ($shortfall <= 0) {
+            session()->flash('error', 'Item is already fully reserved.');
+            return;
+        }
+
+        // Check if request already exists
+        $existing = StockDemand::where('order_item_id', $itemId)->where('status', 'pending')->exists();
+        if ($existing) {
+            session()->flash('message', 'Request is already pending at Warehouse.');
+            return;
+        }
+
+        StockDemand::create([
+            'product_id' => $item->product_id,
+            'order_item_id' => $item->id,
+            'quantity' => $shortfall,
+            'status' => 'pending',
+            'requested_by' => Auth::id(),
+        ]);
+
+        session()->flash('message', 'Stock Request sent to Warehouse successfully!');
     }
 
     public function confirmDelete($orderItemId)

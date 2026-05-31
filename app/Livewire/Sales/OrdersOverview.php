@@ -10,6 +10,7 @@ use App\Models\FgStock;
 use App\Services\NotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -176,7 +177,8 @@ class OrdersOverview extends Component
                 $consumeAmount = min($remainingToDispatch, $res->quantity);
                 
                 // Deduct from physical stock
-                $res->fgStock->decrement('quantity', $consumeAmount);
+                $batch = $res->fgStock;
+                $batch->decrement('quantity', $consumeAmount);
                 
                 // Update or close reservation
                 if ($consumeAmount < $res->quantity) {
