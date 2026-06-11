@@ -105,6 +105,8 @@
                     placeholder="Size (e.g. 20mm, 32mm)" />
                 @error('size')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
+                @error('size')
+                    <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
             <div class="mb-4">

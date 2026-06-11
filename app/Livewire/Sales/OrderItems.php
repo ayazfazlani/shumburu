@@ -26,6 +26,9 @@ class OrderItems extends Component
     public $orderItemId;
     public $productId;
     public $quantity;
+    public $od;
+    public $pn;
+    public $sdr;
     public $unit = 'meter';
     public $unitPrice;
     public $totalPrice;
@@ -99,6 +102,9 @@ class OrderItems extends Component
         $this->orderItemId = $orderItem->id;
         $this->productId = $orderItem->product_id;
         $this->quantity = $orderItem->quantity;
+        $this->od = $orderItem->od;
+        $this->pn = $orderItem->pn;
+        $this->sdr = $orderItem->sdr;
         $this->unit = $orderItem->unit;
         $this->unitPrice = $orderItem->unit_price;
         $this->totalPrice = $orderItem->total_price;
@@ -119,6 +125,9 @@ class OrderItems extends Component
             $orderItem->update([
                 'product_id' => $this->productId,
                 'quantity' => $this->quantity,
+                'od' => $this->od,
+                'pn' => $this->pn,
+                'sdr' => $this->sdr,
                 'unit' => $this->unit,
                 'unit_price' => $this->unitPrice,
                 'total_price' => $this->totalPrice,
@@ -131,6 +140,9 @@ class OrderItems extends Component
                     'production_order_id' => $this->productionOrderId,
                     'product_id' => $this->productId,
                     'quantity' => $this->quantity,
+                    'od' => $this->od,
+                    'pn' => $this->pn,
+                    'sdr' => $this->sdr,
                     'unit' => $this->unit,
                     'unit_price' => $this->unitPrice,
                     'total_price' => $this->totalPrice,
@@ -237,6 +249,9 @@ class OrderItems extends Component
         $this->orderItemId = null;
         $this->productId = '';
         $this->quantity = '';
+        $this->od = '';
+        $this->pn = '';
+        $this->sdr = '';
         $this->unit = 'meter';
         $this->unitPrice = '';
         $this->totalPrice = '';

@@ -19,7 +19,13 @@ class Product extends Model
         'description',
         'is_active',
         'weight_per_meter',
+        'primary_material_id',
     ];
+
+    public function primaryMaterial(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(RawMaterial::class, 'primary_material_id');
+    }
 
     protected $casts = [
         'meter_length' => 'decimal:2',

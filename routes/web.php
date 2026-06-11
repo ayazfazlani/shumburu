@@ -25,6 +25,7 @@ Route::middleware(['auth'])->group(function (): void {
     Route::get('/', \App\Livewire\Home::class)->name('home');
 
     Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
+    Route::get('/management/cockpit', \App\Livewire\Management\ManagementDashboard::class)->name('management.cockpit');
     // Impersonations
     Route::post('/impersonate/{user}', [ImpersonationController::class, 'store'])->name('impersonate.store');
     Route::delete('/impersonate/stop', [ImpersonationController::class, 'destroy'])->name('impersonate.destroy');
@@ -53,25 +54,24 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/finished-goods', \App\Livewire\Warehouse\FinishedGoods::class)->name('finished-goods');
         Route::get('/scrap-waste', ScrapWasteRecord::class)->name('scrap-wastes');
         Route::get('/finished-good-material-stock-out', FinishedGoodMaterialStockOutLineCrud::class)->name('finished-good-material');
-        // Route::get('/scrap-wastes', ScrapWasteCrud::class)->name('scrap-wastes');
         Route::get('/material-stock-out-lines', MaterialStockOutLineCrud::class)->name('material-stock-out-lines');
         Route::get('/fg-stock', \App\Livewire\Warehouse\StockOverview::class)->name('fg-stock');
         Route::get('/pending-receipts', \App\Livewire\Warehouse\PendingReceipts::class)->name('pending-receipts');
         Route::get('/demand-control', \App\Livewire\Warehouse\DemandControl::class)->name('demand-control');
+        Route::get('/demand-aggregation', \App\Livewire\Warehouse\DemandAggregation::class)->name('demand-aggregation');
+        Route::get('/material-requests', \App\Livewire\Warehouse\MaterialIssueRequests::class)->name('material-requests');
     });
 
     // Operations Management
     Route::prefix('operations')->as('operations.')->group(function (): void {
         Route::get('/', \App\Livewire\Operations\Index::class)->name('index');
+        Route::get('/demand', \App\Livewire\Production\Demand::class)->name('demand-control');
         Route::get('/planning', \App\Livewire\Operations\ProductionPlanning::class)->name('planning');
         Route::get('/production-orders', \App\Livewire\Operations\ProductionOrders::class)->name('production-orders');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');
-        // daily production report
         Route::get('/production-report', \App\Livewire\Reports\ProductionReport::class)->name('production-report');
-        // weekly and monthly production report
         Route::get('/reports/weekly', WeeklyProductionReport::class)->name('reports.weekly');
-        // monthly production report
         Route::get('/reports/monthly', MonthlyProductionReport::class)->name('reports.monthly');
     });
 
@@ -90,12 +90,22 @@ Route::middleware(['auth'])->group(function (): void {
     });
 
     Route::get('/fya-warehouse', Warehouse2::class)->name('fya werehouse');
+
     // Finance Management
     Route::prefix('finance')->as('finance.')->group(function (): void {
         Route::get('/', \App\Livewire\Finance\Index::class)->name('index');
         Route::get('/revenue-report', \App\Livewire\Finance\RevenueReport::class)->name('revenue-report');
         Route::get('/inventory-report', \App\Livewire\Finance\InventoryReport::class)->name('inventory-report');
-        // Route::get('/waste-report', \App\Livewire\Finance\WasteReport::class)->name('waste-report');
+
+        // Procurement Lifecycle
+        Route::get('/procurement', \App\Livewire\Finance\Procurement::class)->name('procurement');
+        Route::get('/purchase-payments', \App\Livewire\Finance\PurchasePayments::class)->name('purchase-payments');
+
+        // RFQ Printing
+        Route::get('/procurement/rfq/{id}', function ($id) {
+            $pr = \App\Models\PurchaseRequest::with(['rawMaterial', 'supplier', 'requestedBy'])->findOrFail($id);
+            return view('print.rfq', compact('pr'));
+        })->name('procurement.rfq');
     });
 
     // Admin
@@ -117,18 +127,15 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/permissions-crud', \App\Livewire\Admin\PermissionsCrud::class)->name('permissions-crud');
         Route::get('/users-crud', \App\Livewire\Admin\UsersCrud::class)->name('users-crud');
         Route::get('/customers-crud', \App\Livewire\Admin\CustomersCrud::class)->name('customers-crud');
+        Route::get('/suppliers-crud', \App\Livewire\Admin\SuppliersCrud::class)->name('suppliers-crud');
 
         Route::get('/raw-materials', RawMaterialsCrud::class)->name('admin.raw-materials.index');
     });
 });
 
 Route::get('test', TestReportComponent::class);
-
 Route::get('/reports/raw-material-stock-balance', RawMaterialStockBalanceReport::class)->name('reports.raw-material-stock-balance');
-
-// Quality Report Management
 Route::get('/settings/quality-reports', \App\Livewire\Settings\QualityReportManager::class)->name('settings.quality-reports');
-
-// order item route with production order id
 Route::get('/order-items/{productionOrderId}', OrderItems::class)->name('order-items');
-require __DIR__.'/auth.php';
+
+require __DIR__ . '/auth.php';

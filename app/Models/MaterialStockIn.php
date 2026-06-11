@@ -13,6 +13,7 @@ class MaterialStockIn extends Model
 
     protected $fillable = [
         'raw_material_id',
+        'purchase_request_id',
         'quantity',
         'batch_number',
         'received_date',
@@ -30,6 +31,11 @@ class MaterialStockIn extends Model
         return $this->belongsTo(RawMaterial::class);
     }
 
+    public function purchaseRequest(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseRequest::class);
+    }
+
     public function receivedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by');
@@ -39,7 +45,6 @@ class MaterialStockIn extends Model
     {
         static::created(function ($stockIn) {
             $material = $stockIn->rawMaterial;
-            // Use current ledger balance (not yesterday's) to maintain correct chain
             $previousBalance = round($material->getCurrentBalance(), 2);
             $qty = round((float) $stockIn->quantity, 2);
 
@@ -52,26 +57,18 @@ class MaterialStockIn extends Model
                 'reference_type' => self::class,
                 'reference_id' => $stockIn->id,
                 'transaction_date' => $stockIn->received_date,
-                'notes' => "Stock in: {$qty} units",
+                'notes' => "Stock in: {$qty} units" . ($stockIn->purchase_request_id ? " (GRN for PO)" : ""),
             ]);
-
-            // Update current stock
-            // $material->increment('quantity', $stockIn->quantity);
-
         });
 
-        // When UPDATED (edited)
         static::updating(function ($stockIn) {
-            // Get the original values before update
             $originalQuantity = $stockIn->getOriginal('quantity');
             $newQuantity = $stockIn->quantity;
 
-            // If quantity changed
             if ($originalQuantity != $newQuantity) {
                 $difference = $newQuantity - $originalQuantity;
-
-                // Create adjustment transaction
                 $currentBalance = $stockIn->rawMaterial->getCurrentBalance();
+                
                 StockTransaction::create([
                     'raw_material_id' => $stockIn->raw_material_id,
                     'type' => $difference > 0 ? 'in' : 'out',
@@ -82,10 +79,8 @@ class MaterialStockIn extends Model
                     'reference_id' => $stockIn->id,
                     'transaction_date' => now(),
                     'notes' => "Stock-in quantity adjusted from {$originalQuantity} to {$newQuantity}",
-                    // 'is_adjustment' => true,
                 ]);
 
-                // Update edit tracking
                 $stockIn->last_edited_by = Auth::id();
                 $stockIn->last_edited_at = now();
                 $stockIn->edit_count = ($stockIn->edit_count ?? 0) + 1;

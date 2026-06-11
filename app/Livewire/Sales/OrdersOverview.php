@@ -164,62 +164,75 @@ class OrdersOverview extends Component
             'notes' => $this->deliveryNotes,
         ]);
 
-        // Phase 2: Update Warehouse Stock using Reservations
-        DB::transaction(function () use ($firstItem) {
-            $remainingToDispatch = $this->deliveryQuantity;
+        try {
+            DB::transaction(function () use ($firstItem) {
+                $remainingToDispatch = $this->deliveryQuantity;
 
-            // 1. Try to consume active reservations for this order item first
-            $reservations = $firstItem->reservations()->where('status', 'active')->get();
-            
-            foreach ($reservations as $res) {
-                if ($remainingToDispatch <= 0) break;
-
-                $consumeAmount = min($remainingToDispatch, $res->quantity);
-                
-                // Deduct from physical stock
-                $batch = $res->fgStock;
-                $batch->decrement('quantity', $consumeAmount);
-                
-                // Update or close reservation
-                if ($consumeAmount < $res->quantity) {
-                    $res->decrement('quantity', $consumeAmount);
-                } else {
-                    $res->update(['status' => 'consumed']);
-                }
-
-                $remainingToDispatch -= $consumeAmount;
-            }
-
-            // 2. If there's still quantity left to dispatch (unreserved stock), take from any available batch
-            if ($remainingToDispatch > 0) {
-                $stocks = FgStock::where('product_id', $firstItem->product_id)
-                    ->where('quantity', '>', 0)
-                    ->orderBy('created_at', 'asc')
+                // 1. Try to consume active reservations (Must be QC Passed)
+                $reservations = $firstItem->reservations()
+                    ->where('status', 'active')
+                    ->whereHas('fgStock', function($q) {
+                        $q->where('is_qc_passed', true);
+                    })
                     ->get();
                 
-                foreach ($stocks as $stock) {
+                foreach ($reservations as $res) {
                     if ($remainingToDispatch <= 0) break;
+
+                    $consumeAmount = min($remainingToDispatch, $res->quantity);
                     
-                    $deduct = min($remainingToDispatch, $stock->available_quantity);
-                    if ($deduct > 0) {
-                        $stock->decrement('quantity', $deduct);
-                        $remainingToDispatch -= $deduct;
+                    // Deduct from physical stock
+                    $batch = $res->fgStock;
+                    $batch->decrement('quantity', $consumeAmount);
+                    
+                    // Update or close reservation
+                    if ($consumeAmount < $res->quantity) {
+                        $res->decrement('quantity', $consumeAmount);
+                    } else {
+                        $res->update(['status' => 'consumed']);
+                    }
+
+                    $remainingToDispatch -= $consumeAmount;
+                }
+
+                // 2. If there's still quantity left (taking from unreserved QC-passed stock)
+                if ($remainingToDispatch > 0) {
+                    $stocks = FgStock::where('product_id', $firstItem->product_id)
+                        ->where('quantity', '>', 0)
+                        ->where('is_qc_passed', true)
+                        ->orderBy('created_at', 'asc')
+                        ->get();
+                    
+                    foreach ($stocks as $stock) {
+                        if ($remainingToDispatch <= 0) break;
+                        
+                        $deduct = min($remainingToDispatch, $stock->available_quantity);
+                        if ($deduct > 0) {
+                            $stock->decrement('quantity', $deduct);
+                            $remainingToDispatch -= $deduct;
+                        }
                     }
                 }
+
+                if ($remainingToDispatch > 0) {
+                    throw new \Exception("Cannot dispatch: " . number_format($remainingToDispatch, 2) . " units have not passed Quality Control yet.");
+                }
+            });
+
+            // Update order status if all items delivered
+            $totalOrdered = $this->selectedOrder->items->sum('quantity');
+            $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
+            
+            if ($totalDelivered >= $totalOrdered) {
+                // Update status to delivered
+                $this->selectedOrder->update(['status' => 'delivered']);
             }
-        });
 
-        // Update order status if all items delivered
-        $totalOrdered = $this->selectedOrder->items->sum('quantity');
-        $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
-        
-        if ($totalDelivered >= $totalOrdered) {
-            // Update status to delivered
-            $this->selectedOrder->update(['status' => 'delivered']);
+            session()->flash('message', 'Delivery recorded successfully.');
+            $this->closeDeliveryModal();
+        } catch (\Exception $e) {
+            session()->flash('error', $e->getMessage());
         }
-
-        session()->flash('message', 'Delivery recorded successfully.');
-        $this->closeDeliveryModal();
     }
 
     public function updateOrderStatus($orderId, $status)

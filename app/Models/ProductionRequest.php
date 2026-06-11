@@ -31,4 +31,9 @@ class ProductionRequest extends Model
     {
         return $this->belongsTo(User::class, 'requested_by');
     }
+
+    public function materialRequests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MaterialRequest::class);
+    }
 }

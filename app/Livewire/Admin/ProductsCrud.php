@@ -42,9 +42,6 @@ class ProductsCrud extends Component
 
     protected function rules()
     {
-        // $uniqueCode = $this->isEdit && $this->productId
-        //   ? 'unique:products,code,' . $this->productId
-        //   : 'unique:products,code';
         return [
             'name' => 'required|string|max:255',
             'code' => 'nullable|string|max:255',
@@ -96,9 +93,7 @@ class ProductsCrud extends Component
 
     public function saveProduct()
     {
-
         if ($this->isEdit && $this->productId) {
-
             $product = Product::findOrFail($this->productId);
             $this->validate();
             $product->update([

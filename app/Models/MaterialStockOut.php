@@ -13,16 +13,17 @@ class MaterialStockOut extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'raw_material_id',
-        'quantity',
-        'batch_number',
-        'issued_date',
-        'issued_by',
-        'status',
-        'notes',
-    ];
+    // protected $fillable = [
+    //     'raw_material_id',
+    //     'quantity',
+    //     'batch_number',
+    //     'issued_date',
+    //     'issued_by',
+    //     'status',
+    //     'notes',
+    // ];
 
+    protected $guarded = [];
     protected $casts = [
         'quantity' => 'decimal:3',
         'issued_date' => 'date',

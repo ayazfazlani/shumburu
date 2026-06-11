@@ -46,6 +46,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Product
                     </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Specs (OD/PN/SDR)
+                    </th>
                     <th wire:click="sortBy('quantity')" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100">
                         Quantity
                         @if($sortField === 'quantity')
@@ -90,6 +93,17 @@
                                     {{ $item->product->code ?? 'N/A' }}
                                 </div>
                             </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            @if($item->od || $item->pn || $item->sdr)
+                                <div class="flex flex-wrap gap-1">
+                                    @if($item->od) <span class="badge badge-ghost badge-sm text-xs">{{ $item->od }}</span> @endif
+                                    @if($item->pn) <span class="badge badge-info badge-sm text-xs">{{ $item->pn }}</span> @endif
+                                    @if($item->sdr) <span class="badge badge-warning badge-sm text-xs">SDR{{ $item->sdr }}</span> @endif
+                                </div>
+                            @else
+                                <span class="text-zinc-400 italic text-xs">No specs</span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $item->formatted_quantity }}
@@ -213,28 +227,48 @@
                 @enderror
             </div>
 
-            <!-- Quantity -->
-            <div class="mb-4">
-                <label class="label">Quantity *</label>
-                <input wire:model.live="quantity" type="number" step="0.01" min="0.01"
-                       class="input input-bordered w-full" placeholder="Enter quantity" />
-                @error('quantity')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
+            <!-- Quantity & Unit -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="label">Quantity *</label>
+                    <input wire:model.live="quantity" type="number" step="0.01" min="0.01"
+                           class="input input-bordered w-full" placeholder="Enter quantity" />
+                    @error('quantity')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
+                <div>
+                    <label class="label">Unit *</label>
+                    <select wire:model.defer="unit" class="select select-bordered w-full">
+                        <option value="meter">Meter</option>
+                        <option value="roll">Roll</option>
+                        <option value="piece">Piece</option>
+                        <option value="kg">Kilogram</option>
+                    </select>
+                    @error('unit')
+                        <span class="text-red-500 text-xs">{{ $message }}</span>
+                    @enderror
+                </div>
             </div>
 
-            <!-- Unit -->
-            <div class="mb-4">
-                <label class="label">Unit *</label>
-                <select wire:model.defer="unit" class="select select-bordered w-full">
-                    <option value="meter">Meter</option>
-                    <option value="roll">Roll</option>
-                    <option value="piece">Piece</option>
-                    <option value="kg">Kilogram</option>
-                </select>
-                @error('unit')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
+            <!-- Pipe Specs (NEW) -->
+            <div class="grid grid-cols-3 gap-4 mb-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                <div class="col-span-3 text-sm font-bold text-zinc-500 uppercase tracking-wider mb-2">Technical Specifications</div>
+                <div>
+                    <label class="label !py-1 text-xs">OD (Diameter)</label>
+                    <input wire:model="od" type="text" 
+                           class="input input-bordered input-sm w-full" placeholder="e.g. 20mm" />
+                </div>
+                <div>
+                    <label class="label !py-1 text-xs">PN (Pressure)</label>
+                    <input wire:model="pn" type="text" 
+                           class="input input-bordered input-sm w-full" placeholder="e.g. PN16" />
+                </div>
+                <div>
+                    <label class="label !py-1 text-xs">SDR</label>
+                    <input wire:model="sdr" type="text" 
+                           class="input input-bordered input-sm w-full" placeholder="e.g. 11" />
+                </div>
             </div>
 
             <!-- Unit Price -->
