@@ -61,6 +61,7 @@ class CreateOrder extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('sales.create-order'), 403);
         $this->filteredCustomers = Customer::where('is_active', true)
             ->orderBy('name')
             ->get()

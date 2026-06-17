@@ -34,6 +34,7 @@ class WeeklyProductionReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('reports.weekly-production-report'), 403);
         // Initialize from query string parameters or use defaults
         $this->startDate = request()->query('start', Carbon::now()->startOfWeek()->toDateString());
         $this->endDate = request()->query('end', Carbon::now()->endOfWeek()->toDateString());

@@ -17,12 +17,12 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PermissionSeeder::class,
-            RoleSeeder::class,
-            DepartmentSeeder::class,
-            RawMaterialSeeder::class,
-            ProductSeeder::class,
-            QualityReportSeeder::class,
-            CustomerSeeder::class,
+            // RoleSeeder::class,
+            // DepartmentSeeder::class,
+            // RawMaterialSeeder::class,
+            // ProductSeeder::class,
+            // QualityReportSeeder::class,
+            // CustomerSeeder::class,
         ]);
     }
 }

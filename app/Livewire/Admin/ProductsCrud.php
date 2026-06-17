@@ -10,6 +10,11 @@ class ProductsCrud extends Component
 {
     use WithPagination;
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('admin.products-crud'), 403);
+    }
+
     public $search = '';
 
     public $perPage = 10;

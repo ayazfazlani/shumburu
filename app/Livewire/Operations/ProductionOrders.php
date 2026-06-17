@@ -17,6 +17,11 @@ class ProductionOrders extends Component
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('operations.production-orders'), 403);
+    }
+
     public function render()
     {
         $orders = ProductionOrder::with(['customer', 'items.product'])

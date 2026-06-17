@@ -18,6 +18,11 @@ class DemandControl extends Component
 
     public $activeTab = 'rm';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('warehouse.demand-control'), 403);
+    }
+
     #[Layout('components.layouts.app')]
     public function render()
     {

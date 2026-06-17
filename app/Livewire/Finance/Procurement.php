@@ -20,6 +20,11 @@ class Procurement extends Component
 
     public $activeTab = 'pending'; // pending | active_pos | pending_grn | history
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('finance.procurement'), 403);
+    }
+
     // Modal: Approve PR
     public $showApproveModal = false;
     public $approvingId = null;

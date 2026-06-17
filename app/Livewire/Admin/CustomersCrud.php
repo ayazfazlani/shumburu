@@ -10,6 +10,11 @@ class CustomersCrud extends Component
 {
     use WithPagination;
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('admin.customers-crud'), 403);
+    }
+
     public $search = '';
     public $perPage = 10;
 
@@ -49,10 +54,10 @@ class CustomersCrud extends Component
     public function render()
     {
         $customers = Customer::when($this->search, function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%")
-                  ->orWhere('phone', 'like', "%{$this->search}%");
-            })
+            $q->where('name', 'like', "%{$this->search}%")
+                ->orWhere('email', 'like', "%{$this->search}%")
+                ->orWhere('phone', 'like', "%{$this->search}%");
+        })
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);
         return view('livewire.admin.customers-crud', [
@@ -147,4 +152,4 @@ class CustomersCrud extends Component
     {
         $this->resetPage();
     }
-} 
+}

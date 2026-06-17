@@ -40,7 +40,7 @@ class ProductionMachine extends Component
 
     public function mount(): void
     {
-        //
+        abort_unless(auth()->user()->can('warehouse.production-machine'), 403);
     }
 
     #[Layout('components.layouts.app')]

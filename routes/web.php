@@ -67,6 +67,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/', \App\Livewire\Operations\Index::class)->name('index');
         Route::get('/demand', \App\Livewire\Production\Demand::class)->name('demand-control');
         Route::get('/planning', \App\Livewire\Operations\ProductionPlanning::class)->name('planning');
+        Route::get('/manage-production', \App\Livewire\Production\Manager::class)->name('manage-production');
         Route::get('/production-orders', \App\Livewire\Operations\ProductionOrders::class)->name('production-orders');
         Route::get('/downtime-record', \App\Livewire\Operations\DowntimeRecord::class)->name('downtime-record');
         Route::get('/waste-report', \App\Livewire\Operations\WasteReport::class)->name('waste-report');

@@ -22,6 +22,7 @@ class MonthlySalesReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('sales.monthly-sales-report'), 403);
         $this->startDate = Carbon::now()->startOfMonth()->toDateString();
         $this->endDate = Carbon::now()->endOfMonth()->toDateString();
         // $this->month = Carbon::now()->month;

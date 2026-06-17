@@ -19,6 +19,11 @@ class MaterialIssueRequests extends Component
     public $selectedOrderNumber = null;
     public $activeTab = 'order-wise'; // order-wise | aggregation
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('warehouse.material-issue-requests'), 403);
+    }
+
     public function setTab($tab)
     {
         $this->activeTab = $tab;

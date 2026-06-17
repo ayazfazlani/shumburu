@@ -132,6 +132,11 @@ class ProductionOrder extends Model
     return $this->items->sum('quantity');
   }
 
+  public function plan(): \Illuminate\Database\Eloquent\Relations\HasOne
+  {
+    return $this->hasOne(ProductionPlan::class);
+  }
+
   /**
    * Get formatted total price.
    */

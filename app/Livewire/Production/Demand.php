@@ -18,6 +18,11 @@ class Demand extends Component
     public $selectedOrderId;
     public $activeTab = 'fg';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('operations.demand-control'), 403);
+    }
+
     public function backToList()
     {
         $this->selectedOrderId = null;

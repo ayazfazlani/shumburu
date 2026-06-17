@@ -39,6 +39,11 @@ class PendingReceipts extends Component
     public $rm_received_qty;
     public $rm_notes;
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('warehouse.pending-receipts'), 403);
+    }
+
     #[Layout('components.layouts.app')]
     public function render()
     {

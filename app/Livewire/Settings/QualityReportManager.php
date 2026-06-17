@@ -45,6 +45,7 @@ class QualityReportManager extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('quality.quality-report-manager'), 403);
         $this->start_date = Carbon::now()->startOfWeek()->toDateString();
         $this->end_date = Carbon::now()->endOfWeek()->toDateString();
     }

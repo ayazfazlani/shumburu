@@ -35,6 +35,7 @@ class ProductionReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('reports.production-report'), 403);
         // Initialize from query string parameters or use defaults
         $this->date = request()->query('d', Carbon::today()->toDateString());
         $this->shift = request()->query('s', '');

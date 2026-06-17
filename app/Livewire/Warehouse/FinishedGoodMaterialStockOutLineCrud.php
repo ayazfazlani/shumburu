@@ -25,6 +25,7 @@ class FinishedGoodMaterialStockOutLineCrud extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('warehouse.finished-good-material-stock-out-line-crud'), 403);
         // initialize with one row
         $this->usages = [['material_stock_out_line_id' => '', 'quantity_used' => null]];
     }

@@ -32,6 +32,7 @@ class MonthlyProductionReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('reports.monthly-production-report'), 403);
         // Initialize from query string parameters or use defaults
         $this->month = request()->query('m', Carbon::now()->format('Y-m'));
         $this->shift = request()->query('s', '');

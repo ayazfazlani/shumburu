@@ -14,11 +14,7 @@ class RevenueReport extends Component
 
   public function render()
   {
-    $user = Auth::user();
-
-    // if (!$user->hasRole(['admin', 'finance'])) {
-    //   abort(403, 'Unauthorized access to revenue reports.');
-    // }
+    abort_unless(auth()->user()->can('finance.revenue-report'), 403);
 
     $payments = Payment::with(['customer', 'productionOrder'])
       ->latest()

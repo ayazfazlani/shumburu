@@ -20,6 +20,7 @@ class Dashboard extends Component
     #[Layout('components.layouts.app')]
     public function render(): View
     {
+        abort_unless(auth()->user()->can('dashboard.view'), 403);
         $now = now();
         $today = $now->copy()->startOfDay();
         $thisWeek = $now->copy()->startOfWeek();

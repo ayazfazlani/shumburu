@@ -80,6 +80,7 @@ class FinishedGoods extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('warehouse.finished-goods'), 403);
         $this->type = 'roll';
         $this->production_date = now()->format('Y-m-d');
     }

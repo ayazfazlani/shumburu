@@ -29,6 +29,7 @@ class MaterialStockOutLineCrud extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('warehouse.material-stock-out-line-crud'), 403);
         $this->fetch();
         $this->materials = [
             ['material_stock_out_id' => '', 'quantity_consumed' => '']

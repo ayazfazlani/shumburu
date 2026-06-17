@@ -14,6 +14,11 @@ class PurchasePayments extends Component
 {
     use WithPagination;
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('finance.purchase-payments'), 403);
+    }
+
     #[Layout('components.layouts.app')]
 
     public $search = '';

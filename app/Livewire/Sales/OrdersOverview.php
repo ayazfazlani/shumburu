@@ -56,6 +56,7 @@ class OrdersOverview extends Component
 
     public function mount(): void
     {
+        abort_unless(auth()->user()->can('sales.orders-overview'), 403);
         $this->paymentDate = now()->format('Y-m-d');
         $this->deliveryDate = now()->format('Y-m-d');
     }

@@ -47,202 +47,270 @@
         <flux:navlist variant="outline">
             <!-- Platform Section -->
             <flux:navlist.group heading="Platform" class="grid">
-                <flux:navlist.item icon="squares-2x2" href="{{ route('admin.index') }}" wire:navigate
-                    class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">Dashboard</flux:navlist.item>
-                <!-- <flux:navlist.item icon="presentation-chart-bar" href="{{ route('management.cockpit') }}" wire:navigate
-                    class="{{ request()->routeIs('management.cockpit') ? 'active' : '' }}">Executive Cockpit
-                </flux:navlist.item> -->
+                @can('dashboard.view')
+                    <flux:navlist.item icon="squares-2x2" href="{{ route('admin.index') }}" wire:navigate
+                        class="{{ request()->routeIs('admin.index') ? 'active' : '' }}">Dashboard</flux:navlist.item>
+                @endcan
+                @can('management.management-dashboard')
+                    <flux:navlist.item icon="presentation-chart-bar" href="{{ route('management.cockpit') }}" wire:navigate
+                        class="{{ request()->routeIs('management.cockpit') ? 'active' : '' }}">Executive Cockpit
+                    </flux:navlist.item>
+                @endcan
             </flux:navlist.group>
 
             <!-- Administration Section -->
             <flux:navlist.group heading="Administration" class="grid">
-                <flux:navlist.item icon="users" href="{{ route('admin.customers-crud') }}" wire:navigate
-                    class="{{ request()->routeIs('admin.customers-crud') ? 'active' : '' }}">Customers
-                </flux:navlist.item>
-                <flux:navlist.item icon="building-office-2" href="{{ route('admin.suppliers-crud') }}" wire:navigate
-                    class="{{ request()->routeIs('admin.suppliers-crud') ? 'active' : '' }}">Suppliers
-                </flux:navlist.item>
-                @can(['can view users section'])
+                @can('admin.customers-crud')
+                    <flux:navlist.item icon="users" href="{{ route('admin.customers-crud') }}" wire:navigate
+                        class="{{ request()->routeIs('admin.customers-crud') ? 'active' : '' }}">Customers
+                    </flux:navlist.item>
+                @endcan
+                @can('admin.suppliers-crud')
+                    <flux:navlist.item icon="building-office-2" href="{{ route('admin.suppliers-crud') }}" wire:navigate
+                        class="{{ request()->routeIs('admin.suppliers-crud') ? 'active' : '' }}">Suppliers
+                    </flux:navlist.item>
+                @endcan
+                @can('admin.users-crud')
                     <flux:navlist.item icon="user-group" href="{{ route('admin.users-crud') }}" wire:navigate
                         class="{{ request()->routeIs('admin.users-crud') ? 'active' : '' }}">{{ __('users.title') }}
                     </flux:navlist.item>
+                @endcan
+                @can('admin.roles-crud')
                     <flux:navlist.item icon="shield-exclamation" href="{{ route('admin.roles-crud') }}" wire:navigate
                         class="{{ request()->routeIs('admin.roles-crud') ? 'active' : '' }}">{{ __('roles.title') }}
                     </flux:navlist.item>
                 @endcan
             </flux:navlist.group>
 
-            @can(['can view warehouse section'])
+            @canany(['warehouse.dashboard', 'admin.raw-materials-crud', 'admin.products-crud', 'warehouse.stock-overview', 'warehouse.pending-receipts', 'warehouse.material-issue-requests', 'warehouse.demand-aggregation', 'warehouse.demand-control'])
                 <!-- Warehouse Section -->
                 <flux:navlist.group heading="Warehouse" class="grid">
-                    <flux:navlist.item icon="building-storefront" href="{{ route('warehouse.index') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.index') ? 'active' : '' }}">Warehouse Dashboard
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="cube" href="{{ route('admin.admin.raw-materials.index') }}" wire:navigate
-                        class="{{ request()->routeIs('admin.admin.raw-materials.index') ? 'active' : '' }}">
-                        {{ __('Raw materials') }}
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="cube" href="{{ route('warehouse.products') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.products') ? 'active' : '' }}">Products</flux:navlist.item>
-                    @can('can see material stock out lines')
+                    @can('warehouse.dashboard')
+                        <flux:navlist.item icon="building-storefront" href="{{ route('warehouse.index') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.index') ? 'active' : '' }}">Warehouse Dashboard
+                        </flux:navlist.item>
+                    @endcan
+                    @can('admin.raw-materials-crud')
+                        <flux:navlist.item icon="cube" href="{{ route('admin.admin.raw-materials.index') }}" wire:navigate
+                            class="{{ request()->routeIs('admin.admin.raw-materials.index') ? 'active' : '' }}">
+                            {{ __('Raw materials') }}
+                        </flux:navlist.item>
+                    @endcan
+                    @can('admin.products-crud')
+                        <flux:navlist.item icon="cube" href="{{ route('warehouse.products') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.products') ? 'active' : '' }}">Products</flux:navlist.item>
+                    @endcan
+                    @can('warehouse.production-machine')
                         <flux:navlist.item icon="view-columns" href="{{ route('warehouse.lines') }}" wire:navigate
                             class="{{ request()->routeIs('warehouse.lines') ? 'active' : '' }}">
                             Lines
                         </flux:navlist.item>
                     @endcan
 
-                    @can('can perform material stock in')
+                    @can('warehouse.pending-receipts')
                         <flux:navlist.item icon="arrow-down-tray" href="{{ route('warehouse.stock-in') }}" wire:navigate
                             class="{{ request()->routeIs('warehouse.stock-in') ? 'active' : '' }}">
                             Stock In
                         </flux:navlist.item>
                     @endcan
-                    @can('can perform material stock out')
+                    @can('warehouse.material-issue-requests')
                         <flux:navlist.item icon="arrow-up-tray" href="{{ route('warehouse.stock-out') }}" wire:navigate
                             class="{{ request()->routeIs('warehouse.stock-out') ? 'active' : '' }}">
                             Stock Out
                         </flux:navlist.item>
                     @endcan
-                    <flux:navlist.item icon="table-cells" href="{{ route('warehouse.fg-stock') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.fg-stock') ? 'active' : '' }}">FG Stock</flux:navlist.item>
+                    @can('warehouse.stock-overview')
+                        <flux:navlist.item icon="table-cells" href="{{ route('warehouse.fg-stock') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.fg-stock') ? 'active' : '' }}">FG Stock</flux:navlist.item>
+                    @endcan
 
-                    <!-- GRN Receipts Split -->
-                    <flux:navlist.item icon="arrow-down-on-square-stack"
-                        href="{{ route('warehouse.pending-receipts', ['tab' => 'fg']) }}" wire:navigate
-                        class="{{ request()->get('tab') === 'fg' ? 'active' : '' }}">Production Receipts (FG)
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="truck" href="{{ route('warehouse.pending-receipts', ['tab' => 'rm']) }}"
-                        wire:navigate class="{{ request()->get('tab') === 'rm' ? 'active' : '' }}">Supplier Receipts (RM)
-                    </flux:navlist.item>
+                    @can('warehouse.pending-receipts')
+                        <!-- GRN Receipts Split -->
+                        <flux:navlist.item icon="arrow-down-on-square-stack"
+                            href="{{ route('warehouse.pending-receipts', ['tab' => 'fg']) }}" wire:navigate
+                            class="{{ request()->get('tab') === 'fg' ? 'active' : '' }}">Production Receipts (FG)
+                        </flux:navlist.item>
+                        <flux:navlist.item icon="truck" href="{{ route('warehouse.pending-receipts', ['tab' => 'rm']) }}"
+                            wire:navigate class="{{ request()->get('tab') === 'rm' ? 'active' : '' }}">Supplier Receipts (RM)
+                        </flux:navlist.item>
+                    @endcan
 
-                    <!-- Fulfillment & Planning -->
-                    <flux:navlist.item icon="document-text" href="{{ route('warehouse.material-requests') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.material-requests') ? 'active' : '' }}">Planning PR Demands
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="variable" href="{{ route('warehouse.demand-aggregation') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.demand-aggregation') ? 'active' : '' }}">Demand Aggregator
-                        (Bulk PR)</flux:navlist.item>
+                    @can('warehouse.material-issue-requests')
+                        <!-- Fulfillment & Planning -->
+                        <flux:navlist.item icon="document-text" href="{{ route('warehouse.material-requests') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.material-requests') ? 'active' : '' }}">Planning PR Demands
+                        </flux:navlist.item>
+                    @endcan
+                    @can('warehouse.demand-aggregation')
+                        <flux:navlist.item icon="variable" href="{{ route('warehouse.demand-aggregation') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.demand-aggregation') ? 'active' : '' }}">Demand Aggregator
+                            (Bulk PR)</flux:navlist.item>
+                    @endcan
 
-                    <flux:navlist.item icon="shield-check" href="{{ route('warehouse.demand-control') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.demand-control') ? 'active' : '' }}">Authorizations
-                    </flux:navlist.item>
+
+
+                    @can('warehouse.demand-control')
+                        <flux:navlist.item icon="shield-check" href="{{ route('warehouse.demand-control') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.demand-control') ? 'active' : '' }}">Authorizations
+                        </flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
-            @endcan
+            @endcanany
 
-            <!-- Operations Section -->
-            <flux:navlist.group heading="Planning & Operations" class="grid">
-                <flux:navlist.item icon="shield-check" href="{{ route('operations.demand-control') }}" wire:navigate
-                    class="{{ request()->routeIs('operations.demand-control') ? 'active' : '' }}">Demands Control
-                </flux:navlist.item>
-                <flux:navlist.item icon="calendar-days" href="{{ route('operations.planning') }}" wire:navigate
-                    class="{{ request()->routeIs('operations.planning') ? 'active' : '' }}">Production Planning
-                </flux:navlist.item>
-                @can('can see material stock out lines')
-                    <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}"
-                        wire:navigate
-                        class="{{ request()->routeIs('warehouse.material-stock-out-lines') ? 'active' : '' }}">Material
-                        Stock Out Lines</flux:navlist.item>
-                @endcan
-                @can('can record finished goods')
-                    <flux:navlist.item icon="check-badge" href="{{ route('warehouse.finished-goods') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.finished-goods') ? 'active' : '' }}">Finished Goods
-                    </flux:navlist.item>
-                @endcan
-                @can('can see FG material stock out links')
-                    <flux:navlist.item icon="link" href="{{ route('warehouse.finished-good-material') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.finished-good-material') ? 'active' : '' }}">FG Material
-                        Stock Out Links</flux:navlist.item>
-                @endcan
-                @can('can see scrap waste')
-                    <flux:navlist.item icon="trash" href="{{ route('warehouse.scrap-wastes') }}" wire:navigate
-                        class="{{ request()->routeIs('warehouse.scrap-wastes') ? 'active' : '' }}">Scrap/Waste
-                    </flux:navlist.item>
-                @endcan
-            </flux:navlist.group>
+            @canany(['operations.demand-control', 'operations.production-planning', 'production.manager'])
+                <!-- Operations Section -->
+                <flux:navlist.group heading="Planning & Productions" class="grid">
+                    @can('operations.demand-control')
+                        <flux:navlist.item icon="shield-check" href="{{ route('operations.demand-control') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.demand-control') ? 'active' : '' }}">Demands Control
+                        </flux:navlist.item>
+                    @endcan
+                    @can('operations.production-planning')
+                        <flux:navlist.item icon="calendar-days" href="{{ route('operations.planning') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.planning') ? 'active' : '' }}">Production Planning
+                        </flux:navlist.item>
+                    @endcan
+                    @can('production.manager')
+                        <flux:navlist.item icon="calendar-days" href="{{ route('operations.manage-production') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.manage.production') ? 'active' : '' }}">Production Manager
+                        </flux:navlist.item>
+                    @endcan
 
-            @can(['can view operations section'])
+                    @can('warehouse.material-stock-out-line-crud')
+                        <flux:navlist.item icon="queue-list" href="{{ route('warehouse.material-stock-out-lines') }}"
+                            wire:navigate
+                            class="{{ request()->routeIs('warehouse.material-stock-out-lines') ? 'active' : '' }}">Material
+                            Stock Out Lines</flux:navlist.item>
+                    @endcan
+                    @can('warehouse.finished-goods')
+                        <flux:navlist.item icon="check-badge" href="{{ route('warehouse.finished-goods') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.finished-goods') ? 'active' : '' }}">Finished Goods
+                        </flux:navlist.item>
+                    @endcan
+                    @can('warehouse.finished-good-material-stock-out-line-crud')
+                        <flux:navlist.item icon="link" href="{{ route('warehouse.finished-good-material') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.finished-good-material') ? 'active' : '' }}">FG Material
+                            Stock Out Links</flux:navlist.item>
+                    @endcan
+                    @can('warehouse.scrap-waste-crud')
+                        <flux:navlist.item icon="trash" href="{{ route('warehouse.scrap-wastes') }}" wire:navigate
+                            class="{{ request()->routeIs('warehouse.scrap-wastes') ? 'active' : '' }}">Scrap/Waste
+                        </flux:navlist.item>
+                    @endcan
+                </flux:navlist.group>
+            @endcanany
+
+            @canany(['operations.dashboard', 'operations.production-orders', 'operations.downtime-record', 'reports.production-report', 'reports.weekly-production-report', 'reports.monthly-production-report'])
                 <!-- Detailed Operations -->
                 <flux:navlist.group heading="Operations Management" class="grid">
-                    <flux:navlist.item icon="squares-2x2" href="{{ route('operations.index') }}" wire:navigate
-                        class="{{ request()->routeIs('operations.index') ? 'active' : '' }}">Operations Dashboard
-                    </flux:navlist.item>
-                    @can('can manage production orders')
+                    @can('operations.dashboard')
+                        <flux:navlist.item icon="squares-2x2" href="{{ route('operations.index') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.index') ? 'active' : '' }}">Operations Dashboard
+                        </flux:navlist.item>
+                    @endcan
+                    @can('operations.production-orders')
                         <flux:navlist.item icon="clipboard-document-list" href="{{ route('operations.production-orders') }}"
                             wire:navigate class="{{ request()->routeIs('operations.production-orders') ? 'active' : '' }}">
                             Production Orders</flux:navlist.item>
                     @endcan
-                    @can('can add downtime record')
+                    @can('operations.downtime-record')
                         <flux:navlist.item icon="clock" href="{{ route('operations.downtime-record') }}" wire:navigate
                             class="{{ request()->routeIs('operations.downtime-record') ? 'active' : '' }}">Downtime Record
                         </flux:navlist.item>
                     @endcan
-                    <flux:navlist.item icon="chart-bar" href="{{ route('operations.production-report') }}" wire:navigate
-                        class="{{ request()->routeIs('operations.production-report') ? 'active' : '' }}">Daily Prod. Report
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="chart-bar-square" href="{{ route('operations.reports.weekly') }}" wire:navigate
-                        class="{{ request()->routeIs('operations.reports.weekly') ? 'active' : '' }}">Weekly Prod. Report
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="chart-pie" href="{{ route('operations.reports.monthly') }}" wire:navigate
-                        class="{{ request()->routeIs('operations.reports.monthly') ? 'active' : '' }}">Monthly Prod. Report
-                    </flux:navlist.item>
+                    @can('reports.production-report')
+                        <flux:navlist.item icon="chart-bar" href="{{ route('operations.production-report') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.production-report') ? 'active' : '' }}">Daily Prod. Report
+                        </flux:navlist.item>
+                    @endcan
+                    @can('reports.weekly-production-report')
+                        <flux:navlist.item icon="chart-bar-square" href="{{ route('operations.reports.weekly') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.reports.weekly') ? 'active' : '' }}">Weekly Prod. Report
+                        </flux:navlist.item>
+                    @endcan
+                    @can('reports.monthly-production-report')
+                        <flux:navlist.item icon="chart-pie" href="{{ route('operations.reports.monthly') }}" wire:navigate
+                            class="{{ request()->routeIs('operations.reports.monthly') ? 'active' : '' }}">Monthly Prod. Report
+                        </flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
-            @endcan
+            @endcanany
 
-            @can(['can view sales section'])
+            @canany(['sales.dashboard', 'sales.create-order', 'sales.orders-overview', 'sales.deliveries', 'sales.daily-sales-report', 'sales.weekly-sales-report', 'sales.monthly-sales-report'])
                 <!-- Sales Section -->
                 <flux:navlist.group heading="Sales" class="grid">
-                    <flux:navlist.item icon="squares-2x2" href="{{ route('sales.index') }}" wire:navigate
-                        class="{{ request()->routeIs('sales.index') ? 'active' : '' }}">Sales Dashboard</flux:navlist.item>
-                    <flux:navlist.item icon="plus-circle" href="{{ route('sales.create-order') }}" wire:navigate
-                        class="{{ request()->routeIs('sales.create-order') ? 'active' : '' }}">Create Order
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="clipboard-document-list" href="{{ route('sales.orders') }}" wire:navigate
-                        class="{{ request()->routeIs('sales.orders') ? 'active' : '' }}">Orders</flux:navlist.item>
-                    @can('can deliver orders')
+                    @can('sales.dashboard')
+                        <flux:navlist.item icon="squares-2x2" href="{{ route('sales.index') }}" wire:navigate
+                            class="{{ request()->routeIs('sales.index') ? 'active' : '' }}">Sales Dashboard</flux:navlist.item>
+                    @endcan
+                    @can('sales.create-order')
+                        <flux:navlist.item icon="plus-circle" href="{{ route('sales.create-order') }}" wire:navigate
+                            class="{{ request()->routeIs('sales.create-order') ? 'active' : '' }}">Create Order
+                        </flux:navlist.item>
+                    @endcan
+                    @can('sales.orders-overview')
+                        <flux:navlist.item icon="clipboard-document-list" href="{{ route('sales.orders') }}" wire:navigate
+                            class="{{ request()->routeIs('sales.orders') ? 'active' : '' }}">Orders</flux:navlist.item>
+                    @endcan
+                    @can('sales.deliveries')
                         <flux:navlist.item icon="truck" href="{{ route('sales.deliveries') }}" wire:navigate
                             class="{{ request()->routeIs('sales.deliveries') ? 'active' : '' }}">Deliveries</flux:navlist.item>
                     @endcan
-                    <flux:navlist.item icon="document-chart-bar" href="{{ route('sales.reports') }}" wire:navigate
-                        class="{{ request()->routeIs('sales.reports') ? 'active' : '' }}">Sales Reports</flux:navlist.item>
+                    @canany(['sales.daily-sales-report', 'sales.weekly-sales-report', 'sales.monthly-sales-report'])
+                        <flux:navlist.item icon="document-chart-bar" href="{{ route('sales.reports') }}" wire:navigate
+                            class="{{ request()->routeIs('sales.reports') ? 'active' : '' }}">Sales Reports</flux:navlist.item>
+                    @endcanany
                 </flux:navlist.group>
-            @endcan
+            @endcanany
 
-            @can(['can view finance section'])
+            @canany(['finance.dashboard', 'finance.procurement', 'finance.purchase-payments', 'sales.payments', 'finance.revenue-report'])
                 <!-- Finance Section -->
                 <flux:navlist.group heading="Finance" class="grid">
-                    <flux:navlist.item icon="squares-2x2" href="{{ route('finance.index') }}" wire:navigate
-                        class="{{ request()->routeIs('finance.index') ? 'active' : '' }}">Finance Dashboard
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="shopping-cart" href="{{ route('finance.procurement') }}" wire:navigate
-                        class="{{ request()->routeIs('finance.procurement') ? 'active' : '' }}">Procurement Lifecycle
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="credit-card" href="{{ route('finance.purchase-payments') }}" wire:navigate
-                        class="{{ request()->routeIs('finance.purchase-payments') ? 'active' : '' }}">Purchase Payments (AP)
-                    </flux:navlist.item>
-                    @can('can record order payments')
+                    @can('finance.dashboard')
+                        <flux:navlist.item icon="squares-2x2" href="{{ route('finance.index') }}" wire:navigate
+                            class="{{ request()->routeIs('finance.index') ? 'active' : '' }}">Finance Dashboard
+                        </flux:navlist.item>
+                    @endcan
+                    @can('finance.procurement')
+                        <flux:navlist.item icon="shopping-cart" href="{{ route('finance.procurement') }}" wire:navigate
+                            class="{{ request()->routeIs('finance.procurement') ? 'active' : '' }}">Procurement Lifecycle
+                        </flux:navlist.item>
+                    @endcan
+                    @can('finance.purchase-payments')
+                        <flux:navlist.item icon="credit-card" href="{{ route('finance.purchase-payments') }}" wire:navigate
+                            class="{{ request()->routeIs('finance.purchase-payments') ? 'active' : '' }}">Purchase Payments (AP)
+                        </flux:navlist.item>
+                    @endcan
+                    @can('sales.payments')
                         <flux:navlist.item icon="banknotes" href="{{ route('sales.payments') }}" wire:navigate
                             class="{{ request()->routeIs('sales.payments') ? 'active' : '' }}">Customer Payments (AR)
                         </flux:navlist.item>
                     @endcan
-                    <flux:navlist.item icon="banknotes" href="{{ route('finance.revenue-report') }}" wire:navigate
-                        class="{{ request()->routeIs('finance.revenue-report') ? 'active' : '' }}">Revenue Report
-                    </flux:navlist.item>
+                    @can('finance.revenue-report')
+                        <flux:navlist.item icon="banknotes" href="{{ route('finance.revenue-report') }}" wire:navigate
+                            class="{{ request()->routeIs('finance.revenue-report') ? 'active' : '' }}">Revenue Report
+                        </flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
-            @endcan
+            @endcanany
 
-            @can(['can view reports section'])
+            @canany(['sales.daily-sales-report', 'reports.raw-material-stock-balance-report'])
                 <!-- Reports Section -->
                 <flux:navlist.group heading="General Reports" class="grid">
-                    <flux:navlist.item icon="calendar" href="{{ route('sales.daily-sales-report') }}" wire:navigate
-                        class="{{ request()->routeIs('sales.daily-sales-report') ? 'active' : '' }}">Daily Sales
-                    </flux:navlist.item>
-                    <flux:navlist.item icon="scale" href="{{ route('reports.raw-material-stock-balance') }}" wire:navigate
-                        class="{{ request()->routeIs('reports.raw-material-stock-balance') ? 'active' : '' }}">Material
-                        Balance</flux:navlist.item>
+                    @can('sales.daily-sales-report')
+                        <flux:navlist.item icon="calendar" href="{{ route('sales.daily-sales-report') }}" wire:navigate
+                            class="{{ request()->routeIs('sales.daily-sales-report') ? 'active' : '' }}">Daily Sales
+                        </flux:navlist.item>
+                    @endcan
+                    @can('reports.raw-material-stock-balance-report')
+                        <flux:navlist.item icon="scale" href="{{ route('reports.raw-material-stock-balance') }}" wire:navigate
+                            class="{{ request()->routeIs('reports.raw-material-stock-balance') ? 'active' : '' }}">Material
+                            Balance</flux:navlist.item>
+                    @endcan
                 </flux:navlist.group>
-            @endcan
+            @endcanany
 
-            @can('can manage quality control')
+            @can('quality.quality-report-manager')
                 <!-- Quality Section -->
                 <flux:navlist.group heading="Quality" class="grid">
                     <flux:navlist.item icon="clipboard-document-check" href="{{ route('settings.quality-reports') }}"

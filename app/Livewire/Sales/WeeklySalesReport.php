@@ -21,6 +21,7 @@ class WeeklySalesReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('sales.weekly-sales-report'), 403);
         $this->startDate = Carbon::now()->startOfWeek()->toDateString();
         $this->endDate = Carbon::now()->endOfWeek()->toDateString();
     }

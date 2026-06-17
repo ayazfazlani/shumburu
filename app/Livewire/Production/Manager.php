@@ -4,8 +4,6 @@ namespace App\Livewire\Production;
 
 use App\Models\ProductionRequest;
 use App\Models\MaterialRequest;
-use App\Models\ProductionDailySchedule;
-use App\Models\ProductionDailyMaterialRequest;
 use App\Models\RawMaterial;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -14,254 +12,269 @@ use Illuminate\Support\Facades\DB;
 
 class Manager extends Component
 {
-    public $activePlanId;
-    public $activePlan;
-    public $dailySchedules = [];
-    public $selectedDate;
-    public $selectedScheduleId;
-    public $showMaterialRequestForm = false;
-    public $materialQuantities = [];
+    public $activeTab = 'plans';
+
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('production.manager'), 403);
+    }
+
+    // Plan review
+    public $activePlanRequestId = null;
+    public $activePlanRequest = null;
+
+    // Daily warehouse request form (sent from Manager to Warehouse)
+    public $showWarehouseRequestForm = false;
+    public $warehouseRequestPlanId;   // The ProductionPlan id
+    public $warehouseRequestMaterialId;
+    public $warehouseRequestQty;
+    public $warehouseRequestProductionId; // The ProductionOrder id
+
+    // Production execution
+    public $activeRequestId = null;
+    public $activeRequest = null;
     public $showProductionForm = false;
-    public $productionData = [];
-    public $materialRequestsHistory = [];
-    public $receivedMaterials = [];
+    public $productionNotes;
+    public $actualProduced;
 
     #[Layout('components.layouts.app')]
     public function render()
     {
-        // Get active production plans (approved and scheduled)
-        $activePlans = ProductionRequest::with(['product', 'orderItem.productionOrder.customer'])
-            ->whereIn('status', ['approved', 'scheduled', 'in_progress'])
-            ->where('quantity', '>', 0)
+        // ── TAB: PLANS (APPROVED ORDERS) ──────────────────────────────────
+        // Production orders that are 'approved' (meaning plan is ready)
+        $plannedProductionRequests = \App\Models\ProductionOrder::with([
+            'customer',
+            'plan.productionLine',
+            'plan.items.rawMaterial',
+        ])
+            ->whereIn('status', ['approved', 'in_production'])
             ->latest()
             ->get();
 
-        // Get today's schedules
-        $todaySchedules = ProductionDailySchedule::with(['materialRequests.rawMaterial'])
-            ->where('date', today())
-            ->whereIn('status', ['materials_requested', 'materials_issued', 'in_production'])
-            ->get();
-
-        // Get pending material requests (requested but not yet issued by warehouse)
-        $pendingMaterialRequests = ProductionDailyMaterialRequest::with(['rawMaterial', 'dailySchedule'])
+        // ── TAB: WAREHOUSE REQUESTS ──────────────────────────────────────
+        // MaterialRequests already sent to warehouse (status = 'pending' — awaiting warehouse action)
+        $pendingWarehouseRequests = MaterialRequest::with([
+            'rawMaterial',
+            'productionPlan.productionOrder.customer',
+        ])
             ->where('status', 'pending')
-            ->whereDate('request_date', today())
+            ->whereDate('created_at', today())
+            ->latest()
             ->get();
 
-        // Get materials already received today
-        $receivedMaterials = ProductionDailyMaterialRequest::with(['rawMaterial', 'dailySchedule'])
+        $issuedMaterialsToday = MaterialRequest::with([
+            'rawMaterial',
+            'productionPlan.productionOrder.customer',
+        ])
             ->where('status', 'issued')
-            ->whereDate('request_date', today())
+            ->whereDate('updated_at', today())
+            ->latest()
             ->get();
 
-        // Get production history for the week
-        $productionHistory = ProductionDailySchedule::with(['productionPlan.product'])
-            ->whereBetween('date', [now()->subDays(7), today()])
-            ->orderBy('date', 'desc')
+        // ── TAB: IN PRODUCTION ───────────────────────────────────────────
+        $inProgressRequests = \App\Models\ProductionOrder::with([
+            'customer',
+            'plan.productionLine',
+        ])
+            ->where('status', 'in_production')
+            ->latest()
             ->get();
+
+        // ── TAB: COMPLETED ───────────────────────────────────────────────
+        $completedRequests = \App\Models\ProductionOrder::with(['customer'])
+            ->where('status', 'completed')
+            ->where('updated_at', '>=', now()->subDays(7))
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        // ── SELECTED PLAN DETAIL ─────────────────────────────────────────
+        $planMaterialSummary = collect();
+        $totalPlannedMaterials = 0;
+        $totalSentToWarehouse = 0;
+
+        if ($this->activePlanRequestId) {
+            $viewingOrder = \App\Models\ProductionOrder::with(['customer', 'plan.items.rawMaterial'])
+                ->find($this->activePlanRequestId);
+
+            if ($viewingOrder && $viewingOrder->plan) {
+                $this->activePlanRequest = $viewingOrder;
+
+                // Summarize based on Plan Items
+                $planMaterialSummary = $viewingOrder->plan->items->map(function ($item) use ($viewingOrder) {
+                    $material = $item->rawMaterial;
+
+                    // How much has already been sent to warehouse for this plan + material
+                    $alreadySent = MaterialRequest::where('production_plan_id', $viewingOrder->plan->id)
+                        ->where('raw_material_id', $item->raw_material_id)
+                        ->whereIn('status', ['pending', 'approved', 'issued', 'consumed', 'purchase_raised'])
+                        ->sum('quantity');
+
+                    $plannedQty = $item->planned_quantity;
+                    $remaining = $plannedQty - $alreadySent;
+
+                    return [
+                        'plan_id' => $viewingOrder->plan->id,
+                        'material_id' => $material->id,
+                        'material_name' => $material->name,
+                        'unit' => $material->unit,
+                        'in_stock' => $material->quantity,
+                        'planned_qty' => $plannedQty,
+                        'already_sent' => $alreadySent,
+                        'remaining' => $remaining,
+                    ];
+                });
+
+                $totalPlannedMaterials = $planMaterialSummary->sum('planned_qty');
+                $totalSentToWarehouse = $planMaterialSummary->sum('already_sent');
+            }
+        }
 
         return view('livewire.production.manager', [
-            'activePlans' => $activePlans,
-            'todaySchedules' => $todaySchedules,
-            'pendingMaterialRequests' => $pendingMaterialRequests,
-            'receivedMaterials' => $receivedMaterials,
-            'productionHistory' => $productionHistory,
+            'plannedProductionRequests' => $plannedProductionRequests,
+            'pendingWarehouseRequests' => $pendingWarehouseRequests,
+            'issuedMaterialsToday' => $issuedMaterialsToday,
+            'inProgressRequests' => $inProgressRequests,
+            'completedRequests' => $completedRequests,
+            'planMaterialSummary' => $planMaterialSummary,
+            'totalPlannedMaterials' => $totalPlannedMaterials,
+            'totalSentToWarehouse' => $totalSentToWarehouse,
         ]);
     }
 
-    public function selectPlan($planId)
-    {
-        $this->activePlanId = $planId;
-        $this->activePlan = ProductionRequest::with(['product', 'product.billOfMaterials.rawMaterial'])
-            ->findOrFail($planId);
+    // ── Plan selection ────────────────────────────────────────────────────
 
-        $this->loadDailySchedules();
+    public function selectPlan($orderId)
+    {
+        $this->activePlanRequestId = $orderId;
+        $this->activePlanRequest = \App\Models\ProductionOrder::with(['customer', 'plan.items.rawMaterial'])
+            ->find($orderId);
     }
 
-    public function loadDailySchedules()
+    public function backToPlans()
     {
-        // Get or create daily schedules for this plan
-        $this->dailySchedules = ProductionDailySchedule::where('production_request_id', $this->activePlanId)
-            ->orderBy('date')
-            ->get();
+        $this->activePlanRequestId = null;
+        $this->activePlanRequest = null;
+    }
 
-        if ($this->dailySchedules->isEmpty()) {
-            $this->generateDailySchedules();
+    // ── Send daily warehouse request ──────────────────────────────────────
+
+    public function openWarehouseRequestForm($orderId, $materialId, $suggestedQty)
+    {
+        $order = \App\Models\ProductionOrder::with('plan')->find($orderId);
+        $this->warehouseRequestProductionId = $orderId;
+        $this->warehouseRequestPlanId = $order->plan->id;
+        $this->warehouseRequestMaterialId = $materialId;
+        $this->warehouseRequestQty = round($suggestedQty > 0 ? $suggestedQty : 0, 2);
+        $this->showWarehouseRequestForm = true;
+    }
+
+    public function sendWarehouseRequest()
+    {
+        $this->validate([
+            'warehouseRequestMaterialId' => 'required|exists:raw_materials,id',
+            'warehouseRequestQty' => 'required|numeric|min:0.01',
+        ]);
+
+        $existing = MaterialRequest::where('production_plan_id', $this->warehouseRequestPlanId)
+            ->where('raw_material_id', $this->warehouseRequestMaterialId)
+            ->where('status', 'pending')
+            ->whereDate('created_at', today())
+            ->first();
+
+        if ($existing) {
+            $existing->update([
+                'quantity' => $this->warehouseRequestQty,
+                'notes' => 'Updated by Manager — ' . now()->format('d M Y H:i'),
+            ]);
+            $msg = 'Warehouse request updated for today.';
+        } else {
+            MaterialRequest::create([
+                'production_plan_id' => $this->warehouseRequestPlanId,
+                'raw_material_id' => $this->warehouseRequestMaterialId,
+                'quantity' => $this->warehouseRequestQty,
+                'status' => 'pending',
+                'requested_by' => Auth::id(),
+                'notes' => 'Daily release by Manager — ' . now()->format('d M Y'),
+            ]);
+            $msg = 'Request sent to warehouse!';
         }
+
+        $this->showWarehouseRequestForm = false;
+        $this->reset(['warehouseRequestMaterialId', 'warehouseRequestQty', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
+        session()->flash('success', $msg);
+
+        $this->selectPlan($this->activePlanRequestId);
     }
 
-    public function generateDailySchedules()
+    public function cancelWarehouseRequest()
     {
-        $totalQuantity = $this->activePlan->quantity;
-        $dailyCapacity = 50; // meters per day (can be dynamic from settings)
-        $productionDays = ceil($totalQuantity / $dailyCapacity);
-
-        DB::transaction(function () use ($productionDays, $totalQuantity, $dailyCapacity) {
-            for ($i = 0; $i < $productionDays; $i++) {
-                $remaining = $totalQuantity - ($i * $dailyCapacity);
-                $plannedQty = min($dailyCapacity, $remaining);
-
-                ProductionDailySchedule::create([
-                    'production_request_id' => $this->activePlanId,
-                    'date' => now()->addDays($i),
-                    'planned_quantity' => $plannedQty,
-                    'remaining_quantity' => $remaining - $plannedQty,
-                    'status' => 'pending',
-                ]);
-            }
-        });
-
-        $this->loadDailySchedules();
-        session()->flash('success', 'Daily production schedule generated!');
+        $this->showWarehouseRequestForm = false;
+        $this->reset(['warehouseRequestMaterialId', 'warehouseRequestQty', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
     }
 
-    public function requestMaterialsForDay($scheduleId)
+    // ── Production start ──────────────────────────────────────────────────
+
+    public function startProduction($orderId)
     {
-        $schedule = ProductionDailySchedule::findOrFail($scheduleId);
-        $this->selectedScheduleId = $scheduleId;
-        $this->selectedDate = $schedule->date;
+        $order = \App\Models\ProductionOrder::with('plan')->findOrFail($orderId);
 
-        // Calculate materials needed for this day's production
-        $this->calculateDailyMaterialRequirements($schedule);
-        $this->showMaterialRequestForm = true;
-    }
-
-    public function calculateDailyMaterialRequirements($schedule)
-    {
-        $product = $this->activePlan->product;
-        $dailyQty = $schedule->planned_quantity;
-
-        $this->materialQuantities = [];
-
-        foreach ($product->billOfMaterials as $bom) {
-            // Convert from per unit to kg
-            $dailyKg = ($bom->quantity_per_unit * $dailyQty) / 1000;
-
-            $this->materialQuantities[$bom->raw_material_id] = [
-                'name' => $bom->rawMaterial->name,
-                'required' => $dailyKg,
-                'available_stock' => $bom->rawMaterial->quantity,
-                'requested' => 0,
-            ];
-        }
-    }
-
-    public function submitDailyMaterialRequest()
-    {
-        DB::transaction(function () {
-            $schedule = ProductionDailySchedule::findOrFail($this->selectedScheduleId);
-
-            foreach ($this->materialQuantities as $materialId => $data) {
-                if ($data['requested'] > 0) {
-                    ProductionDailyMaterialRequest::create([
-                        'production_request_id' => $this->activePlanId,
-                        'production_daily_schedule_id' => $schedule->id,
-                        'raw_material_id' => $materialId,
-                        'request_date' => $this->selectedDate,
-                        'requested_quantity' => $data['requested'],
-                        'status' => 'pending',
-                        'requested_by' => Auth::id(),
-                        'notes' => "Daily request for production day " . $schedule->date->format('d M Y'),
-                    ]);
-                }
-            }
-
-            $schedule->update(['status' => 'materials_requested']);
-            $this->showMaterialRequestForm = false;
-
-            session()->flash('success', 'Material request sent to warehouse for ' . $schedule->date->format('d M Y'));
-        });
-
-        $this->loadDailySchedules();
-    }
-
-    public function startProduction($scheduleId)
-    {
-        $schedule = ProductionDailySchedule::findOrFail($scheduleId);
-
-        // Check if all requested materials have been issued
-        $pendingMaterials = $schedule->materialRequests()
-            ->where('status', '!=', 'issued')
+        $hasIssuedMaterials = MaterialRequest::where('production_plan_id', $order->plan->id)
+            ->where('status', 'issued')
             ->exists();
 
-        if ($pendingMaterials) {
-            session()->flash('error', 'Cannot start production. Some materials have not been issued by warehouse yet.');
+        if (!$hasIssuedMaterials) {
+            session()->flash('error', 'Cannot start — no materials issued by warehouse yet.');
             return;
         }
 
-        $this->selectedScheduleId = $scheduleId;
-        $this->productionData = [
-            'start_time' => now()->format('H:i'),
-            'actual_quantity' => $schedule->planned_quantity,
-            'notes' => '',
-        ];
+        $order->update(['status' => 'in_production']);
+        session()->flash('success', 'Production started for Order #' . $order->order_number);
+        $this->activeTab = 'production';
+        $this->activePlanRequestId = null;
+        $this->activePlanRequest = null;
+    }
+
+    // ── Production completion ─────────────────────────────────────────────
+
+    public function openCompleteForm($orderId)
+    {
+        $this->activeRequestId = $orderId;
+        $order = \App\Models\ProductionOrder::find($orderId);
+        $this->actualProduced = $order->total_quantity;
         $this->showProductionForm = true;
     }
 
-    public function recordProduction()
+    public function completeProduction()
     {
         $this->validate([
-            'productionData.start_time' => 'required',
-            'productionData.actual_quantity' => 'required|numeric|min:0',
+            'actualProduced' => 'required|numeric|min:0',
         ]);
 
         DB::transaction(function () {
-            $schedule = ProductionDailySchedule::findOrFail($this->selectedScheduleId);
+            $order = \App\Models\ProductionOrder::with('plan')->findOrFail($this->activeRequestId);
 
-            $schedule->update([
+            $order->update([
                 'status' => 'completed',
-                'actual_quantity' => $this->productionData['actual_quantity'],
-                'start_time' => $this->productionData['start_time'],
-                'end_time' => now()->format('H:i'),
-                'notes' => $this->productionData['notes'] ?? null,
+                'notes' => ($order->notes ? $order->notes . "\n" : '') .
+                    'Completed: ' . now()->format('d M Y H:i') .
+                    ($this->productionNotes ? ' — ' . $this->productionNotes : ''),
             ]);
 
-            // Update production request remaining quantity
-            $productionRequest = ProductionRequest::findOrFail($this->activePlanId);
-            $newRemaining = $productionRequest->remaining_quantity - $schedule->planned_quantity;
-            $productionRequest->update([
-                'remaining_quantity' => max(0, $newRemaining),
-                'status' => $newRemaining <= 0 ? 'completed' : 'in_progress',
-            ]);
-
-            // Record material consumption
-            foreach ($schedule->materialRequests as $materialRequest) {
-                $materialRequest->update([
-                    'actual_used_quantity' => $materialRequest->requested_quantity,
-                    'status' => 'consumed',
-                ]);
-
-                // Update raw material stock (already deducted by warehouse when issued)
-                // Just track consumption
+            if ($order->plan) {
+                MaterialRequest::where('production_plan_id', $order->plan->id)
+                    ->where('status', 'issued')
+                    ->update(['status' => 'consumed']);
             }
         });
 
         $this->showProductionForm = false;
-        $this->loadDailySchedules();
-        session()->flash('success', 'Production recorded successfully!');
+        $this->reset(['actualProduced', 'productionNotes', 'activeRequestId']);
+        session()->flash('success', 'Production completed!');
     }
 
-    public function refreshMaterialStatus()
+    public function cancelProduction()
     {
-        // Refresh the status of requested materials
-        if ($this->selectedScheduleId) {
-            $schedule = ProductionDailySchedule::find($this->selectedScheduleId);
-            if ($schedule) {
-                $this->materialRequestsHistory = $schedule->materialRequests()
-                    ->with('rawMaterial')
-                    ->get();
-            }
-        }
-
-        $this->dispatch('$refresh');
-    }
-
-    // Auto-refresh every 30 seconds for real-time updates
-    public function getListeners()
-    {
-        return [
-            'refreshComponent' => '$refresh',
-            'echo:material-requests,MaterialRequestUpdated' => 'refreshMaterialStatus',
-        ];
+        $this->showProductionForm = false;
+        $this->reset(['actualProduced', 'productionNotes']);
     }
 }

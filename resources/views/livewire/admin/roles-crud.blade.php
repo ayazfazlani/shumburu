@@ -85,14 +85,92 @@
                 @enderror
             </div>
             <div class="mb-4">
-                <label class="label">Permissions</label>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    @foreach ($permissions as $permission)
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" wire:model.defer="selectedPermissions"
-                                value="{{ $permission->name }}" class="checkbox checkbox-sm" />
-                            <span>{{ $permission->name }}</span>
-                        </label>
+                <label class="label font-semibold">Permissions (Grouped by Module)</label>
+                <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    @php
+                        $groupedPermissions = $permissions->groupBy(function($permission) {
+                            if (str_contains($permission->name, '.')) {
+                                return explode('.', $permission->name)[0];
+                            }
+                            // Detect module from words for old permissions
+                            if (str_contains($permission->name, 'customer')) return 'admin';
+                            if (str_contains($permission->name, 'user')) return 'admin';
+                            if (str_contains($permission->name, 'role')) return 'admin';
+                            if (str_contains($permission->name, 'permission')) return 'admin';
+                            if (str_contains($permission->name, 'sales') || str_contains($permission->name, 'order')) return 'sales';
+                            if (str_contains($permission->name, 'production') || str_contains($permission->name, 'operation')) return 'operations';
+                            if (str_contains($permission->name, 'stock') || str_contains($permission->name, 'warehouse')) return 'warehouse';
+                            if (str_contains($permission->name, 'finance') || str_contains($permission->name, 'payment')) return 'finance';
+                            
+                            return 'General';
+                        });
+
+                        function formatPermissionName($name) {
+                            if (str_contains($name, '.')) {
+                                $parts = explode('.', $name);
+                                $module = $parts[0];
+                                $label = end($parts);
+                                
+                                // Special common mappings
+                                $mappings = [
+                                    'view' => 'View Dashboard',
+                                    'stock-overview' => 'View Finished Goods Stock',
+                                    'pending-receipts' => 'Approve Goods Receipts (GRN)',
+                                    'material-issue-requests' => 'Manage Material Issues (SIV)',
+                                    'demand-aggregation' => 'Consolidate PR Demands',
+                                    'demand-control' => 'Authorize Stock Requests',
+                                    'production-machine' => 'Configure Production Lines',
+                                    'manager' => 'Manage Production Queue',
+                                    'procurement' => 'Procurement Lifecycle (RFQ/PO)',
+                                    'purchase-payments' => 'Suppliers Payments (AP)',
+                                    'revenue-report' => 'Financial Revenue Analysis',
+                                    'inventory-report' => 'Stock Valuation Report',
+                                    'production-report' => 'Daily Production Log',
+                                    'weekly-production-report' => 'Weekly Performance Report',
+                                    'monthly-production-report' => 'Monthly Analytical Report',
+                                    'raw-material-stock-balance-report' => 'Material Balance Sheet',
+                                    'quality-report-manager' => 'Quality Standards Manager',
+                                    'material-stock-out-line-crud' => 'Monitor Material Consumption Logs',
+                                    'finished-goods' => 'Record Produced Finished Goods',
+                                    'finished-good-material-stock-out-line-crud' => 'Link Finished Goods to Raw Materials',
+                                    'scrap-waste-crud' => 'Manage Scrap and Waste Records',
+                                    'management-dashboard' => 'Executive Performance Cockpit',
+                                    'customers-crud' => 'Manage Customer Directory',
+                                    'suppliers-crud' => 'Manage Supplier Directory',
+                                    'users-crud' => 'Manage System Users',
+                                    'roles-crud' => 'Manage Access Roles',
+                                    'raw-materials-crud' => 'Manage Raw Material Catalog',
+                                    'products-crud' => 'Manage Finished Products Catalog',
+                                ];
+
+                                if (isset($mappings[$label])) {
+                                    return $mappings[$label];
+                                }
+
+                                return ucwords(str_replace('-', ' ', $label));
+                            }
+                            return ucwords(str_replace(['-', '.', '_'], ' ', $name));
+                        }
+                    @endphp
+
+                    @foreach ($groupedPermissions as $module => $modulePermissions)
+                        <div class="bg-gray-50 dark:bg-zinc-800/50 p-3 rounded-lg border border-gray-100 dark:border-zinc-700">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 border-b border-gray-200 dark:border-zinc-700 pb-1">
+                                {{ ucfirst($module) }}
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                @foreach ($modulePermissions as $permission)
+                                    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 p-2 rounded transition-colors border border-transparent hover:border-gray-200 dark:hover:border-zinc-600">
+                                        <input type="checkbox" wire:model.defer="selectedPermissions"
+                                            value="{{ $permission->name }}" class="checkbox checkbox-sm checkbox-primary" />
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium">{{ formatPermissionName($permission->name) }}</span>
+                                            <span class="text-[10px] text-gray-400 font-mono">{{ $permission->name }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
                     @endforeach
                 </div>
             </div>

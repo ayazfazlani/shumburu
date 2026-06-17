@@ -23,6 +23,7 @@ class RawMaterialStockBalanceReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('reports.raw-material-stock-balance-report'), 403);
         $this->date = Carbon::today()->toDateString();
 
         // Check if we need to show initialization button

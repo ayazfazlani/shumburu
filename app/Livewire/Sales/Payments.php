@@ -56,6 +56,7 @@ class Payments extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('sales.payments'), 403);
         $this->payment_date = now()->format('Y-m-d');
     }
 

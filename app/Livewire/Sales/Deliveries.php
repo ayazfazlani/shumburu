@@ -279,6 +279,11 @@ class Deliveries extends Component
         $this->notes = '';
     }
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('sales.deliveries'), 403);
+    }
+
     public function render()
     {
         $orders = ProductionOrder::with(['customer'

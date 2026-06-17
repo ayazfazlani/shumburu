@@ -11,6 +11,11 @@ class RawMaterialsCrud extends Component
 {
   use WithPagination;
 
+  public function mount()
+  {
+    abort_unless(auth()->user()->can('admin.raw-materials-crud'), 403);
+  }
+
   public $search = '';
   public $perPage = 10;
 

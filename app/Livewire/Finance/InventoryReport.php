@@ -15,6 +15,11 @@ class InventoryReport extends Component
 
     public $search = '';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('finance.inventory-report'), 403);
+    }
+
     public function render()
     {
         $products = Product::query()

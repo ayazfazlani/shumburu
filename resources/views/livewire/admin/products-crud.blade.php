@@ -80,7 +80,7 @@
     <div class="mt-4">{{ $products->links() }}</div>
 
     <!-- Create/Edit Modal -->
-    <dialog id="product-modal" class="modal" @if ($showModal) open @endif>
+    <dialog id="product-modal" class="modal" {{ $showModal ? 'open' : '' }}>
         <form method="dialog" class="modal-box w-full max-w-2xl" wire:submit.prevent="saveProduct">
             <h3 class="font-bold text-lg mb-4">{{ $isEdit ? 'Edit Product' : 'Create Product' }}</h3>
             <div class="mb-4">
@@ -105,8 +105,6 @@
                     placeholder="Size (e.g. 20mm, 32mm)" />
                 @error('size')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
-                @error('size')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
             </div>
             <div class="mb-4">
@@ -120,7 +118,7 @@
             <div class="mb-4">
                 <label class="label">Weight Per Meter</label>
                 <input type="text" wire:model.defer="WeightPerMeter" class="input input-bordered w-full"
-                    placeholder="KG (e.g. 1Kg, !0kg)" />
+                    placeholder="KG (e.g. 1Kg, 10kg)" />
                 @error('WeightPerMeter')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
@@ -135,7 +133,8 @@
             </div>
             <div class="mb-4">
                 <label class="label">Description</label>
-                <textarea wire:model.defer="description" class="textarea textarea-bordered w-full" placeholder="Description"></textarea>
+                <textarea wire:model.defer="description" class="textarea textarea-bordered w-full"
+                    placeholder="Description"></textarea>
                 @error('description')
                     <span class="text-red-500 text-xs">{{ $message }}</span>
                 @enderror
@@ -155,7 +154,7 @@
     </dialog>
 
     <!-- Delete Confirmation Modal -->
-    <dialog id="delete-modal" class="modal" @if ($showDeleteModal) open @endif>
+    <dialog id="delete-modal" class="modal" {{ $showDeleteModal ? 'open' : '' }}>
         <form method="dialog" class="modal-box">
             <h3 class="font-bold text-lg mb-4">Delete Product?</h3>
             <p class="mb-4">Are you sure you want to delete this product? This action cannot be undone.</p>

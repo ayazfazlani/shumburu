@@ -13,6 +13,11 @@ class StockOverview extends Component
 
     public $search = '';
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('warehouse.stock-overview'), 403);
+    }
+
     #[Layout('components.layouts.app')]
     public function render()
     {

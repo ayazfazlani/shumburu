@@ -17,6 +17,11 @@ class DemandAggregation extends Component
     public $bulkNotes;
     public $showPrModal = false;
 
+    public function mount()
+    {
+        abort_unless(auth()->user()->can('warehouse.demand-aggregation'), 403);
+    }
+
     #[Layout('components.layouts.app')]
     public function render()
     {

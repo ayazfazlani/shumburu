@@ -22,6 +22,7 @@ class ScrapWasteCrud extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('warehouse.scrap-waste-crud'), 403);
         $this->fetch();
     }
 

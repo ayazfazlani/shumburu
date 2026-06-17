@@ -9,6 +9,7 @@ class MaterialRequest extends Model
 {
     protected $fillable = [
         'production_request_id',
+        'production_plan_id',
         'raw_material_id',
         'quantity',
         'status', // pending, approved, issued, purchase_raised
@@ -29,5 +30,10 @@ class MaterialRequest extends Model
     public function requestedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    public function productionPlan(): BelongsTo
+    {
+        return $this->belongsTo(ProductionPlan::class);
     }
 }

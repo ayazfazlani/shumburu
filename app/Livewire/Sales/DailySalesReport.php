@@ -22,6 +22,7 @@ class DailySalesReport extends Component
 
     public function mount()
     {
+        abort_unless(auth()->user()->can('sales.daily-sales-report'), 403);
         $this->startDate = Carbon::today()->toDateString();
         $this->endDate = Carbon::today()->toDateString();
     }
