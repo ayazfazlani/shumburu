@@ -36,4 +36,9 @@ class ProductionRequest extends Model
     {
         return $this->hasMany(MaterialRequest::class);
     }
+
+    public function productionOrder()
+    {
+        return $this->belongsTo(ProductionOrder::class, 'production_order_id');
+    }
 }
