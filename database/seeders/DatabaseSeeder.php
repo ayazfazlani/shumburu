@@ -17,12 +17,21 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             PermissionSeeder::class,
-            // RoleSeeder::class,
+            RoleSeeder::class,
             // DepartmentSeeder::class,
             // RawMaterialSeeder::class,
             // ProductSeeder::class,
             // QualityReportSeeder::class,
             // CustomerSeeder::class,
         ]);
+        User::createOrUpdate(
+            [
+                'email' => 'admin@gmail.com',
+            ],
+            [
+                'name' => 'Admin',
+                'password' => bcrypt('password'),
+            ]
+        )->assignRole('Super Admin');
     }
 }
