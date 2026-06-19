@@ -1,9 +1,9 @@
 <?php
 
-namespace RectorPrefix202506\Clue\React\NDJson;
+namespace RectorPrefix202606\Clue\React\NDJson;
 
-use RectorPrefix202506\Evenement\EventEmitter;
-use RectorPrefix202506\React\Stream\WritableStreamInterface;
+use RectorPrefix202606\Evenement\EventEmitter;
+use RectorPrefix202606\React\Stream\WritableStreamInterface;
 /**
  * The Encoder / Serializer can be used to write any value, encode it as a JSON text and forward it to an output stream
  */
@@ -54,7 +54,7 @@ class Encoder extends EventEmitter implements WritableStreamInterface
         // @codeCoverageIgnoreStart
         if (\PHP_VERSION_ID < 50500) {
             $errstr = null;
-            \set_error_handler(function ($_, $error) use(&$errstr) {
+            \set_error_handler(function ($_, $error) use (&$errstr) {
                 $errstr = $error;
             });
             // encode data with options given in ctor (depth not supported)

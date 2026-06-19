@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassMethod;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
 use Rector\BetterPhpDocParser\PhpDoc\StringNode;
@@ -14,6 +15,7 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Doctrine\NodeAnalyzer\AttrinationFinder;
+use Rector\NodeAnalyzer\MagicClassMethodAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\FosAnnotation;
 use Rector\Symfony\Enum\SymfonyAnnotation;
@@ -47,6 +49,10 @@ final class InlineClassRoutePrefixRector extends AbstractRector
      */
     private AttrinationFinder $attrinationFinder;
     /**
+     * @readonly
+     */
+    private MagicClassMethodAnalyzer $magicClassMethodAnalyzer;
+    /**
      * @var string[]
      */
     private const FOS_REST_ANNOTATIONS = [FosAnnotation::REST_POST, FosAnnotation::REST_GET, FosAnnotation::REST_ROUTE];
@@ -54,21 +60,22 @@ final class InlineClassRoutePrefixRector extends AbstractRector
      * @var string
      */
     private const PATH = 'path';
-    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, PhpDocTagRemover $phpDocTagRemover, DocBlockUpdater $docBlockUpdater, ControllerAnalyzer $controllerAnalyzer, AttrinationFinder $attrinationFinder)
+    public function __construct(PhpDocInfoFactory $phpDocInfoFactory, PhpDocTagRemover $phpDocTagRemover, DocBlockUpdater $docBlockUpdater, ControllerAnalyzer $controllerAnalyzer, AttrinationFinder $attrinationFinder, MagicClassMethodAnalyzer $magicClassMethodAnalyzer)
     {
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->phpDocTagRemover = $phpDocTagRemover;
         $this->docBlockUpdater = $docBlockUpdater;
         $this->controllerAnalyzer = $controllerAnalyzer;
         $this->attrinationFinder = $attrinationFinder;
+        $this->magicClassMethodAnalyzer = $magicClassMethodAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Inline class route prefix to all method routes, to make single explicit source for route paths', [new CodeSample(<<<'CODE_SAMPLE'
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/api")
+ * @Route("/api", name="api_")
  */
 class SomeController
 {
@@ -83,6 +90,9 @@ CODE_SAMPLE
 , <<<'CODE_SAMPLE'
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * @Route(name="api_")
+ */
 class SomeController
 {
     /**
@@ -95,14 +105,14 @@ class SomeController
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         if ($this->shouldSkipClass($node)) {
             return null;
@@ -124,7 +134,7 @@ CODE_SAMPLE
         // 2. inline prefix to all method routes
         $hasChanged = \false;
         foreach ($node->getMethods() as $classMethod) {
-            if (!$classMethod->isPublic() || $classMethod->isMagic()) {
+            if ($this->shouldSkipMethod($classMethod)) {
                 continue;
             }
             // can be route method
@@ -142,7 +152,7 @@ CODE_SAMPLE
                     $newMethodPath = $classRoutePath . $methodPrefix->value;
                     $routePathArrayItemNode->value = new StringNode($newMethodPath);
                     foreach ($methodRouteAnnotationOrAttribute->values as $value) {
-                        if ($value->key === 'name' && $value->value instanceof StringNode && \is_string($classRouteName)) {
+                        if ($value->key === 'name' && $value->value instanceof StringNode && is_string($classRouteName)) {
                             $value->value->value = $classRouteName . $value->value->value;
                         }
                     }
@@ -155,16 +165,16 @@ CODE_SAMPLE
                                 continue;
                             }
                             $methodRouteString = $methodRouteArg->value;
-                            $methodRouteArg->value = new String_(\sprintf('%s%s', $classRoutePath, $methodRouteString->value));
+                            $methodRouteArg->value = new String_(sprintf('%s%s', $classRoutePath, $methodRouteString->value));
                             $hasChanged = \true;
                             continue;
                         }
-                        if ($methodRouteArg->name->toString() === 'name') {
+                        if ($this->isName($methodRouteArg->name, 'name')) {
                             if (!$methodRouteArg->value instanceof String_) {
                                 continue;
                             }
                             $methodRouteString = $methodRouteArg->value;
-                            $methodRouteArg->value = new String_(\sprintf('%s%s', $classRouteName, $methodRouteString->value));
+                            $methodRouteArg->value = new String_(sprintf('%s%s', $classRouteName, $methodRouteString->value));
                             $hasChanged = \true;
                         }
                     }
@@ -181,7 +191,25 @@ CODE_SAMPLE
         } else {
             foreach ($node->attrGroups as $attrGroupKey => $attrGroup) {
                 foreach ($attrGroup->attrs as $attribute) {
-                    if ($attribute === $routeAttributeOrAnnotation) {
+                    if ($attribute !== $routeAttributeOrAnnotation) {
+                        continue;
+                    }
+                    // keep attribute if there are other parameters set
+                    $attrGroup = $node->attrGroups[$attrGroupKey];
+                    foreach ($attrGroup->attrs as $attributeKey => $attribute) {
+                        foreach ($attribute->args as $attributeArgKey => $attributeArg) {
+                            // silent or "path"
+                            if ($attributeArg->name === null || $attributeArg->name->toString() === self::PATH) {
+                                unset($attribute->args[$attributeArgKey]);
+                            }
+                        }
+                        $attribute->args = array_values($attribute->args);
+                        // nothing to keep, remove whole attribute
+                        if ($attribute->args === []) {
+                            unset($attrGroup->attrs[$attributeKey]);
+                        }
+                    }
+                    if ($attrGroup->attrs === []) {
                         unset($node->attrGroups[$attrGroupKey]);
                     }
                 }
@@ -189,13 +217,17 @@ CODE_SAMPLE
         }
         return $node;
     }
-    private function shouldSkipClass(Class_ $class) : bool
+    private function shouldSkipMethod(ClassMethod $classMethod): bool
+    {
+        return !$classMethod->isPublic() || $this->magicClassMethodAnalyzer->isUnsafeOverridden($classMethod);
+    }
+    private function shouldSkipClass(Class_ $class): bool
     {
         if (!$this->controllerAnalyzer->isController($class)) {
             return \true;
         }
         foreach ($class->getMethods() as $classMethod) {
-            if (!$classMethod->isPublic() || $classMethod->isMagic()) {
+            if ($this->shouldSkipMethod($classMethod)) {
                 continue;
             }
             // special cases for FOS rest that should be skipped
@@ -205,7 +237,7 @@ CODE_SAMPLE
         }
         return \false;
     }
-    private function resolveRoutePath(DoctrineAnnotationTagValueNode $doctrineAnnotationTagValueNode) : ?string
+    private function resolveRoutePath(DoctrineAnnotationTagValueNode $doctrineAnnotationTagValueNode): ?string
     {
         $classRoutePathNode = $doctrineAnnotationTagValueNode->getSilentValue() ?: $doctrineAnnotationTagValueNode->getValue(self::PATH);
         if (!$classRoutePathNode instanceof ArrayItemNode) {
@@ -216,7 +248,7 @@ CODE_SAMPLE
         }
         return $classRoutePathNode->value->value;
     }
-    private function resolveRouteName(DoctrineAnnotationTagValueNode $doctrineAnnotationTagValueNode) : ?string
+    private function resolveRouteName(DoctrineAnnotationTagValueNode $doctrineAnnotationTagValueNode): ?string
     {
         $classRouteNameNode = $doctrineAnnotationTagValueNode->getValue('name');
         if (!$classRouteNameNode instanceof ArrayItemNode) {
@@ -227,7 +259,7 @@ CODE_SAMPLE
         }
         return $classRouteNameNode->value->value;
     }
-    private function resolveRoutePathFromAttribute(Attribute $attribute) : ?string
+    private function resolveRoutePathFromAttribute(Attribute $attribute): ?string
     {
         foreach ($attribute->args as $arg) {
             // silent or "path"
@@ -240,7 +272,7 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function resolveRouteNameFromAttribute(Attribute $attribute) : ?string
+    private function resolveRouteNameFromAttribute(Attribute $attribute): ?string
     {
         foreach ($attribute->args as $arg) {
             if ($arg->name === null) {

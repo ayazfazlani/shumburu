@@ -1,13 +1,13 @@
 <?php
 
-namespace RectorPrefix202506\Illuminate\Contracts\Redis;
+namespace RectorPrefix202606\Illuminate\Contracts\Redis;
 
 interface Factory
 {
     /**
      * Get a Redis connection by name.
      *
-     * @param  string|null  $name
+     * @param  \UnitEnum|string|null  $name
      * @return \Illuminate\Redis\Connections\Connection
      */
     public function connection($name = null);

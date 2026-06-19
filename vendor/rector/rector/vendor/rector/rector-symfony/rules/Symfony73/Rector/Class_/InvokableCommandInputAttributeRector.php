@@ -3,31 +3,34 @@
 declare (strict_types=1);
 namespace Rector\Symfony\Symfony73\Rector\Class_;
 
+use PhpParser\Modifiers;
 use PhpParser\Node;
-use PhpParser\Node\Attribute;
-use PhpParser\Node\Expr\ClassConstFetch;
-use PhpParser\Node\Expr\ConstFetch;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use Rector\Doctrine\NodeAnalyzer\AttributeFinder;
-use Rector\Exception\ShouldNotHappenException;
-use Rector\PhpParser\Node\Value\ValueResolver;
-use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\CommandMethodName;
 use Rector\Symfony\Enum\SymfonyAttribute;
 use Rector\Symfony\Enum\SymfonyClass;
-use Rector\Symfony\Symfony73\NodeAnalyzer\CommandArgumentsAndOptionsResolver;
+use Rector\Symfony\Symfony73\NodeAnalyzer\CommandArgumentsResolver;
+use Rector\Symfony\Symfony73\NodeAnalyzer\CommandOptionsResolver;
 use Rector\Symfony\Symfony73\NodeFactory\CommandInvokeParamsFactory;
+use Rector\Symfony\Symfony73\NodeTransformer\CommandUnusedInputOutputRemover;
+use Rector\Symfony\Symfony73\NodeTransformer\ConsoleOptionAndArgumentMethodCallVariableReplacer;
+use Rector\Symfony\Symfony73\NodeTransformer\OutputInputSymfonyStyleReplacer;
+use Rector\ValueObject\MethodName;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
+ * @see https://symfony.com/blog/new-in-symfony-7-3-invokable-commands-and-input-attributes
+ *
  * @see https://github.com/symfony/symfony-docs/issues/20553
  * @see https://github.com/symfony/symfony/pull/59340
  *
@@ -42,7 +45,11 @@ final class InvokableCommandInputAttributeRector extends AbstractRector
     /**
      * @readonly
      */
-    private CommandArgumentsAndOptionsResolver $commandArgumentsAndOptionsResolver;
+    private CommandArgumentsResolver $commandArgumentsResolver;
+    /**
+     * @readonly
+     */
+    private CommandOptionsResolver $commandOptionsResolver;
     /**
      * @readonly
      */
@@ -50,21 +57,30 @@ final class InvokableCommandInputAttributeRector extends AbstractRector
     /**
      * @readonly
      */
-    private ValueResolver $valueResolver;
+    private ConsoleOptionAndArgumentMethodCallVariableReplacer $consoleOptionAndArgumentMethodCallVariableReplacer;
     /**
      * @readonly
      */
-    private VisibilityManipulator $visibilityManipulator;
+    private OutputInputSymfonyStyleReplacer $outputInputSymfonyStyleReplacer;
+    /**
+     * @readonly
+     */
+    private CommandUnusedInputOutputRemover $commandUnusedInputOutputRemover;
+    /**
+     * @var mixed[]
+     */
     private const MIGRATED_CONFIGURE_CALLS = ['addArgument', 'addOption'];
-    public function __construct(AttributeFinder $attributeFinder, CommandArgumentsAndOptionsResolver $commandArgumentsAndOptionsResolver, CommandInvokeParamsFactory $commandInvokeParamsFactory, ValueResolver $valueResolver, VisibilityManipulator $visibilityManipulator)
+    public function __construct(AttributeFinder $attributeFinder, CommandArgumentsResolver $commandArgumentsResolver, CommandOptionsResolver $commandOptionsResolver, CommandInvokeParamsFactory $commandInvokeParamsFactory, ConsoleOptionAndArgumentMethodCallVariableReplacer $consoleOptionAndArgumentMethodCallVariableReplacer, OutputInputSymfonyStyleReplacer $outputInputSymfonyStyleReplacer, CommandUnusedInputOutputRemover $commandUnusedInputOutputRemover)
     {
         $this->attributeFinder = $attributeFinder;
-        $this->commandArgumentsAndOptionsResolver = $commandArgumentsAndOptionsResolver;
+        $this->commandArgumentsResolver = $commandArgumentsResolver;
+        $this->commandOptionsResolver = $commandOptionsResolver;
         $this->commandInvokeParamsFactory = $commandInvokeParamsFactory;
-        $this->valueResolver = $valueResolver;
-        $this->visibilityManipulator = $visibilityManipulator;
+        $this->consoleOptionAndArgumentMethodCallVariableReplacer = $consoleOptionAndArgumentMethodCallVariableReplacer;
+        $this->outputInputSymfonyStyleReplacer = $outputInputSymfonyStyleReplacer;
+        $this->commandUnusedInputOutputRemover = $commandUnusedInputOutputRemover;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change Symfony Command with execute() + configure() to __invoke() with attributes', [new CodeSample(<<<'CODE_SAMPLE'
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -90,21 +106,23 @@ final class SomeCommand extends Command
 
         // ...
 
-        return 1;
+        return Command::SUCCESS;
     }
 }
 CODE_SAMPLE
 , <<<'CODE_SAMPLE'
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Argument;
 use Symfony\Component\Console\Option;
 
+#[AsCommand(name: 'some_name')]
 final class SomeCommand
 {
     public function __invoke(
         #[Argument(name: 'argument', description: 'Argument description')]
         string $argument,
-        #[Option]
+        #[Option(name: 'option', shortcut: 'o', mode: Option::VALUE_NONE, description: 'Option description')]
         bool $option = false,
     ) {
         $someArgument = $argument;
@@ -112,20 +130,20 @@ final class SomeCommand
 
         // ...
 
-        return 1;
+        return Command::SUCCESS;
     }
 }
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         if (!$node->extends instanceof Name) {
             return null;
@@ -138,61 +156,48 @@ CODE_SAMPLE
             return null;
         }
         // as command attribute is required, its handled by previous symfony versions
-        // @todo possibly to add it here to handle multiple cases
-        if (!$this->attributeFinder->findAttributeByClass($node, SymfonyAttribute::AS_COMMAND) instanceof Attribute) {
+        if (!$this->attributeFinder->hasAttributeByClasses($node, [SymfonyAttribute::AS_COMMAND])) {
             return null;
         }
-        // 1. rename execute to __invoke
-        $executeClassMethod = $node->getMethod(CommandMethodName::EXECUTE);
-        if (!$executeClassMethod instanceof ClassMethod) {
-            return null;
-        }
-        $executeClassMethod->name = new Identifier('__invoke');
-        $this->visibilityManipulator->makePublic($executeClassMethod);
-        // 2. fetch configure method to get arguments and options metadata
-        $configureClassMethod = $node->getMethod(CommandMethodName::CONFIGURE);
-        if ($configureClassMethod instanceof ClassMethod) {
-            // 3. create arguments and options parameters
-            // @todo
-            $commandArguments = $this->commandArgumentsAndOptionsResolver->collectCommandArguments($configureClassMethod);
-            $commandOptions = $this->commandArgumentsAndOptionsResolver->collectCommandOptions($configureClassMethod);
-            // 4. remove configure() method
-            $this->removeConfigureClassMethod($node);
-            // 5. decorate __invoke method with attributes
-            $invokeParams = $this->commandInvokeParamsFactory->createParams($commandArguments, $commandOptions);
-        } else {
-            $invokeParams = [];
-        }
-        $executeClassMethod->params = \array_merge($invokeParams, [$executeClassMethod->params[1]]);
-        // 6. remove parent class
-        $node->extends = null;
-        foreach ($executeClassMethod->attrGroups as $attrGroupKey => $attrGroup) {
-            foreach ($attrGroup->attrs as $attributeKey => $attr) {
-                if ($this->isName($attr->name, 'Override')) {
-                    unset($attrGroup->attrs[$attributeKey]);
-                }
+        foreach ($node->stmts as $key => $classStmt) {
+            if (!$classStmt instanceof ClassMethod) {
+                continue;
             }
-            if ($attrGroup->attrs === []) {
-                unset($executeClassMethod->attrGroups[$attrGroupKey]);
+            if (!$this->isName($classStmt, CommandMethodName::EXECUTE)) {
+                continue;
             }
-        }
-        if ($configureClassMethod instanceof ClassMethod) {
+            $executeClassMethod = $classStmt;
+            // 1. rename execute to __invoke
+            $invokeClassMethod = new ClassMethod(MethodName::INVOKE);
+            $invokeClassMethod->flags |= Modifiers::PUBLIC;
+            $invokeClassMethod->returnType = new Identifier('int');
+            $invokeClassMethod->stmts = $classStmt->stmts;
+            $invokeParams = $this->createInvokeParams($node);
+            $allParams = array_merge($invokeParams, [$executeClassMethod->params[1]]);
+            // optional parameters (with a default value) must be listed last, to keep a valid signature
+            $invokeClassMethod->params = $this->sortRequiredParamsFirst($allParams);
+            // 6. remove parent class
+            $node->extends = null;
             // 7. replace input->getArgument() and input->getOption() calls with direct variable access
-            $this->replaceInputArgumentOptionFetchWithVariables($executeClassMethod);
+            $this->consoleOptionAndArgumentMethodCallVariableReplacer->replace($invokeClassMethod);
+            $this->outputInputSymfonyStyleReplacer->replace($invokeClassMethod);
+            $this->commandUnusedInputOutputRemover->remove($invokeClassMethod);
+            $node->stmts[$key] = $invokeClassMethod;
+            return $node;
         }
-        return $node;
+        return null;
     }
     /**
      * Skip commands with interact() or initialize() methods as modify the argument/option values
      */
-    private function isComplexCommand(Class_ $class) : bool
+    private function isComplexCommand(Class_ $class): bool
     {
         if ($class->getMethod(CommandMethodName::INTERACT) instanceof ClassMethod) {
             return \true;
         }
         return $class->getMethod(CommandMethodName::INITIALIZE) instanceof ClassMethod;
     }
-    private function removeConfigureClassMethod(Class_ $class) : void
+    private function removeConfigureClassMethodIfNotUseful(Class_ $class): void
     {
         foreach ($class->stmts as $key => $stmt) {
             if (!$stmt instanceof ClassMethod) {
@@ -217,39 +222,14 @@ CODE_SAMPLE
                     unset($stmt->stmts[$innerKey]);
                 }
             }
-            // 2. if configure() has become empty → remove the method itself
+            // 2. if configure() has became empty → remove the method itself
             if ($stmt->stmts === [] || $stmt->stmts === null) {
                 unset($class->stmts[$key]);
             }
             return;
         }
     }
-    private function replaceInputArgumentOptionFetchWithVariables(ClassMethod $executeClassMethod) : void
-    {
-        $this->traverseNodesWithCallable($executeClassMethod->stmts, function (Node $node) : ?Variable {
-            if (!$node instanceof MethodCall) {
-                return null;
-            }
-            if (!$this->isName($node->var, 'input')) {
-                return null;
-            }
-            if (!$this->isNames($node->name, ['getOption', 'getArgument'])) {
-                return null;
-            }
-            $firstArgValue = $node->getArgs()[0]->value;
-            if ($firstArgValue instanceof ClassConstFetch || $firstArgValue instanceof ConstFetch) {
-                $variableName = $this->valueResolver->getValue($firstArgValue);
-                return new Variable(\str_replace('-', '_', $variableName));
-            }
-            if (!$firstArgValue instanceof String_) {
-                // unable to resolve argument/option name
-                throw new ShouldNotHappenException();
-            }
-            $variableName = $firstArgValue->value;
-            return new Variable(\str_replace('-', '_', $variableName));
-        });
-    }
-    private function isFluentArgumentOptionChain(MethodCall $methodCall) : bool
+    private function isFluentArgumentOptionChain(MethodCall $methodCall): bool
     {
         $current = $methodCall;
         while ($current instanceof MethodCall) {
@@ -257,10 +237,45 @@ CODE_SAMPLE
             if (!$this->isNames($current->name, self::MIGRATED_CONFIGURE_CALLS)) {
                 return \false;
             }
-            $current = $current->var;
             // go one step left
+            $current = $current->var;
         }
         // the left-most var must be $this
         return $current instanceof Variable && $this->isName($current, 'this');
+    }
+    /**
+     * @param Param[] $params
+     * @return Param[]
+     */
+    private function sortRequiredParamsFirst(array $params): array
+    {
+        $requiredParams = [];
+        $optionalParams = [];
+        foreach ($params as $param) {
+            if ($param->default instanceof Expr) {
+                $optionalParams[] = $param;
+            } else {
+                $requiredParams[] = $param;
+            }
+        }
+        return array_merge($requiredParams, $optionalParams);
+    }
+    /**
+     * @return Param[]
+     */
+    private function createInvokeParams(Class_ $class): array
+    {
+        // 1. fetch configure method to get arguments and options metadata
+        $configureClassMethod = $class->getMethod(CommandMethodName::CONFIGURE);
+        if ($configureClassMethod instanceof ClassMethod) {
+            // 2. create arguments and options parameters
+            $commandArguments = $this->commandArgumentsResolver->resolve($configureClassMethod);
+            $commandOptions = $this->commandOptionsResolver->resolve($configureClassMethod);
+            // 3. remove configure() method
+            $this->removeConfigureClassMethodIfNotUseful($class);
+            // 4. decorate __invoke method with attributes
+            return $this->commandInvokeParamsFactory->createParams($commandArguments, $commandOptions);
+        }
+        return [];
     }
 }

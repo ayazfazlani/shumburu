@@ -9,8 +9,9 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\Expression;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
+use PhpParser\Node\Stmt\TryCatch;
 use Rector\DeadCode\SideEffect\SideEffectNodeDetector;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -33,7 +34,7 @@ final class RemoveDoubleAssignRector extends AbstractRector
         $this->sideEffectNodeDetector = $sideEffectNodeDetector;
         $this->betterNodeFinder = $betterNodeFinder;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Simplify useless double assigns', [new CodeSample(<<<'CODE_SAMPLE'
 $value = 1;
@@ -44,28 +45,27 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
-        $stmts = $node->stmts;
-        if ($stmts === null) {
+        if ($node->stmts === null) {
             return null;
         }
         $hasChanged = \false;
-        foreach ($stmts as $key => $stmt) {
-            if (!isset($stmts[$key + 1])) {
+        foreach ($node->stmts as $key => $stmt) {
+            if (!isset($node->stmts[$key + 1])) {
                 continue;
             }
             if (!$stmt instanceof Expression) {
                 continue;
             }
-            $nextStmt = $stmts[$key + 1];
+            $nextStmt = $node->stmts[$key + 1];
             if (!$nextStmt instanceof Expression) {
                 continue;
             }
@@ -95,6 +95,10 @@ CODE_SAMPLE
             if (!$stmt->expr->var instanceof Variable && !$stmt->expr->var instanceof PropertyFetch && !$stmt->expr->var instanceof StaticPropertyFetch) {
                 continue;
             }
+            // side effect may throw exception, and may be handled by catch block
+            if ($node instanceof TryCatch && $this->sideEffectNodeDetector->detectCallExpr($nextAssign->expr)) {
+                continue;
+            }
             // remove current Stmt if will be overridden in next stmt
             unset($node->stmts[$key]);
             $hasChanged = \true;
@@ -102,9 +106,11 @@ CODE_SAMPLE
         if (!$hasChanged) {
             return null;
         }
+        // update array keys to fit printer
+        $node->stmts = array_values($node->stmts);
         return $node;
     }
-    private function isSelfReferencing(Assign $assign) : bool
+    private function isSelfReferencing(Assign $assign): bool
     {
         return (bool) $this->betterNodeFinder->findFirst($assign->expr, fn(Node $subNode): bool => $this->nodeComparator->areNodesEqual($assign->var, $subNode));
     }

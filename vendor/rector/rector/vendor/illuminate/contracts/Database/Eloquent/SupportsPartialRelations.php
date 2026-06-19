@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202506\Illuminate\Contracts\Database\Eloquent;
+namespace RectorPrefix202606\Illuminate\Contracts\Database\Eloquent;
 
 interface SupportsPartialRelations
 {
@@ -9,7 +9,7 @@ interface SupportsPartialRelations
      *
      * @param  string|null  $column
      * @param  string|\Closure|null  $aggregate
-     * @param  string  $relation
+     * @param  string|null  $relation
      * @return $this
      */
     public function ofMany($column = 'id', $aggregate = 'MAX', $relation = null);

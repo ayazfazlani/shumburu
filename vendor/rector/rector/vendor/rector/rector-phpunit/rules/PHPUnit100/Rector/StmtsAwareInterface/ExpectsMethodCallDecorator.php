@@ -33,15 +33,13 @@ final class ExpectsMethodCallDecorator
      * Replace $this->expects(...)
      * with
      * $expects = ...
-     *
-     * @param Expression<MethodCall> $expression
      * @return \PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\StaticCall|null
      */
     public function decorate(Expression $expression)
     {
         /** @var MethodCall|StaticCall|null $expectsExactlyCall */
         $expectsExactlyCall = null;
-        $this->simpleCallableNodeTraverser->traverseNodesWithCallable($expression, function (Node $node) use(&$expectsExactlyCall) : ?MethodCall {
+        $this->simpleCallableNodeTraverser->traverseNodesWithCallable($expression, function (Node $node) use (&$expectsExactlyCall): ?MethodCall {
             if (!$node instanceof MethodCall) {
                 return null;
             }
@@ -61,7 +59,7 @@ final class ExpectsMethodCallDecorator
         });
         // add expects() method
         if (!$expectsExactlyCall instanceof Expr) {
-            $this->simpleCallableNodeTraverser->traverseNodesWithCallable($expression, function (Node $node) : ?int {
+            $this->simpleCallableNodeTraverser->traverseNodesWithCallable($expression, function (Node $node): ?int {
                 if (!$node instanceof MethodCall) {
                     return null;
                 }

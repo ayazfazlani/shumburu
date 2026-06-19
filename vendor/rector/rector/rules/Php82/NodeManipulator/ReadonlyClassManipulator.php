@@ -14,10 +14,8 @@ use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
 use Rector\Php81\Enum\AttributeName;
-use Rector\Php81\NodeManipulator\AttributeGroupNewLiner;
 use Rector\PHPStan\ScopeFetcher;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
-use Rector\ValueObject\Application\File;
 use Rector\ValueObject\MethodName;
 use Rector\ValueObject\Visibility;
 final class ReadonlyClassManipulator
@@ -34,18 +32,13 @@ final class ReadonlyClassManipulator
      * @readonly
      */
     private ReflectionProvider $reflectionProvider;
-    /**
-     * @readonly
-     */
-    private AttributeGroupNewLiner $attributeGroupNewLiner;
-    public function __construct(VisibilityManipulator $visibilityManipulator, PhpAttributeAnalyzer $phpAttributeAnalyzer, ReflectionProvider $reflectionProvider, AttributeGroupNewLiner $attributeGroupNewLiner)
+    public function __construct(VisibilityManipulator $visibilityManipulator, PhpAttributeAnalyzer $phpAttributeAnalyzer, ReflectionProvider $reflectionProvider)
     {
         $this->visibilityManipulator = $visibilityManipulator;
         $this->phpAttributeAnalyzer = $phpAttributeAnalyzer;
         $this->reflectionProvider = $reflectionProvider;
-        $this->attributeGroupNewLiner = $attributeGroupNewLiner;
     }
-    public function process(Class_ $class, File $file) : ?\PhpParser\Node\Stmt\Class_
+    public function process(Class_ $class): ?\PhpParser\Node\Stmt\Class_
     {
         $scope = ScopeFetcher::fetch($class);
         if ($this->shouldSkip($class, $scope)) {
@@ -56,26 +49,17 @@ final class ReadonlyClassManipulator
         if ($constructClassMethod instanceof ClassMethod) {
             foreach ($constructClassMethod->getParams() as $param) {
                 $this->visibilityManipulator->removeReadonly($param);
-                if ($param->attrGroups !== []) {
-                    $this->attributeGroupNewLiner->newLine($file, $param);
-                }
             }
         }
         foreach ($class->getProperties() as $property) {
             $this->visibilityManipulator->removeReadonly($property);
-            if ($property->attrGroups !== []) {
-                $this->attributeGroupNewLiner->newLine($file, $property);
-            }
-        }
-        if ($class->attrGroups !== []) {
-            $this->attributeGroupNewLiner->newLine($file, $class);
         }
         return $class;
     }
     /**
      * @return ClassReflection[]
      */
-    private function resolveParentClassReflections(Scope $scope) : array
+    private function resolveParentClassReflections(Scope $scope): array
     {
         $classReflection = $scope->getClassReflection();
         if (!$classReflection instanceof ClassReflection) {
@@ -86,7 +70,7 @@ final class ReadonlyClassManipulator
     /**
      * @param Property[] $properties
      */
-    private function hasNonTypedProperty(array $properties) : bool
+    private function hasNonTypedProperty(array $properties): bool
     {
         foreach ($properties as $property) {
             // properties of readonly class must always have type
@@ -96,7 +80,7 @@ final class ReadonlyClassManipulator
         }
         return \false;
     }
-    private function shouldSkip(Class_ $class, Scope $scope) : bool
+    private function shouldSkip(Class_ $class, Scope $scope): bool
     {
         $classReflection = $scope->getClassReflection();
         if (!$classReflection instanceof ClassReflection) {
@@ -136,7 +120,7 @@ final class ReadonlyClassManipulator
         }
         return $this->shouldSkipParams($params);
     }
-    private function shouldSkipConsumeTraitProperty(Class_ $class) : bool
+    private function shouldSkipConsumeTraitProperty(Class_ $class): bool
     {
         $traitUses = $class->getTraitUses();
         foreach ($traitUses as $traitUse) {
@@ -158,7 +142,7 @@ final class ReadonlyClassManipulator
     /**
      * @param ReflectionProperty[] $properties
      */
-    private function hasReadonlyProperty(array $properties) : bool
+    private function hasReadonlyProperty(array $properties): bool
     {
         foreach ($properties as $property) {
             if (!$property->isReadOnly()) {
@@ -170,7 +154,7 @@ final class ReadonlyClassManipulator
     /**
      * @param ClassReflection[] $parents
      */
-    private function isExtendsReadonlyClass(array $parents) : bool
+    private function isExtendsReadonlyClass(array $parents): bool
     {
         foreach ($parents as $parent) {
             if ($parent->isReadOnly()) {
@@ -182,7 +166,7 @@ final class ReadonlyClassManipulator
     /**
      * @param Property[] $properties
      */
-    private function hasWritableProperty(array $properties) : bool
+    private function hasWritableProperty(array $properties): bool
     {
         foreach ($properties as $property) {
             if (!$property->isReadonly()) {
@@ -191,7 +175,7 @@ final class ReadonlyClassManipulator
         }
         return \false;
     }
-    private function shouldSkipClass(Class_ $class) : bool
+    private function shouldSkipClass(Class_ $class): bool
     {
         // need to have test fixture once feature added to  nikic/PHP-Parser
         if ($this->visibilityManipulator->hasVisibility($class, Visibility::READONLY)) {
@@ -205,7 +189,7 @@ final class ReadonlyClassManipulator
     /**
      * @param Param[] $params
      */
-    private function shouldSkipParams(array $params) : bool
+    private function shouldSkipParams(array $params): bool
     {
         foreach ($params as $param) {
             // has non-readonly property promotion

@@ -38,7 +38,7 @@ final class NullableObjectAssignCollector
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Foreach_ $stmtsAware
      */
-    public function collect($stmtsAware) : VariableNameToTypeCollection
+    public function collect($stmtsAware): VariableNameToTypeCollection
     {
         $variableNamesToType = [];
         // first round to collect assigns
@@ -57,7 +57,7 @@ final class NullableObjectAssignCollector
         }
         return new VariableNameToTypeCollection($variableNamesToType);
     }
-    private function collectFromAssign(Assign $assign) : ?VariableNameToType
+    private function collectFromAssign(Assign $assign): ?VariableNameToType
     {
         if (!$assign->expr instanceof MethodCall) {
             return null;
@@ -71,6 +71,9 @@ final class NullableObjectAssignCollector
             return null;
         }
         $variableName = $this->nodeNameResolver->getName($assign->var);
+        if (!is_string($variableName)) {
+            return null;
+        }
         return new VariableNameToType($variableName, $bareVariableType->getClassName());
     }
 }

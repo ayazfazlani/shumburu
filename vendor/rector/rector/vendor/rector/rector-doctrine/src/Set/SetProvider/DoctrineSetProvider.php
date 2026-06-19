@@ -16,7 +16,7 @@ final class DoctrineSetProvider implements SetProviderInterface
     /**
      * @return SetInterface[]
      */
-    public function provide() : array
+    public function provide(): array
     {
         return [
             new Set(SetGroup::DOCTRINE, 'Code Quality', __DIR__ . '/../../../config/sets/doctrine-code-quality.php'),
@@ -27,6 +27,7 @@ final class DoctrineSetProvider implements SetProviderInterface
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/doctrine-bundle', '2.3', __DIR__ . '/../../../config/sets/doctrine-bundle-23.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/doctrine-bundle', '2.8', __DIR__ . '/../../../config/sets/doctrine-bundle-28.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/dbal', '3.0', __DIR__ . '/../../../config/sets/doctrine-dbal-30.php'),
+            new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/dbal', '3.8', __DIR__ . '/../../../config/sets/doctrine-dbal-38.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/dbal', '4.0', __DIR__ . '/../../../config/sets/doctrine-dbal-40.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/dbal', '4.2', __DIR__ . '/../../../config/sets/doctrine-dbal-42.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/dbal', '2.11', __DIR__ . '/../../../config/sets/doctrine-dbal-211.php'),
@@ -38,6 +39,7 @@ final class DoctrineSetProvider implements SetProviderInterface
             new Set(SetGroup::ATTRIBUTES, 'Gedmo', __DIR__ . '/../../../config/sets/attributes/gedmo.php'),
             new Set(SetGroup::ATTRIBUTES, 'MongoDB', __DIR__ . '/../../../config/sets/attributes/mongodb.php'),
             new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/data-fixtures', '1.6', __DIR__ . '/../../../config/sets/data-fixtures-16.php'),
+            new ComposerTriggeredSet(SetGroup::DOCTRINE, 'doctrine/mongodb-odm', '2.16', __DIR__ . '/../../../config/sets/doctrine-mongodb-odm-216.php'),
         ];
     }
 }

@@ -1,3 +1,5 @@
+@blaze(fold: true)
+
 @props([
     'inline' => false,
     'variant' => null,
@@ -7,6 +9,7 @@
 
 @php
 $classes = Flux::classes()
+    ->add('[:where(&)]:font-normal')
     ->add(match ($size) {
         'xl' => 'text-lg',
         'lg' => 'text-base',
@@ -39,4 +42,4 @@ $classes = Flux::classes()
     ;
 @endphp
 {{-- NOTE: It's important that this file has NO newline at the end of the file. --}}
-<?php if ($inline) : ?><span {{ $attributes->class($classes) }} data-flux-text @if ($color) color="{{ $color }}" @endif>{{ $slot }}</span><?php else: ?><div {{ $attributes->class($classes) }} data-flux-text @if ($color) data-color="{{ $color }}" @endif>{{ $slot }}</div><?php endif; ?>
+<?php if ($inline) : ?><span {{ $attributes->class($classes) }} data-flux-text @if ($color) color="{{ $color }}" @endif>{{ $slot }}</span><?php else: ?><p {{ $attributes->class($classes) }} data-flux-text @if ($color) data-color="{{ $color }}" @endif>{{ $slot }}</p><?php endif; ?>

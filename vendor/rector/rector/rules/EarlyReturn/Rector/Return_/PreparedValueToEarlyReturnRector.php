@@ -16,9 +16,9 @@ use PhpParser\Node\Stmt\Foreach_;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\While_;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\EarlyReturn\ValueObject\BareSingleAssignIf;
 use Rector\NodeManipulator\IfManipulator;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -41,7 +41,7 @@ final class PreparedValueToEarlyReturnRector extends AbstractRector
         $this->ifManipulator = $ifManipulator;
         $this->betterNodeFinder = $betterNodeFinder;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Return early prepared value in ifs', [new CodeSample(<<<'CODE_SAMPLE'
 class SomeClass
@@ -84,14 +84,15 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
+     * @return StmtsAware
      */
-    public function refactor(Node $node) : ?StmtsAwareInterface
+    public function refactor(Node $node): ?Node
     {
         if ($node->stmts === null) {
             return null;
@@ -128,7 +129,7 @@ CODE_SAMPLE
             if (!$return->expr instanceof Variable) {
                 return null;
             }
-            if (!\is_int($initialAssignPosition)) {
+            if (!is_int($initialAssignPosition)) {
                 return null;
             }
             if (!$initialAssign instanceof Assign) {
@@ -147,9 +148,11 @@ CODE_SAMPLE
     }
     /**
      * @param If_[] $ifs
+     * @param StmtsAware $stmtsAware
+     *
      * @return BareSingleAssignIf[]
      */
-    private function getMatchingBareSingleAssignIfs(array $ifs, StmtsAwareInterface $stmtsAware) : array
+    private function getMatchingBareSingleAssignIfs(array $ifs, Node $stmtsAware): array
     {
         $bareSingleAssignIfs = [];
         foreach ($ifs as $key => $if) {
@@ -164,7 +167,7 @@ CODE_SAMPLE
     /**
      * @param BareSingleAssignIf[] $bareSingleAssignIfs
      */
-    private function isVariableSharedInAssignIfsAndReturn(array $bareSingleAssignIfs, Expr $returnedExpr, Assign $initialAssign) : bool
+    private function isVariableSharedInAssignIfsAndReturn(array $bareSingleAssignIfs, Expr $returnedExpr, Assign $initialAssign): bool
     {
         if (!$this->nodeComparator->areNodesEqual($returnedExpr, $initialAssign->var)) {
             return \false;
@@ -181,13 +184,16 @@ CODE_SAMPLE
         }
         return \true;
     }
-    private function matchBareSingleAssignIf(Stmt $stmt, int $key, StmtsAwareInterface $stmtsAware) : ?BareSingleAssignIf
+    /**
+     * @param StmtsAware $stmtsAware
+     */
+    private function matchBareSingleAssignIf(Stmt $stmt, int $key, Node $stmtsAware): ?BareSingleAssignIf
     {
         if (!$stmt instanceof If_) {
             return null;
         }
         // is exactly single stmt
-        if (\count($stmt->stmts) !== 1) {
+        if (count($stmt->stmts) !== 1) {
             return null;
         }
         $onlyStmt = $stmt->stmts[0];
@@ -213,9 +219,12 @@ CODE_SAMPLE
         return null;
     }
     /**
+     * @param StmtsAware $stmtsAware
      * @param BareSingleAssignIf[] $bareSingleAssignIfs
+     *
+     * @return StmtsAware
      */
-    private function refactorToDirectReturns(StmtsAwareInterface $stmtsAware, int $initialAssignPosition, array $bareSingleAssignIfs, Assign $initialAssign, Return_ $return) : StmtsAwareInterface
+    private function refactorToDirectReturns(Node $stmtsAware, int $initialAssignPosition, array $bareSingleAssignIfs, Assign $initialAssign, Return_ $return): Node
     {
         // 1. remove initial assign
         unset($stmtsAware->stmts[$initialAssignPosition]);

@@ -1,11 +1,13 @@
 <?php
 
-namespace RectorPrefix202506\Illuminate\Contracts\Pagination;
+namespace RectorPrefix202606\Illuminate\Contracts\Pagination;
 
 /**
  * @template TKey of array-key
  *
  * @template-covariant TValue
+ *
+ * @method $this through(callable(TValue): mixed $callback)
  */
 interface CursorPaginator
 {
@@ -85,6 +87,12 @@ interface CursorPaginator
      * @return bool
      */
     public function hasPages();
+    /**
+     * Determine if there are more items in the data source.
+     *
+     * @return bool
+     */
+    public function hasMorePages();
     /**
      * Get the base path for paginator generated URLs.
      *

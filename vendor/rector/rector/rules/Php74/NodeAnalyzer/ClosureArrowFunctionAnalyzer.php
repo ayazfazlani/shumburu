@@ -7,13 +7,13 @@ use PhpParser\Node;
 use PhpParser\Node\ClosureUse;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Closure;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\Return_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
-use PHPStan\Type\MixedType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
-use Rector\NodeTypeResolver\NodeTypeResolver;
+use Rector\NodeAnalyzer\CompactFuncCallAnalyzer;
 use Rector\PhpParser\Comparing\NodeComparator;
 use Rector\PhpParser\Node\BetterNodeFinder;
 use Rector\Util\ArrayChecker;
@@ -38,25 +38,24 @@ final class ClosureArrowFunctionAnalyzer
     /**
      * @readonly
      */
-    private NodeTypeResolver $nodeTypeResolver;
-    public function __construct(BetterNodeFinder $betterNodeFinder, NodeComparator $nodeComparator, ArrayChecker $arrayChecker, PhpDocInfoFactory $phpDocInfoFactory, NodeTypeResolver $nodeTypeResolver)
+    private CompactFuncCallAnalyzer $compactFuncCallAnalyzer;
+    public function __construct(BetterNodeFinder $betterNodeFinder, NodeComparator $nodeComparator, ArrayChecker $arrayChecker, PhpDocInfoFactory $phpDocInfoFactory, CompactFuncCallAnalyzer $compactFuncCallAnalyzer)
     {
         $this->betterNodeFinder = $betterNodeFinder;
         $this->nodeComparator = $nodeComparator;
         $this->arrayChecker = $arrayChecker;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
-        $this->nodeTypeResolver = $nodeTypeResolver;
+        $this->compactFuncCallAnalyzer = $compactFuncCallAnalyzer;
     }
-    public function matchArrowFunctionExpr(Closure $closure) : ?Expr
+    public function matchArrowFunctionExpr(Closure $closure): ?Expr
     {
-        if (\count($closure->stmts) !== 1) {
+        if (count($closure->stmts) !== 1) {
             return null;
         }
         $onlyStmt = $closure->stmts[0];
         if (!$onlyStmt instanceof Return_) {
             return null;
         }
-        /** @var Return_ $return */
         $return = $onlyStmt;
         if (!$return->expr instanceof Expr) {
             return null;
@@ -64,44 +63,52 @@ final class ClosureArrowFunctionAnalyzer
         if ($this->shouldSkipForUsedReferencedValue($closure)) {
             return null;
         }
-        if ($this->shouldSkipMoreSpecificTypeWithVarDoc($return, $return->expr)) {
+        if ($this->shouldSkipForUseVariableUsedByCompact($closure)) {
+            return null;
+        }
+        if ($this->shouldSkipMoreSpecificTypeWithVarDoc($return)) {
             return null;
         }
         return $return->expr;
     }
+    private function shouldSkipForUseVariableUsedByCompact(Closure $closure): bool
+    {
+        $variables = array_map(fn(ClosureUse $use): Variable => $use->var, $closure->uses);
+        if ($variables === []) {
+            return \false;
+        }
+        return (bool) $this->betterNodeFinder->findFirstInFunctionLikeScoped($closure, function (Node $node) use ($variables): bool {
+            if (!$node instanceof FuncCall) {
+                return \false;
+            }
+            foreach ($variables as $variable) {
+                if ($this->compactFuncCallAnalyzer->isInCompact($node, $variable)) {
+                    return \true;
+                }
+            }
+            return \false;
+        });
+    }
     /**
-     * Ensure @var doc usage with more specific type on purpose to be skipped
+     * Ensure @var doc usage to be skipped, as arrow functions do not support
+     * inline @var annotations for type narrowing (e.g. generic types like Builder<Team>)
      */
-    private function shouldSkipMoreSpecificTypeWithVarDoc(Return_ $return, Expr $expr) : bool
+    private function shouldSkipMoreSpecificTypeWithVarDoc(Return_ $return): bool
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($return);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return \false;
         }
         $varTagValueNode = $phpDocInfo->getVarTagValueNode();
-        if (!$varTagValueNode instanceof VarTagValueNode) {
-            return \false;
-        }
-        $varType = $phpDocInfo->getVarType();
-        if ($varType instanceof MixedType) {
-            return \false;
-        }
-        $variableName = \ltrim($varTagValueNode->variableName, '$');
-        $variable = $this->betterNodeFinder->findFirst($expr, static fn(Node $node): bool => $node instanceof Variable && $node->name === $variableName);
-        if (!$variable instanceof Variable) {
-            return \false;
-        }
-        $nativeVariableType = $this->nodeTypeResolver->getNativeType($variable);
-        // not equal with native type means more specific type
-        return !$nativeVariableType->equals($varType);
+        return $varTagValueNode instanceof VarTagValueNode;
     }
-    private function shouldSkipForUsedReferencedValue(Closure $closure) : bool
+    private function shouldSkipForUsedReferencedValue(Closure $closure): bool
     {
         $referencedValues = $this->resolveReferencedUseVariablesFromClosure($closure);
         if ($referencedValues === []) {
             return \false;
         }
-        $isFoundInStmt = (bool) $this->betterNodeFinder->findFirstInFunctionLikeScoped($closure, function (Node $node) use($referencedValues) : bool {
+        $isFoundInStmt = (bool) $this->betterNodeFinder->findFirstInFunctionLikeScoped($closure, function (Node $node) use ($referencedValues): bool {
             foreach ($referencedValues as $referencedValue) {
                 if ($this->nodeComparator->areNodesEqual($node, $referencedValue)) {
                     return \true;
@@ -117,9 +124,9 @@ final class ClosureArrowFunctionAnalyzer
     /**
      * @param Variable[] $referencedValues
      */
-    private function isFoundInInnerUses(Closure $node, array $referencedValues) : bool
+    private function isFoundInInnerUses(Closure $node, array $referencedValues): bool
     {
-        return (bool) $this->betterNodeFinder->findFirstInFunctionLikeScoped($node, function (Node $subNode) use($referencedValues) : bool {
+        return (bool) $this->betterNodeFinder->findFirstInFunctionLikeScoped($node, function (Node $subNode) use ($referencedValues): bool {
             if (!$subNode instanceof Closure) {
                 return \false;
             }
@@ -135,7 +142,7 @@ final class ClosureArrowFunctionAnalyzer
     /**
      * @return Variable[]
      */
-    private function resolveReferencedUseVariablesFromClosure(Closure $closure) : array
+    private function resolveReferencedUseVariablesFromClosure(Closure $closure): array
     {
         $referencedValues = [];
         /** @var ClosureUse $use */

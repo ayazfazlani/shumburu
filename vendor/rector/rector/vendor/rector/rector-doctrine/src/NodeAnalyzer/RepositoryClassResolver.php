@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Rector\Doctrine\NodeAnalyzer;
 
-use RectorPrefix202506\Nette\Utils\FileSystem;
-use RectorPrefix202506\Nette\Utils\Strings;
+use RectorPrefix202606\Nette\Utils\FileSystem;
+use RectorPrefix202606\Nette\Utils\Strings;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Exception\ShouldNotHappenException;
 final class RepositoryClassResolver
@@ -16,7 +16,7 @@ final class RepositoryClassResolver
     /**
      * @var string
      */
-    private const QUOTED_REPOSITORY_CLASS_REGEX = '#repositoryClass=\\"(?<repositoryClass>.*?)\\"#';
+    private const QUOTED_REPOSITORY_CLASS_REGEX = '#repositoryClass=\"(?<repositoryClass>.*?)\"#';
     /**
      * @var string
      */
@@ -25,7 +25,7 @@ final class RepositoryClassResolver
     {
         $this->reflectionProvider = $reflectionProvider;
     }
-    public function resolveFromEntityClass(string $entityClassName) : ?string
+    public function resolveFromEntityClass(string $entityClassName): ?string
     {
         if (!$this->reflectionProvider->hasClass($entityClassName)) {
             throw new ShouldNotHappenException();
@@ -52,7 +52,7 @@ final class RepositoryClassResolver
             return null;
         }
         if (!$this->reflectionProvider->hasClass($repositoryClass)) {
-            throw new ShouldNotHappenException(\sprintf('Repository class "%s" for entity "%s" does not exist', $repositoryClass, $entityClassName));
+            throw new ShouldNotHappenException(sprintf('Repository class "%s" for entity "%s" does not exist', $repositoryClass, $entityClassName));
         }
         return $repositoryClass;
     }

@@ -16,17 +16,17 @@ use Rector\Rector\AbstractRector;
 use Rector\Transform\ValueObject\ScalarValueToConstFetch;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
- * @see Rector\Tests\Transform\Rector\Scalar\ScalarValueToConstFetchRector\ScalarValueToConstFetchRectorTest
+ * @see \Rector\Tests\Transform\Rector\Scalar\ScalarValueToConstFetchRector\ScalarValueToConstFetchRectorTest
  */
-class ScalarValueToConstFetchRector extends AbstractRector implements ConfigurableRectorInterface
+final class ScalarValueToConstFetchRector extends AbstractRector implements ConfigurableRectorInterface
 {
     /**
      * @var ScalarValueToConstFetch[]
      */
     private array $scalarValueToConstFetches;
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Replaces Scalar values with a ConstFetch or ClassConstFetch', [new ConfiguredCodeSample(<<<'SAMPLE'
 $var = 10;
@@ -36,7 +36,7 @@ $var = \SomeClass::FOOBAR_INT;
 SAMPLE
 , [new ScalarValueToConstFetch(new Int_(10), new ClassConstFetch(new FullyQualified('SomeClass'), new Identifier('FOOBAR_INT')))])]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [String_::class, Float_::class, Int_::class];
     }
@@ -53,7 +53,7 @@ SAMPLE
         }
         return null;
     }
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, ScalarValueToConstFetch::class);
         $this->scalarValueToConstFetches = $configuration;

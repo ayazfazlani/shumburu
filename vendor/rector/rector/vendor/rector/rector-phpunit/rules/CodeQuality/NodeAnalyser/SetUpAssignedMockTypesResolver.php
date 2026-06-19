@@ -13,7 +13,7 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\ValueObject\MethodName;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 final class SetUpAssignedMockTypesResolver
 {
     /**
@@ -27,7 +27,7 @@ final class SetUpAssignedMockTypesResolver
     /**
      * @return array<string, string>
      */
-    public function resolveFromClass(Class_ $class) : array
+    public function resolveFromClass(Class_ $class): array
     {
         $setUpClassMethod = $class->getMethod(MethodName::SET_UP);
         if (!$setUpClassMethod instanceof ClassMethod) {
@@ -65,7 +65,7 @@ final class SetUpAssignedMockTypesResolver
     /**
      * @param \PhpParser\Node\Expr\PropertyFetch|\PhpParser\Node\Expr\Variable $propertyFetchOrVariable
      */
-    private function resolvePropertyOrVariableName($propertyFetchOrVariable) : ?string
+    private function resolvePropertyOrVariableName($propertyFetchOrVariable): ?string
     {
         if ($propertyFetchOrVariable instanceof Variable) {
             return $this->nodeNameResolver->getName($propertyFetchOrVariable);

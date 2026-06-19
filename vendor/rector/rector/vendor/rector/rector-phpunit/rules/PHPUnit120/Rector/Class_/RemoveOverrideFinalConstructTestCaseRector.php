@@ -24,7 +24,7 @@ final class RemoveOverrideFinalConstructTestCaseRector extends AbstractRector
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove override final construct test case', [new CodeSample(<<<'CODE_SAMPLE'
 use PHPUnit\Framework\TestCase;
@@ -49,27 +49,27 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?\PhpParser\Node
+    public function refactor(Node $node): ?\PhpParser\Node
     {
         if (!$this->testsNodeAnalyzer->isInTestClass($node)) {
             return null;
         }
-        $constructClassMethod = $node->getMethod(MethodName::CONSTRUCT);
-        if ($constructClassMethod instanceof ClassMethod) {
-            foreach ($node->stmts as $key => $stmt) {
-                if ($stmt instanceof ClassMethod && $this->isName($stmt, MethodName::CONSTRUCT)) {
-                    unset($node->stmts[$key]);
-                    $node->setAttribute('hasRemovedFinalConstruct', \true);
-                    return $node;
-                }
+        foreach ($node->stmts as $key => $stmt) {
+            if (!$stmt instanceof ClassMethod) {
+                continue;
             }
+            if (!$this->isName($stmt, MethodName::CONSTRUCT)) {
+                continue;
+            }
+            unset($node->stmts[$key]);
+            return $node;
         }
         return null;
     }

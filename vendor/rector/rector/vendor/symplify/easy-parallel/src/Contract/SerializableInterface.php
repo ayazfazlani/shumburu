@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202506\Symplify\EasyParallel\Contract;
+namespace RectorPrefix202606\Symplify\EasyParallel\Contract;
 
 use JsonSerializable;
 /**
@@ -12,5 +12,5 @@ interface SerializableInterface extends JsonSerializable
     /**
      * @param array<string, mixed> $json
      */
-    public static function decode(array $json) : self;
+    public static function decode(array $json): self;
 }

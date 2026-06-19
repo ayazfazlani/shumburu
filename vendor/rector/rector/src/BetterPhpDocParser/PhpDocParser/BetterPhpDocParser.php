@@ -3,7 +3,8 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\PhpDocParser;
 
-use RectorPrefix202506\Nette\Utils\Strings;
+use RectorPrefix202606\Nette\Utils\Strings;
+use Override;
 use PhpParser\Node;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
@@ -44,15 +45,15 @@ final class BetterPhpDocParser extends PhpDocParser
      */
     private PrivatesAccessor $privatesAccessor;
     /**
-     * @var string
      * @see https://regex101.com/r/JDzr0c/1
+     * @var string
      */
     private const NEW_LINE_REGEX = "#(?<new_line>\r\n|\n)#";
     /**
-     * @var string
      * @see https://regex101.com/r/JOKSmr/5
+     * @var string
      */
-    private const MULTI_NEW_LINES_REGEX = '#(?<new_line>\\r\\n|\\n){2,}#';
+    private const MULTI_NEW_LINES_REGEX = '#(?<new_line>\r\n|\n){2,}#';
     /**
      * @param PhpDocNodeDecoratorInterface[] $phpDocNodeDecorators
      */
@@ -70,7 +71,7 @@ final class BetterPhpDocParser extends PhpDocParser
             $constExprParser
         );
     }
-    public function parseWithNode(BetterTokenIterator $betterTokenIterator, Node $node) : PhpDocNode
+    public function parseWithNode(BetterTokenIterator $betterTokenIterator, Node $node): PhpDocNode
     {
         $betterTokenIterator->consumeTokenType(Lexer::TOKEN_OPEN_PHPDOC);
         $betterTokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL);
@@ -89,7 +90,8 @@ final class BetterPhpDocParser extends PhpDocParser
         }
         return $phpDocNode;
     }
-    public function parseTag(TokenIterator $tokenIterator) : PhpDocTagNode
+    #[Override]
+    public function parseTag(TokenIterator $tokenIterator): PhpDocTagNode
     {
         // replace generic nodes with DoctrineAnnotations
         if (!$tokenIterator instanceof BetterTokenIterator) {
@@ -102,26 +104,27 @@ final class BetterPhpDocParser extends PhpDocParser
     /**
      * @param BetterTokenIterator $tokenIterator
      */
-    public function parseTagValue(TokenIterator $tokenIterator, string $tag) : PhpDocTagValueNode
+    #[Override]
+    public function parseTagValue(TokenIterator $tokenIterator, string $tag): PhpDocTagValueNode
     {
         $isPrecededByHorizontalWhitespace = $tokenIterator->isPrecededByHorizontalWhitespace();
         $startPosition = $tokenIterator->currentPosition();
         $phpDocTagValueNode = parent::parseTagValue($tokenIterator, $tag);
         $endPosition = $tokenIterator->currentPosition();
-        if ($isPrecededByHorizontalWhitespace && \property_exists($phpDocTagValueNode, 'description')) {
+        if ($isPrecededByHorizontalWhitespace && property_exists($phpDocTagValueNode, 'description')) {
             $phpDocTagValueNode->description = Strings::replace((string) $phpDocTagValueNode->description, self::NEW_LINE_REGEX, static fn(array $match): string => $match['new_line'] . ' * ');
         }
         $startAndEnd = new StartAndEnd($startPosition, $endPosition);
         $phpDocTagValueNode->setAttribute(PhpDocAttributeKey::START_AND_END, $startAndEnd);
         if ($phpDocTagValueNode instanceof GenericTagValueNode) {
-            $phpDocTagValueNode->value = Strings::replace($phpDocTagValueNode->value, self::MULTI_NEW_LINES_REGEX, static fn(array $match) => $match['new_line']);
+            $phpDocTagValueNode->value = Strings::replace($phpDocTagValueNode->value, self::MULTI_NEW_LINES_REGEX, static fn(array $match): string => (string) $match['new_line']);
         }
         return $phpDocTagValueNode;
     }
     /**
      * @return PhpDocTextNode|PhpDocTagNode
      */
-    private function parseChildAndStoreItsPositions(TokenIterator $tokenIterator) : PhpDocChildNode
+    private function parseChildAndStoreItsPositions(TokenIterator $tokenIterator): PhpDocChildNode
     {
         $betterTokenIterator = $this->tokenIteratorFactory->createFromTokenIterator($tokenIterator);
         $startPosition = $betterTokenIterator->currentPosition();
@@ -136,7 +139,7 @@ final class BetterPhpDocParser extends PhpDocParser
         $phpDocNode->setAttribute(PhpDocAttributeKey::START_AND_END, $startAndEnd);
         return $phpDocNode;
     }
-    private function resolveTag(BetterTokenIterator $tokenIterator) : string
+    private function resolveTag(BetterTokenIterator $tokenIterator): string
     {
         $tag = $tokenIterator->currentTokenValue();
         $tokenIterator->next();

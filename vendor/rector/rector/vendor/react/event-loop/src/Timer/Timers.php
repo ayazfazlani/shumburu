@@ -1,8 +1,8 @@
 <?php
 
-namespace RectorPrefix202506\React\EventLoop\Timer;
+namespace RectorPrefix202606\React\EventLoop\Timer;
 
-use RectorPrefix202506\React\EventLoop\TimerInterface;
+use RectorPrefix202606\React\EventLoop\TimerInterface;
 /**
  * A scheduler implementation that can hold multiple timer instances
  *

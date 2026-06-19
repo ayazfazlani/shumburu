@@ -12,8 +12,21 @@ class NullableTypeNode implements \PHPStan\PhpDocParser\Ast\Type\TypeNode
     {
         $this->type = $type;
     }
-    public function __toString() : string
+    public function __toString(): string
     {
         return '?' . $this->type;
+    }
+    /**
+     * @param array<string, mixed> $properties
+     */
+    public static function __set_state(array $properties): self
+    {
+        $instance = new self($properties['type']);
+        if (isset($properties['attributes'])) {
+            foreach ($properties['attributes'] as $key => $value) {
+                $instance->setAttribute($key, $value);
+            }
+        }
+        return $instance;
     }
 }

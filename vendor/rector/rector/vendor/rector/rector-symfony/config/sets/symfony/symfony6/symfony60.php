@@ -1,11 +1,11 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202506;
+namespace RectorPrefix202606;
 
 use Rector\Config\RectorConfig;
 # https://github.com/symfony/symfony/blob/6.1/UPGRADE-6.0.md
-return static function (RectorConfig $rectorConfig) : void {
+return static function (RectorConfig $rectorConfig): void {
     // $rectorConfig->sets([SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES]);
     $rectorConfig->import(__DIR__ . '/symfony60/symfony60-serializer.php');
     $rectorConfig->import(__DIR__ . '/symfony60/symfony60-security-http.php');

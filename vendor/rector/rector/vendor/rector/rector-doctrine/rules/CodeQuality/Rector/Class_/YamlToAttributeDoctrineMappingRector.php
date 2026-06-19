@@ -17,7 +17,7 @@ use Rector\ValueObject\PhpVersion;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Doctrine\Tests\CodeQuality\Rector\Class_\YamlToAttributeDoctrineMappingRector\YamlToAttributeDoctrineMappingRectorTest
  */
@@ -40,9 +40,9 @@ final class YamlToAttributeDoctrineMappingRector extends AbstractRector implemen
         $this->entityMappingResolver = $entityMappingResolver;
         $this->yamlToAttributeTransformer = $yamlToAttributeTransformer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Converts YAML Doctrine Entity mapping to particular annotation mapping', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Converts YAML Doctrine Entity mapping to particular annotation mapping. You must provide a YAML directory with mappings to this rule configuration', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 class SomeEntity
 {
     private $id;
@@ -68,17 +68,17 @@ class SomeEntity
 CODE_SAMPLE
 , [__DIR__ . '/config/yaml_mapping_directory'])]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         if ($this->yamlMappingDirectories === []) {
-            throw new ShouldNotHappenException('First, set directories with YAML entity mapping. Use $rectorConfig->ruleWithConfiguration() and pass paths as 2nd argument');
+            throw new ShouldNotHappenException(sprintf('First, set directories with YAML entity mappings. Use "$rectorConfig->ruleWithConfiguration(%s, %s)"', self::class, "[__DIR__ . '/config/yaml_mapping_directory']"));
         }
         $entityMapping = $this->findEntityMapping($node);
         if (!$entityMapping instanceof EntityMapping) {
@@ -93,25 +93,25 @@ CODE_SAMPLE
     /**
      * @param mixed[] $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         Assert::allString($configuration);
         Assert::allFileExists($configuration);
         $this->yamlMappingDirectories = $configuration;
     }
-    public static function getConfigFile() : string
+    public static function getConfigFile(): string
     {
         return DoctrineSetList::YAML_TO_ANNOTATIONS;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         // required by Doctrine nested attributes
         return PhpVersion::PHP_81;
     }
-    private function findEntityMapping(Class_ $class) : ?EntityMapping
+    private function findEntityMapping(Class_ $class): ?EntityMapping
     {
         $className = $this->getName($class);
-        if (!\is_string($className)) {
+        if (!is_string($className)) {
             return null;
         }
         $entityMappings = $this->entityMappingResolver->resolveFromDirectories($this->yamlMappingDirectories);

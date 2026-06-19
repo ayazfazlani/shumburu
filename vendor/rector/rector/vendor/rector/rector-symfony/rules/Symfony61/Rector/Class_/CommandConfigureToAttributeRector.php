@@ -24,6 +24,7 @@ use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @see https://symfony.com/doc/current/console.html#registering-the-command
  *
@@ -48,13 +49,13 @@ final class CommandConfigureToAttributeRector extends AbstractRector implements 
         $this->phpAttributeGroupFactory = $phpAttributeGroupFactory;
         $this->reflectionProvider = $reflectionProvider;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Add Symfony\\Component\\Console\\Attribute\\AsCommand to Symfony Commands from configure()', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Add Symfony\Component\Console\Attribute\AsCommand to Symfony Commands from configure()', [new CodeSample(<<<'CODE_SAMPLE'
 use Symfony\Component\Console\Command\Command;
 
 final class SunshineCommand extends Command
@@ -81,14 +82,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if ($node->isAbstract()) {
             return null;
@@ -127,11 +128,19 @@ CODE_SAMPLE
             $asCommandAttribute = $asCommandAttributeGroup->attrs[0];
             $node->attrGroups[] = $asCommandAttributeGroup;
         }
+        $existingAttributeNames = array_map(function (Arg $arg): string {
+            Assert::isInstanceOf($arg->name, Identifier::class);
+            return $arg->name->toString();
+        }, $attributeArgs);
         foreach (self::METHODS_TO_ATTRIBUTE_NAMES as $methodName => $attributeName) {
             $resolvedExpr = $this->findAndRemoveMethodExpr($configureClassMethod, $methodName);
-            if ($resolvedExpr instanceof Expr) {
-                $attributeArgs[] = $this->createNamedArg($attributeName, $resolvedExpr);
+            if (!$resolvedExpr instanceof Expr) {
+                continue;
             }
+            if (in_array($attributeName, $existingAttributeNames, \true)) {
+                continue;
+            }
+            $attributeArgs[] = $this->createNamedArg($attributeName, $resolvedExpr);
         }
         $asCommandAttribute->args = $attributeArgs;
         // remove left overs
@@ -142,14 +151,14 @@ CODE_SAMPLE
         }
         return $node;
     }
-    private function createNamedArg(string $name, Expr $expr) : Arg
+    private function createNamedArg(string $name, Expr $expr): Arg
     {
         return new Arg($expr, \false, \false, [], new Identifier($name));
     }
-    private function findAndRemoveMethodExpr(ClassMethod $classMethod, string $methodName) : ?Expr
+    private function findAndRemoveMethodExpr(ClassMethod $classMethod, string $methodName): ?Expr
     {
         $expr = null;
-        $this->traverseNodesWithCallable((array) $classMethod->stmts, function (Node $node) use(&$expr, $methodName) : ?Expr {
+        $this->traverseNodesWithCallable((array) $classMethod->stmts, function (Node $node) use (&$expr, $methodName): ?Expr {
             // find setName() method call
             if (!$node instanceof MethodCall) {
                 return null;
@@ -162,7 +171,7 @@ CODE_SAMPLE
         });
         return $expr;
     }
-    private function isExpressionVariableThis(Stmt $stmt) : bool
+    private function isExpressionVariableThis(Stmt $stmt): bool
     {
         if (!$stmt instanceof Expression) {
             return \false;

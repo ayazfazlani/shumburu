@@ -6,6 +6,7 @@ namespace Rector\Doctrine\TypedCollections\Rector\Class_;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
+use PHPStan\Type\Generic\GenericObjectType;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
 use Rector\Doctrine\NodeAnalyzer\MethodUniqueReturnedPropertyResolver;
@@ -61,7 +62,7 @@ final class CompleteReturnDocblockFromToManyRector extends AbstractRector
         $this->collectionTypeFactory = $collectionTypeFactory;
         $this->methodUniqueReturnedPropertyResolver = $methodUniqueReturnedPropertyResolver;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Adds @return PHPDoc type to Collection property getter by *ToMany annotation/attribute', [new CodeSample(<<<'CODE_SAMPLE'
 use App\Entity\Training;
@@ -110,14 +111,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if (!$this->entityLikeClassDetector->detect($node)) {
             return null;
@@ -139,6 +140,10 @@ CODE_SAMPLE
             // update docblock with known collection type
             $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($classMethod);
             $newVarType = $this->collectionTypeFactory->createType($collectionObjectType, $this->collectionTypeResolver->hasIndexBy($property), $property);
+            $returnType = $phpDocInfo->getReturnType();
+            if ($returnType instanceof GenericObjectType) {
+                continue;
+            }
             $this->phpDocTypeChanger->changeReturnType($classMethod, $phpDocInfo, $newVarType);
             $hasChanged = \true;
         }

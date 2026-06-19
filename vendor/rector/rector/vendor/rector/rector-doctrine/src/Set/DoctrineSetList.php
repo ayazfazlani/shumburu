@@ -15,6 +15,10 @@ final class DoctrineSetList
     /**
      * @var string
      */
+    public const TYPED_COLLECTIONS_DOCBLOCKS = __DIR__ . '/../../config/sets/typed-collections-docblocks.php';
+    /**
+     * @var string
+     */
     public const DOCTRINE_CODE_QUALITY = __DIR__ . '/../../config/sets/doctrine-code-quality.php';
     /**
      * @var string
@@ -40,6 +44,11 @@ final class DoctrineSetList
      * @var string
      */
     public const DOCTRINE_DBAL_30 = __DIR__ . '/../../config/sets/doctrine-dbal-30.php';
+    /**
+     * @deprecated Use withComposerBased() instead, see https://getrector.com/blog/introducing-composer-version-based-sets
+     * @var string
+     */
+    public const DOCTRINE_DBAL_38 = __DIR__ . '/../../config/sets/doctrine-dbal-38.php';
     /**
      * @deprecated Use withComposerBased() instead, see https://getrector.com/blog/introducing-composer-version-based-sets
      * @var string
@@ -96,5 +105,5 @@ final class DoctrineSetList
     /**
      * @var string
      */
-    public const MONGODB__ANNOTATIONS_TO_ATTRIBUTES = __DIR__ . '/../../config/sets/attributes/mongodb.php';
+    public const MONGODB_ANNOTATIONS_TO_ATTRIBUTES = __DIR__ . '/../../config/sets/attributes/mongodb.php';
 }

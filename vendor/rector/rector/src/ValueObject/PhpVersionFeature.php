@@ -136,7 +136,6 @@ final class PhpVersionFeature
     /**
      * @see https://php.watch/versions/8.0/non-static-static-call-fatal-error
      * Deprecated since PHP 7.0
-     *
      * @var int
      */
     public const STATIC_CALL_ON_NON_STATIC = \Rector\ValueObject\PhpVersion::PHP_70;
@@ -241,8 +240,8 @@ final class PhpVersionFeature
      */
     public const ARRAY_KEY_FIRST_LAST = \Rector\ValueObject\PhpVersion::PHP_73;
     /**
-     * @var int
      * @see https://php.watch/versions/8.5/array_first-array_last
+     * @var int
      */
     public const ARRAY_FIRST_LAST = \Rector\ValueObject\PhpVersion::PHP_85;
     /**
@@ -500,6 +499,11 @@ final class PhpVersionFeature
      */
     public const RETURN_TYPE_WILL_CHANGE_ATTRIBUTE = \Rector\ValueObject\PhpVersion::PHP_81;
     /**
+     * @see https://wiki.php.net/rfc/first_class_callable_syntax
+     * @var int
+     */
+    public const FIRST_CLASS_CALLABLE_SYNTAX = \Rector\ValueObject\PhpVersion::PHP_81;
+    /**
      * @see https://wiki.php.net/rfc/deprecate_dynamic_properties
      * @var int
      */
@@ -515,10 +519,20 @@ final class PhpVersionFeature
      */
     public const READONLY_ANONYMOUS_CLASS = \Rector\ValueObject\PhpVersion::PHP_83;
     /**
+     * @see https://wiki.php.net/rfc/json_validate
+     * @var int
+     */
+    public const JSON_VALIDATE = \Rector\ValueObject\PhpVersion::PHP_83;
+    /**
      * @see https://wiki.php.net/rfc/mixed_type_v2
      * @var int
      */
     public const MIXED_TYPE = \Rector\ValueObject\PhpVersion::PHP_80;
+    /**
+     * @see https://3v4l.org/OWtO5
+     * @var int
+     */
+    public const ARRAY_ON_ARRAY_MERGE = \Rector\ValueObject\PhpVersion::PHP_80;
     /**
      * @var int
      */
@@ -536,7 +550,6 @@ final class PhpVersionFeature
     /**
      * @see https://wiki.php.net/rfc/null-false-standalone-types
      * @see https://wiki.php.net/rfc/true-type
-     *
      * @var int
      */
     public const NULL_FALSE_TRUE_STANDALONE_TYPE = \Rector\ValueObject\PhpVersion::PHP_82;
@@ -601,4 +614,94 @@ final class PhpVersionFeature
      * @var int
      */
     public const DEPRECATED_ATTRIBUTE = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://php.watch/versions/8.4/array_find-array_find_key-array_any-array_all
+     * @var int
+     */
+    public const ARRAY_FIND = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://php.watch/versions/8.4/array_find-array_find_key-array_any-array_all
+     * @var int
+     */
+    public const ARRAY_FIND_KEY = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://php.watch/versions/8.4/array_find-array_find_key-array_any-array_all
+     * @var int
+     */
+    public const ARRAY_ALL = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://php.watch/versions/8.4/array_find-array_find_key-array_any-array_all
+     * @var int
+     */
+    public const ARRAY_ANY = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_the_context_parameter_for_finfo_buffer
+     * @var int
+     */
+    public const DEPRECATE_FINFO_BUFFER_CONTEXT = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_debuginfo_returning_null
+     * @var int
+     */
+    public const DEPRECATED_NULL_DEBUG_INFO_RETURN = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_semicolon_after_case_in_switch_statement
+     * @var int
+     */
+    public const COLON_AFTER_SWITCH_CASE = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_using_values_null_as_an_array_offset_and_when_calling_array_key_exists
+     * @var int
+     */
+    public const DEPRECATE_NULL_ARG_IN_ARRAY_KEY_EXISTS_FUNCTION = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#eprecate_passing_integers_outside_the_interval_0_255_to_chr
+     * @var int
+     */
+    public const DEPRECATE_OUTSIDE_INTERVEL_VAL_IN_CHR_FUNCTION = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_the_sleep_and_wakeup_magic_methods
+     * @var int
+     */
+    public const DEPRECATED_METHOD_SLEEP = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_the_sleep_and_wakeup_magic_methods
+     * @var int
+     */
+    public const DEPRECATED_METHOD_WAKEUP = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_passing_string_which_are_not_one_byte_long_to_ord
+     * @var int
+     */
+    public const DEPRECATE_ORD_WITH_MULTIBYTE_STRING = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/property-hooks
+     * @var int
+     */
+    public const PROPERTY_HOOKS = \Rector\ValueObject\PhpVersion::PHP_84;
+    /**
+     * @see https://wiki.php.net/rfc/deprecations_php_8_5#deprecate_backticks_as_an_alias_for_shell_exec
+     * @var int
+     */
+    public const DEPRECATE_BACKTICKS = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/pipe-operator-v3
+     * @var int
+     */
+    public const PIPE_OPERATOER = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/override_properties
+     * @var int
+     */
+    public const OVERRIDE_ATTRIBUTE_ON_PROPERTIES = \Rector\ValueObject\PhpVersion::PHP_85;
+    /**
+     * @see https://wiki.php.net/rfc/clamp_v2
+     * @var int
+     */
+    public const CLAMP = \Rector\ValueObject\PhpVersion::PHP_86;
+    /**
+     * @see https://php.watch/versions/8.0/named-parameters
+     * @var int
+     */
+    public const NAMED_ARGUMENTS = \Rector\ValueObject\PhpVersion::PHP_80;
 }

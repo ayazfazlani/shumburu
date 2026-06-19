@@ -3,14 +3,14 @@
 declare (strict_types=1);
 namespace Rector\PostRector\Rector;
 
+use Override;
 use PhpParser\Node;
-use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\NodeVisitor;
 use Rector\CodingStyle\Application\UseImportsRemover;
-use Rector\Configuration\Option;
-use Rector\Configuration\Parameter\SimpleParameterProvider;
 use Rector\Configuration\RenamedClassesDataCollector;
-use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
+use Rector\PhpParser\Node\FileNode;
+use Rector\PostRector\Guard\AddUseStatementGuard;
 use Rector\Renaming\Collector\RenamedNameCollector;
 final class ClassRenamingPostRector extends \Rector\PostRector\Rector\AbstractPostRector
 {
@@ -27,45 +27,56 @@ final class ClassRenamingPostRector extends \Rector\PostRector\Rector\AbstractPo
      */
     private RenamedNameCollector $renamedNameCollector;
     /**
+     * @readonly
+     */
+    private AddUseStatementGuard $addUseStatementGuard;
+    /**
      * @var array<string, string>
      */
     private array $oldToNewClasses = [];
-    public function __construct(RenamedClassesDataCollector $renamedClassesDataCollector, UseImportsRemover $useImportsRemover, RenamedNameCollector $renamedNameCollector)
+    public function __construct(RenamedClassesDataCollector $renamedClassesDataCollector, UseImportsRemover $useImportsRemover, RenamedNameCollector $renamedNameCollector, AddUseStatementGuard $addUseStatementGuard)
     {
         $this->renamedClassesDataCollector = $renamedClassesDataCollector;
         $this->useImportsRemover = $useImportsRemover;
         $this->renamedNameCollector = $renamedNameCollector;
+        $this->addUseStatementGuard = $addUseStatementGuard;
     }
     /**
-     * @param Stmt[] $nodes
-     * @return Stmt[]
+     * @return \PhpParser\Node\Stmt\Namespace_|\Rector\PhpParser\Node\FileNode|int|null
      */
-    public function beforeTraverse(array $nodes) : array
+    public function enterNode(Node $node)
     {
-        if (!SimpleParameterProvider::provideBoolParameter(Option::AUTO_IMPORT_NAMES)) {
-            return $nodes;
-        }
-        foreach ($nodes as $node) {
-            if ($node instanceof FileWithoutNamespace || $node instanceof Namespace_) {
-                $removedUses = $this->renamedClassesDataCollector->getOldClasses();
-                $node->stmts = $this->useImportsRemover->removeImportsFromStmts($node->stmts, $removedUses);
-                break;
+        if ($node instanceof FileNode) {
+            // handle in Namespace_ node
+            if ($node->isNamespaced()) {
+                return null;
             }
+            // handle here
+            $removedUses = $this->renamedClassesDataCollector->getOldClasses();
+            if ($this->useImportsRemover->removeImportsFromStmts($node, $removedUses)) {
+                $this->addRectorClassWithLine($node);
+            }
+            $this->renamedNameCollector->reset();
+            return $node;
         }
-        return $nodes;
+        if ($node instanceof Namespace_) {
+            $removedUses = $this->renamedClassesDataCollector->getOldClasses();
+            if ($this->useImportsRemover->removeImportsFromStmts($node, $removedUses)) {
+                $this->addRectorClassWithLine($node);
+            }
+            $this->renamedNameCollector->reset();
+            return $node;
+        }
+        // nothing else to handle here, as first 2 nodes we'll hit are handled above
+        return NodeVisitor::STOP_TRAVERSAL;
     }
-    /**
-     * @param Node[] $nodes
-     * @return Stmt[]
-     */
-    public function afterTraverse(array $nodes) : array
-    {
-        $this->renamedNameCollector->reset();
-        return $nodes;
-    }
-    public function shouldTraverse(array $stmts) : bool
+    #[Override]
+    public function shouldTraverse(array $stmts): bool
     {
         $this->oldToNewClasses = $this->renamedClassesDataCollector->getOldToNewClasses();
-        return $this->oldToNewClasses !== [];
+        if ($this->oldToNewClasses === []) {
+            return \false;
+        }
+        return $this->addUseStatementGuard->shouldTraverse($stmts, $this->getFile()->getFilePath());
     }
 }

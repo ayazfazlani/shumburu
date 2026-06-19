@@ -3,13 +3,15 @@
 declare (strict_types=1);
 namespace Rector\DeadCode\Rector\ClassMethod;
 
+use PhpParser\Comment\Doc;
 use PhpParser\Node;
-use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\PhpDocParser\Ast\PhpDoc\DeprecatedTagValueNode;
+use PHPStan\Reflection\ClassReflection;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
+use Rector\Configuration\Parameter\FeatureFlags;
 use Rector\DeadCode\NodeAnalyzer\IsClassMethodUsedAnalyzer;
 use Rector\DeadCode\NodeManipulator\ControllerClassMethodManipulator;
 use Rector\NodeAnalyzer\ParamAnalyzer;
@@ -52,7 +54,7 @@ final class RemoveEmptyClassMethodRector extends AbstractRector
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->isClassMethodUsedAnalyzer = $isClassMethodUsedAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove empty class methods not required by parents', [new CodeSample(<<<'CODE_SAMPLE'
 class OrphanClass
@@ -72,14 +74,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         $hasChanged = \false;
         foreach ($node->stmts as $key => $stmt) {
@@ -92,7 +94,7 @@ CODE_SAMPLE
             if ($stmt->isAbstract()) {
                 continue;
             }
-            if ($stmt->isFinal() && !$node->isFinal()) {
+            if ($stmt->isFinal() && !$node->isFinal() && FeatureFlags::treatClassesAsFinal($node) === \false) {
                 continue;
             }
             if ($this->shouldSkipNonFinalNonPrivateClassMethod($node, $stmt)) {
@@ -109,9 +111,9 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function shouldSkipNonFinalNonPrivateClassMethod(Class_ $class, ClassMethod $classMethod) : bool
+    private function shouldSkipNonFinalNonPrivateClassMethod(Class_ $class, ClassMethod $classMethod): bool
     {
-        if ($class->isFinal()) {
+        if ($class->isFinal() || FeatureFlags::treatClassesAsFinal($class)) {
             return \false;
         }
         if ($classMethod->isMagic()) {
@@ -122,7 +124,7 @@ CODE_SAMPLE
         }
         return $classMethod->isPublic();
     }
-    private function shouldSkipClassMethod(Class_ $class, ClassMethod $classMethod) : bool
+    private function shouldSkipClassMethod(Class_ $class, ClassMethod $classMethod): bool
     {
         // is method called somewhere else in the class?
         $scope = ScopeFetcher::fetch($class);
@@ -144,18 +146,37 @@ CODE_SAMPLE
         if ($this->controllerClassMethodManipulator->isControllerClassMethod($class, $classMethod)) {
             return \true;
         }
-        if ($this->isName($classMethod, MethodName::CONSTRUCT)) {
-            // has parent class?
-            return $class->extends instanceof FullyQualified;
+        if ($this->isName($classMethod, MethodName::CLONE)) {
+            return !$classMethod->isPublic();
         }
-        return $this->isName($classMethod, MethodName::INVOKE);
+        if ($this->isName($classMethod, MethodName::INVOKE)) {
+            return \true;
+        }
+        $classReflection = $scope->getClassReflection();
+        if (!$classReflection instanceof ClassReflection) {
+            return \false;
+        }
+        return $this->isAttributeMarkerConstructor($classMethod, $classReflection);
     }
-    private function hasDeprecatedAnnotation(ClassMethod $classMethod) : bool
+    private function hasDeprecatedAnnotation(ClassMethod $classMethod): bool
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($classMethod);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return \false;
         }
         return $phpDocInfo->hasByType(DeprecatedTagValueNode::class);
+    }
+    /**
+     * Skip constructor in attributes as might be a marker parameter
+     */
+    private function isAttributeMarkerConstructor(ClassMethod $classMethod, ClassReflection $classReflection): bool
+    {
+        if (!$this->isName($classMethod, MethodName::CONSTRUCT)) {
+            return \false;
+        }
+        if (!$classReflection->isAttributeClass()) {
+            return \false;
+        }
+        return $classMethod->getDocComment() instanceof Doc;
     }
 }

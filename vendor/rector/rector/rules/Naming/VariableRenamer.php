@@ -9,6 +9,8 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\Function_;
 use PhpParser\NodeVisitor;
 use PHPStan\Analyser\MutatingScope;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
@@ -42,7 +44,7 @@ final class VariableRenamer
         $this->varTagValueNodeRenamer = $varTagValueNodeRenamer;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
-    public function renameVariableInFunctionLike(FunctionLike $functionLike, string $oldName, string $expectedName, ?Assign $assign = null) : bool
+    public function renameVariableInFunctionLike(FunctionLike $functionLike, string $oldName, string $expectedName, ?Assign $assign = null): bool
     {
         $isRenamingActive = \false;
         if (!$assign instanceof Assign) {
@@ -51,7 +53,10 @@ final class VariableRenamer
         $hasRenamed = \false;
         $currentStmt = null;
         $currentFunctionLike = null;
-        $this->simpleCallableNodeTraverser->traverseNodesWithCallable((array) $functionLike->getStmts(), function (Node $node) use($oldName, $expectedName, $assign, &$isRenamingActive, &$hasRenamed, &$currentStmt, &$currentFunctionLike) {
+        $this->simpleCallableNodeTraverser->traverseNodesWithCallable((array) $functionLike->getStmts(), function (Node $node) use ($oldName, $expectedName, $assign, &$isRenamingActive, &$hasRenamed, &$currentStmt, &$currentFunctionLike) {
+            if ($node instanceof Class_ || $node instanceof Function_) {
+                return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
+            }
             // skip param names
             if ($node instanceof Param) {
                 return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
@@ -84,7 +89,7 @@ final class VariableRenamer
         });
         return $hasRenamed;
     }
-    private function isParamInParentFunction(Variable $variable, ?FunctionLike $functionLike) : bool
+    private function isParamInParentFunction(Variable $variable, ?FunctionLike $functionLike): bool
     {
         if (!$functionLike instanceof FunctionLike) {
             return \false;
@@ -105,7 +110,7 @@ final class VariableRenamer
         }
         return \false;
     }
-    private function renameVariableIfMatchesName(Variable $variable, string $oldName, string $expectedName, ?Stmt $currentStmt) : ?Variable
+    private function renameVariableIfMatchesName(Variable $variable, string $oldName, string $expectedName, ?Stmt $currentStmt): ?Variable
     {
         if (!$this->nodeNameResolver->isName($variable, $oldName)) {
             return null;
@@ -118,7 +123,7 @@ final class VariableRenamer
     /**
      * Expression doc block has higher priority
      */
-    private function resolvePhpDocInfo(Variable $variable, ?Stmt $currentStmt) : PhpDocInfo
+    private function resolvePhpDocInfo(Variable $variable, ?Stmt $currentStmt): PhpDocInfo
     {
         if ($currentStmt instanceof Stmt) {
             return $this->phpDocInfoFactory->createFromNodeOrEmpty($currentStmt);

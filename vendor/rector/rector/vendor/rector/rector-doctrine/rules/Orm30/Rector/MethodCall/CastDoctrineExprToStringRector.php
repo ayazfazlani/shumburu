@@ -8,11 +8,14 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Cast\String_;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Type\ObjectType;
+use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see https://github.com/doctrine/orm/commit/4d73e3ce7801d3bf3254257332e903d8ecea4096
+ *
+ * @see \Rector\Doctrine\Tests\Orm30\Rector\MethodCall\CastDoctrineExprToStringRector\CastDoctrineExprToStringRectorTest
  */
 final class CastDoctrineExprToStringRector extends AbstractRector
 {
@@ -24,9 +27,9 @@ final class CastDoctrineExprToStringRector extends AbstractRector
      * @var array<string>
      */
     private array $exprFuncMethods = ['lower', 'upper', 'length', 'trim', 'avg', 'max', 'min', 'count', 'countDistinct', 'exists', 'all', 'some', 'any', 'not', 'abs', 'sqrt'];
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Casts Doctrine Expr\\x to string where necessary.', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Casts Doctrine Expr\x to string where necessary.', [new CodeSample(<<<'CODE_SAMPLE'
 $statements->add(
     $builder->expr()->like(
         $builder->expr()->lower($column),
@@ -44,19 +47,19 @@ $statements->add(
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [MethodCall::class];
     }
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if (!$node instanceof MethodCall) {
             return null;
         }
-        if (!$this->isObjectType($node->var, new ObjectType('Doctrine\\ORM\\Query\\Expr'))) {
+        if (!$this->isObjectType($node->var, new ObjectType(DoctrineClass::QUERY_EXPR))) {
             return null;
         }
-        if (!\in_array($this->getName($node->name), $this->targetMethods, \true)) {
+        if (!in_array($this->getName($node->name), $this->targetMethods, \true)) {
             return null;
         }
         // Iterate through method arguments and cast `Expr\Func` calls to string
@@ -65,7 +68,7 @@ CODE_SAMPLE
             if (!$arg instanceof Arg) {
                 return null;
             }
-            if ($arg->value instanceof MethodCall && $this->isObjectType($arg->value->var, new ObjectType('Doctrine\\ORM\\Query\\Expr')) && \in_array($this->getName($arg->value->name), $this->exprFuncMethods, \true)) {
+            if ($arg->value instanceof MethodCall && $this->isObjectType($arg->value->var, new ObjectType(DoctrineClass::QUERY_EXPR)) && in_array($this->getName($arg->value->name), $this->exprFuncMethods, \true)) {
                 $arg->value = new String_($arg->value);
                 $hasChanged = \true;
             }

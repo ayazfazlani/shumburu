@@ -23,9 +23,9 @@ final class ArrayMapOnCollectionToArrayRector extends AbstractRector
     {
         $this->collectionTypeDetector = $collectionTypeDetector;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Change array_map on Collection typed property to ->toArray() call, to always provide an array', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Change array_map() and array_filter() on Collection typed property to ->toArray() call, to always provide an array', [new CodeSample(<<<'CODE_SAMPLE'
 use Doctrine\Common\Collections\Collection;
 
 final class ArrayMapOnAssignedVariable
@@ -63,26 +63,42 @@ final class ArrayMapOnAssignedVariable
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [FuncCall::class];
     }
     /**
      * @param FuncCall $node
      */
-    public function refactor(Node $node) : ?FuncCall
+    public function refactor(Node $node): ?FuncCall
     {
         if ($node->isFirstClassCallable()) {
             return null;
         }
-        if (!$this->isName($node->name, 'array_map')) {
-            return null;
+        if ($this->isName($node->name, 'array_map')) {
+            return $this->refactorArrayMap($node);
         }
-        $secondArg = $node->getArgs()[1];
+        if ($this->isName($node->name, 'array_filter')) {
+            $this->refactorArrayFilter($node);
+        }
+        return null;
+    }
+    private function refactorArrayMap(FuncCall $funcCall): ?\PhpParser\Node\Expr\FuncCall
+    {
+        $secondArg = $funcCall->getArgs()[1];
         if (!$this->collectionTypeDetector->isCollectionType($secondArg->value)) {
             return null;
         }
         $secondArg->value = new MethodCall($secondArg->value, 'toArray');
-        return $node;
+        return $funcCall;
+    }
+    private function refactorArrayFilter(FuncCall $funcCall): ?FuncCall
+    {
+        $firstArg = $funcCall->getArgs()[0];
+        if (!$this->collectionTypeDetector->isCollectionType($firstArg->value)) {
+            return null;
+        }
+        $firstArg->value = new MethodCall($firstArg->value, 'toArray');
+        return $funcCall;
     }
 }

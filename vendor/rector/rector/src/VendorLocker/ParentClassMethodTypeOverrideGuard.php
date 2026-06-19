@@ -47,7 +47,7 @@ final class ParentClassMethodTypeOverrideGuard
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
      */
-    public function hasParentClassMethod($classMethod) : bool
+    public function hasParentClassMethod($classMethod): bool
     {
         try {
             $parentClassMethod = $this->resolveParentClassMethod($classMethod);
@@ -61,7 +61,7 @@ final class ParentClassMethodTypeOverrideGuard
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
      */
-    public function getParentClassMethod($classMethod) : ?MethodReflection
+    public function getParentClassMethod($classMethod): ?MethodReflection
     {
         try {
             return $this->resolveParentClassMethod($classMethod);
@@ -69,7 +69,7 @@ final class ParentClassMethodTypeOverrideGuard
             return null;
         }
     }
-    public function shouldSkipReturnTypeChange(ClassMethod $classMethod, Type $parentType) : bool
+    public function shouldSkipReturnTypeChange(ClassMethod $classMethod, Type $parentType): bool
     {
         if (!$classMethod->returnType instanceof Node) {
             return \false;
@@ -83,7 +83,7 @@ final class ParentClassMethodTypeOverrideGuard
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
      */
-    private function resolveParentClassMethod($classMethod) : ?MethodReflection
+    private function resolveParentClassMethod($classMethod): ?MethodReflection
     {
         // early got null on private method
         if ($classMethod->isPrivate()) {
@@ -118,11 +118,16 @@ final class ParentClassMethodTypeOverrideGuard
             if (!$traitReflection->hasNativeMethod($methodName)) {
                 continue;
             }
-            return $traitReflection->getNativeMethod($methodName);
+            $methodReflection = $traitReflection->getNativeMethod($methodName);
+            // any signature on non abstract trait method can be overridden
+            if ($methodReflection->isAbstract()) {
+                return $methodReflection;
+            }
+            return null;
         }
         return null;
     }
-    private function hasClassParent(ClassReflection $classReflection) : bool
+    private function hasClassParent(ClassReflection $classReflection): bool
     {
         return $this->classReflectionAnalyzer->resolveParentClassName($classReflection) !== null;
     }

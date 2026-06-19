@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202506\Symfony\Component\Process\Messenger;
+namespace RectorPrefix202606\Symfony\Component\Process\Messenger;
 
-use RectorPrefix202506\Symfony\Component\Process\Process;
+use RectorPrefix202606\Symfony\Component\Process\Process;
 /**
  * @author Kevin Bond <kevinbond@gmail.com>
  */
@@ -36,7 +36,7 @@ final class RunProcessContext
     {
         $this->message = $message;
         $this->exitCode = $process->getExitCode();
-        $this->output = $process->isOutputDisabled() ? null : $process->getOutput();
-        $this->errorOutput = $process->isOutputDisabled() ? null : $process->getErrorOutput();
+        $this->output = !$process->isStarted() || $process->isOutputDisabled() ? null : $process->getOutput();
+        $this->errorOutput = !$process->isStarted() || $process->isOutputDisabled() ? null : $process->getErrorOutput();
     }
 }

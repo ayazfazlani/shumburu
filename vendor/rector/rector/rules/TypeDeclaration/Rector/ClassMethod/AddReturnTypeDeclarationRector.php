@@ -24,7 +24,7 @@ use Rector\ValueObject\PhpVersionFeature;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\AddReturnTypeDeclarationRector\AddReturnTypeDeclarationRectorTest
  */
@@ -58,7 +58,7 @@ final class AddReturnTypeDeclarationRector extends AbstractRector implements Con
         $this->staticTypeMapper = $staticTypeMapper;
         $this->reflectionResolver = $reflectionResolver;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change defined return typehint of method and class', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 class SomeClass
@@ -81,14 +81,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         $this->hasChanged = \false;
         foreach ($this->methodReturnTypes as $methodReturnType) {
@@ -111,12 +111,12 @@ CODE_SAMPLE
     /**
      * @param mixed[] $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, AddReturnTypeDeclaration::class);
         $this->methodReturnTypes = $configuration;
     }
-    private function processClassMethodNodeWithTypehints(ClassMethod $classMethod, Class_ $class, Type $newType, ObjectType $objectType) : void
+    private function processClassMethodNodeWithTypehints(ClassMethod $classMethod, Class_ $class, Type $newType, ObjectType $objectType): void
     {
         if ($newType instanceof MixedType) {
             $className = (string) $this->getName($class);

@@ -1,6 +1,7 @@
 {
     "name": "rector/rector",
     "description": "Instant Upgrade and Automated Refactoring of any PHP code",
+    "homepage": "https://getrector.com/",
     "license": "MIT",
     "keywords": ["dev", "refactoring", "automation", "migration"],
     "bin": [
@@ -8,7 +9,7 @@
     ],
     "require": {
         "php": "^7.4|^8.0",
-        "phpstan/phpstan": "^2.1.17"
+        "phpstan/phpstan": "^2.2.2"
     },
     "autoload": {
         "files": [

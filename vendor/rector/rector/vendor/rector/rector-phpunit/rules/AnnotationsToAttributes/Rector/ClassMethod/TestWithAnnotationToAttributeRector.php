@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PHPUnit\AnnotationsToAttributes\Rector\ClassMethod;
 
-use RectorPrefix202506\Nette\Utils\Json;
+use RectorPrefix202606\Nette\Utils\Json;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
@@ -55,7 +55,7 @@ final class TestWithAnnotationToAttributeRector extends AbstractRector implement
     /**
      * @var string
      */
-    private const TEST_WITH_ATTRIBUTE = 'PHPUnit\\Framework\\Attributes\\TestWith';
+    private const TEST_WITH_ATTRIBUTE = 'PHPUnit\Framework\Attributes\TestWith';
     public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, PhpAttributeGroupFactory $phpAttributeGroupFactory, PhpDocTagRemover $phpDocTagRemover, DocBlockUpdater $docBlockUpdater, PhpDocInfoFactory $phpDocInfoFactory, ReflectionProvider $reflectionProvider)
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
@@ -65,7 +65,7 @@ final class TestWithAnnotationToAttributeRector extends AbstractRector implement
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->reflectionProvider = $reflectionProvider;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change @testWith() annotation to #[TestWith] attribute', [new CodeSample(<<<'CODE_SAMPLE'
 use PHPUnit\Framework\TestCase;
@@ -99,14 +99,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [ClassMethod::class];
     }
     /**
      * @param ClassMethod $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if (!$this->testsNodeAnalyzer->isTestClassMethod($node)) {
             return null;
@@ -119,7 +119,7 @@ CODE_SAMPLE
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return null;
         }
-        $testWithPhpDocTagNodes = \array_merge($phpDocInfo->getTagsByName('testWith'), $phpDocInfo->getTagsByName('testwith'));
+        $testWithPhpDocTagNodes = array_merge($phpDocInfo->getTagsByName('testWith'), $phpDocInfo->getTagsByName('testwith'));
         if ($testWithPhpDocTagNodes === []) {
             return null;
         }
@@ -132,19 +132,18 @@ CODE_SAMPLE
             }
             // test from doc blocks
             $this->phpDocTagRemover->removeTagValueFromNode($phpDocInfo, $testWithPhpDocTagNode);
-            /** @var GenericTagValueNode $genericTagValueNode */
             $genericTagValueNode = $testWithPhpDocTagNode->value;
-            $testWithItems = \explode("\n", \trim($genericTagValueNode->value));
+            $testWithItems = explode("\n", trim($genericTagValueNode->value));
             foreach ($testWithItems as $testWithItem) {
-                $jsonArray = Json::decode(\trim($testWithItem), \true);
+                $jsonArray = Json::decode(trim($testWithItem), \true);
                 $attributeGroups[] = $this->phpAttributeGroupFactory->createFromClassWithItems(self::TEST_WITH_ATTRIBUTE, [$jsonArray]);
             }
         }
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
-        $node->attrGroups = \array_merge($node->attrGroups, $attributeGroups);
+        $node->attrGroups = array_merge($node->attrGroups, $attributeGroups);
         return $node;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
     }

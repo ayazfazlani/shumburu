@@ -9,15 +9,17 @@ declare (strict_types=1);
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202506\SebastianBergmann\Diff\Output;
+namespace RectorPrefix202606\SebastianBergmann\Diff\Output;
 
+use function assert;
 use function fclose;
 use function fopen;
 use function fwrite;
+use function is_resource;
 use function str_ends_with;
 use function stream_get_contents;
 use function substr;
-use RectorPrefix202506\SebastianBergmann\Diff\Differ;
+use RectorPrefix202606\SebastianBergmann\Diff\Differ;
 /**
  * Builds a diff string representation in a loose unified diff format
  * listing only changes lines. Does not include line numbers.
@@ -29,12 +31,13 @@ final class DiffOnlyOutputBuilder implements DiffOutputBuilderInterface
     {
         $this->header = $header;
     }
-    public function getDiff(array $diff) : string
+    public function getDiff(array $diff): string
     {
         $buffer = fopen('php://memory', 'r+b');
+        assert(is_resource($buffer));
         if ('' !== $this->header) {
             fwrite($buffer, $this->header);
-            if (\substr_compare($this->header, "\n", -\strlen("\n")) !== 0) {
+            if (substr_compare($this->header, "\n", -strlen("\n")) !== 0) {
                 fwrite($buffer, "\n");
             }
         }

@@ -26,21 +26,22 @@ final class GetFiltersToAsTwigFilterAttributeRector extends AbstractRector
     {
         $this->getMethodToAsTwigAttributeTransformer = $getMethodToAsTwigAttributeTransformer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Changes getFilters() in TwigExtension to #[TwigFilter] marker attribute above function', [new CodeSample(<<<'CODE_SAMPLE'
 use Twig\Extension\AbstractExtension;
+use Twig\Environment;
 
 class SomeClass extends AbstractExtension
 {
     public function getFilters()
     {
         return [
-            new \Twig\TwigFilter('filter_name', [$this, 'localMethod']),
+            new \Twig\TwigFilter('filter_name', [$this, 'localMethod', 'needs_environment' => true]),
         ];
     }
 
-    public function localMethod($value)
+    public function localMethod(Environment $env, $value)
     {
         return $value;
     }
@@ -49,11 +50,12 @@ CODE_SAMPLE
 , <<<'CODE_SAMPLE'
 use Twig\Extension\AbstractExtension;
 use Twig\Attribute\AsTwigFilter;
+use Twig\Environment;
 
 class SomeClass extends AbstractExtension
 {
-    #[TwigFilter('filter_name')]
-    public function localMethod($value)
+    #[TwigFilter('filter_name', needsEnvironment: true)]
+    public function localMethod(Environment $env, $value)
     {
         return $value;
     }
@@ -61,14 +63,14 @@ class SomeClass extends AbstractExtension
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         if ($node->isAbstract() || $node->isAnonymous()) {
             return null;
@@ -77,7 +79,7 @@ CODE_SAMPLE
         if (!$this->isObjectType($node, $twigExtensionObjectType)) {
             return null;
         }
-        $hasChanged = $this->getMethodToAsTwigAttributeTransformer->transformClassGetMethodToAttributeMarker($node, 'getFilters', TwigClass::AS_TWIG_FILTER_ATTRIBUTE, $twigExtensionObjectType);
+        $hasChanged = $this->getMethodToAsTwigAttributeTransformer->transformClassGetMethodToAttributeMarker($node, 'getFilters', TwigClass::AS_TWIG_FILTER_ATTRIBUTE, $twigExtensionObjectType, ['preserves_safety' => 'preservesSafety', 'pre_escape' => 'preEscape']);
         if ($hasChanged) {
             return $node;
         }

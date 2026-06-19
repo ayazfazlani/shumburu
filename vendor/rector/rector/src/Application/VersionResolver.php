@@ -19,20 +19,20 @@ final class VersionResolver
      * @api
      * @var string
      */
-    public const PACKAGE_VERSION = '2.0.18';
+    public const PACKAGE_VERSION = '2.4.6';
     /**
      * @api
      * @var string
      */
-    public const RELEASE_DATE = '2025-06-10 19:22:47';
+    public const RELEASE_DATE = '2026-06-16 21:20:43';
     /**
      * @var int
      */
     private const SUCCESS_CODE = 0;
-    public static function resolvePackageVersion() : string
+    public static function resolvePackageVersion(): string
     {
         // resolve current tag
-        \exec('git tag --points-at', $tagExecOutput, $tagExecResultCode);
+        exec('git tag --points-at', $tagExecOutput, $tagExecResultCode);
         if ($tagExecResultCode !== self::SUCCESS_CODE) {
             throw new VersionException('Ensure to run compile from composer git repository clone and that git binary is available.');
         }
@@ -42,19 +42,19 @@ final class VersionResolver
                 return $tag;
             }
         }
-        \exec('git log --pretty="%H" -n1 HEAD', $commitHashExecOutput, $commitHashResultCode);
+        exec('git log --pretty="%H" -n1 HEAD', $commitHashExecOutput, $commitHashResultCode);
         if ($commitHashResultCode !== 0) {
             throw new VersionException('Ensure to run compile from composer git repository clone and that git binary is available.');
         }
-        $version = \trim($commitHashExecOutput[0]);
-        return \trim($version, '"');
+        $version = trim($commitHashExecOutput[0]);
+        return trim($version, '"');
     }
-    public static function resolverReleaseDateTime() : DateTime
+    public static function resolverReleaseDateTime(): DateTime
     {
-        \exec('git log -n1 --pretty=%ci HEAD', $output, $resultCode);
+        exec('git log -n1 --pretty=%ci HEAD', $output, $resultCode);
         if ($resultCode !== self::SUCCESS_CODE) {
             throw new VersionException('You must ensure to run compile from composer git repository clone and that git binary is available.');
         }
-        return new DateTime(\trim($output[0]));
+        return new DateTime(trim($output[0]));
     }
 }

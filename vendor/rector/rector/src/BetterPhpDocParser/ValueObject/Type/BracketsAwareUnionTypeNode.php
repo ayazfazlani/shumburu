@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\ValueObject\Type;
 
+use Override;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use Stringable;
@@ -23,14 +24,22 @@ final class BracketsAwareUnionTypeNode extends UnionTypeNode
     /**
      * Preserve common format
      */
-    public function __toString() : string
+    #[Override]
+    public function __toString(): string
     {
-        if (!$this->isWrappedInBrackets) {
-            return \implode('|', $this->types);
+        $types = [];
+        // get the actual strings first before array_unique
+        // to avoid similar object but different printing to be treated as unique
+        foreach ($this->types as $type) {
+            $types[] = (string) $type;
         }
-        return '(' . \implode('|', $this->types) . ')';
+        $types = array_unique($types);
+        if (!$this->isWrappedInBrackets) {
+            return implode('|', $types);
+        }
+        return '(' . implode('|', $types) . ')';
     }
-    public function isWrappedInBrackets() : bool
+    public function isWrappedInBrackets(): bool
     {
         return $this->isWrappedInBrackets;
     }

@@ -12,19 +12,23 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\Return_;
+use PhpParser\NodeFinder;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\IntersectionType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
-use RectorPrefix202506\PHPUnit\Framework\MockObject\Builder\InvocationMocker;
 use Rector\Enum\ClassName;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\PHPUnit\CodeQuality\NodeAnalyser\SetUpAssignedMockTypesResolver;
 use Rector\PHPUnit\CodeQuality\Reflection\MethodParametersAndReturnTypesResolver;
 use Rector\PHPUnit\CodeQuality\ValueObject\ParamTypesAndReturnType;
+use Rector\PHPUnit\Enum\PHPUnitClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
+use Rector\Reflection\ReflectionResolver;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -50,17 +54,22 @@ final class TypeWillReturnCallableArrowFunctionRector extends AbstractRector
      */
     private MethodParametersAndReturnTypesResolver $methodParametersAndReturnTypesResolver;
     /**
+     * @readonly
+     */
+    private ReflectionResolver $reflectionResolver;
+    /**
      * @var string
      */
     private const WILL_RETURN_CALLBACK = 'willReturnCallback';
-    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, StaticTypeMapper $staticTypeMapper, SetUpAssignedMockTypesResolver $setUpAssignedMockTypesResolver, MethodParametersAndReturnTypesResolver $methodParametersAndReturnTypesResolver)
+    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, StaticTypeMapper $staticTypeMapper, SetUpAssignedMockTypesResolver $setUpAssignedMockTypesResolver, MethodParametersAndReturnTypesResolver $methodParametersAndReturnTypesResolver, ReflectionResolver $reflectionResolver)
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->staticTypeMapper = $staticTypeMapper;
         $this->setUpAssignedMockTypesResolver = $setUpAssignedMockTypesResolver;
         $this->methodParametersAndReturnTypesResolver = $methodParametersAndReturnTypesResolver;
+        $this->reflectionResolver = $reflectionResolver;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Decorate callbacks and arrow functions in willReturnCallback() with known param/return types based on reflection method', [new CodeSample(<<<'CODE_SAMPLE'
 use PHPUnit\Framework\TestCase;
@@ -115,29 +124,30 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node): ?Class_
     {
         if (!$this->testsNodeAnalyzer->isInTestClass($node)) {
             return null;
         }
         $hasChanged = \false;
+        $currentClassReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$currentClassReflection instanceof ClassReflection) {
+            return null;
+        }
         $propertyNameToMockedTypes = $this->setUpAssignedMockTypesResolver->resolveFromClass($node);
-        $this->traverseNodesWithCallable($node->getMethods(), function (Node $node) use(&$hasChanged, $propertyNameToMockedTypes) {
+        $this->traverseNodesWithCallable($node->getMethods(), function (Node $node) use (&$hasChanged, $propertyNameToMockedTypes, $currentClassReflection) {
             if (!$node instanceof MethodCall || $node->isFirstClassCallable()) {
                 return null;
             }
-            if (!$this->isName($node->name, self::WILL_RETURN_CALLBACK)) {
-                return null;
-            }
-            $innerArg = $node->getArgs()[0]->value;
-            if (!$innerArg instanceof ArrowFunction && !$innerArg instanceof Closure) {
+            $innerClosure = $this->matchInnerClosure($node);
+            if (!$innerClosure instanceof Node) {
                 return null;
             }
             if (!$node->var instanceof MethodCall) {
@@ -153,7 +163,7 @@ CODE_SAMPLE
             }
             $methodName = $methodNameExpr->value;
             $callerType = $this->getType($parentMethodCall->var);
-            if ($callerType instanceof ObjectType && $callerType->getClassName() === InvocationMocker::class) {
+            if ($callerType instanceof ObjectType && in_array($callerType->getClassName(), [PHPUnitClassName::INVOCATION_MOCKER, PHPUnitClassName::INVOCATION_STUBBER], \true)) {
                 $parentMethodCall = $parentMethodCall->var;
                 if ($parentMethodCall instanceof MethodCall) {
                     $callerType = $this->getType($parentMethodCall->var);
@@ -165,11 +175,11 @@ CODE_SAMPLE
                 return null;
             }
             $hasChanged = \false;
-            $parameterTypesAndReturnType = $this->methodParametersAndReturnTypesResolver->resolveFromReflection($callerType, $methodName);
+            $parameterTypesAndReturnType = $this->methodParametersAndReturnTypesResolver->resolveFromReflection($callerType, $methodName, $currentClassReflection);
             if (!$parameterTypesAndReturnType instanceof ParamTypesAndReturnType) {
                 return null;
             }
-            foreach ($innerArg->params as $key => $param) {
+            foreach ($innerClosure->params as $key => $param) {
                 // avoid typing variadic parameters
                 if ($param->variadic) {
                     continue;
@@ -193,19 +203,51 @@ CODE_SAMPLE
                 $param->type = $parameterTypeNode;
                 $hasChanged = \true;
             }
-            if (!$innerArg->returnType instanceof Node) {
-                $returnTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($parameterTypesAndReturnType->getReturnType(), TypeKind::RETURN);
+            if (!$innerClosure->returnType instanceof Node) {
+                $returnType = $parameterTypesAndReturnType->getReturnType();
+                if (!$returnType instanceof Type) {
+                    return null;
+                }
+                if ($this->shouldSkipReturnForConflictWithReturnedNodeType($innerClosure, $returnType)) {
+                    return null;
+                }
+                $returnTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($returnType, TypeKind::RETURN);
                 if ($returnTypeNode instanceof Node) {
-                    $innerArg->returnType = $returnTypeNode;
+                    $innerClosure->returnType = $returnTypeNode;
                     $hasChanged = \true;
                 }
             }
-            $hasChanged = \true;
         });
         if (!$hasChanged) {
             return null;
         }
         return $node;
+    }
+    /**
+     * @return null|\PhpParser\Node\Expr\ArrowFunction|\PhpParser\Node\Expr\Closure
+     */
+    public function matchInnerClosure(MethodCall $methodCall)
+    {
+        if ($this->isName($methodCall->name, 'with')) {
+            // special case for nested callback
+            $withFirstArg = $methodCall->getArgs()[0];
+            if ($withFirstArg->value instanceof MethodCall) {
+                $nestedMethodCall = $withFirstArg->value;
+                if ($this->isName($nestedMethodCall->name, 'callback')) {
+                    $nestedArg = $nestedMethodCall->getArgs()[0];
+                    if ($nestedArg->value instanceof ArrowFunction || $nestedArg->value instanceof Closure) {
+                        return $nestedArg->value;
+                    }
+                }
+            }
+        }
+        if ($this->isName($methodCall->name, self::WILL_RETURN_CALLBACK)) {
+            $innerArg = $methodCall->getArgs()[0];
+            if ($innerArg->value instanceof ArrowFunction || $innerArg->value instanceof Closure) {
+                return $innerArg->value;
+            }
+        }
+        return null;
     }
     /**
      * @param array<string, string> $propertyNameToMockedTypes
@@ -237,5 +279,27 @@ CODE_SAMPLE
             return new IntersectionType([$callerType, new ObjectType($mockedType)]);
         }
         return $callerType;
+    }
+    /**
+     * @param \PhpParser\Node\Expr\Closure|\PhpParser\Node\Expr\ArrowFunction $functionLike
+     */
+    private function shouldSkipReturnForConflictWithReturnedNodeType($functionLike, Type $returnType): bool
+    {
+        // find return functionLike, to check current type
+        $nodeFinder = new NodeFinder();
+        $returns = $nodeFinder->findInstanceOf($functionLike, Return_::class);
+        $returnTypes = [];
+        foreach ($returns as $return) {
+            if ($return->expr instanceof Node) {
+                $returnTypes[] = $this->getType($return->expr);
+            }
+        }
+        if (count($returnTypes) === 1) {
+            $closureReturnedNodeType = $returnTypes[0];
+            if (!$closureReturnedNodeType->isSuperTypeOf($returnType)->yes()) {
+                return \true;
+            }
+        }
+        return \false;
     }
 }

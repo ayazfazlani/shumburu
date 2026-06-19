@@ -1,13 +1,13 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202506;
+namespace RectorPrefix202606;
 
-use RectorPrefix202506\OndraM\CiDetector\CiDetector;
+use RectorPrefix202606\OndraM\CiDetector\CiDetector;
 use Rector\Bootstrap\ExtensionConfigResolver;
 use Rector\Caching\ValueObject\Storage\MemoryCacheStorage;
 use Rector\Config\RectorConfig;
-return static function (RectorConfig $rectorConfig) : void {
+return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([]);
     $rectorConfig->skip([]);
     $rectorConfig->autoloadPaths([]);
@@ -35,4 +35,5 @@ return static function (RectorConfig $rectorConfig) : void {
     $rectorConfig->newLineOnFluentCall(\false);
     // allow real paths in output formatters
     $rectorConfig->reportingRealPath(\false);
+    $rectorConfig->treatClassesAsFinal(\false);
 };

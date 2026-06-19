@@ -2,8 +2,30 @@
 
 declare(strict_types=1);
 
+use PhpParser\Node;
+use PHPStan\Testing\PHPStanTestCase;
+
+if (defined('__PHPSTAN_RUNNING__')) {
+    return;
+}
+
+// edge case during Rector tests case, happens when
+// 1. phpstan autoload test case is triggered first,
+// 2. all php-parser classes are loaded,
+if (defined('PHPUNIT_COMPOSER_INSTALL') && isPHPStanTestPreloaded()) {
+    return;
+}
+
+function isPHPStanTestPreloaded(): bool
+{
+    if (! class_exists(PHPStanTestCase::class, false)) {
+        return false;
+    }
+
+    return interface_exists(Node::class, false);
+}
+
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node.php';
-require_once __DIR__ . '/src/Contract/PhpParser/Node/StmtsAwareInterface.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/NodeAbstract.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/NodeVisitor.php';
@@ -67,10 +89,12 @@ require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulat
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/ExplicitOctalEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/MatchTokenEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/NullsafeTokenEmulator.php';
+require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/PipeOperatorEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/PropertyTokenEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/ReadonlyFunctionTokenEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/ReadonlyTokenEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/ReverseEmulator.php';
+require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Lexer/TokenEmulator/VoidCastEmulator.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Modifiers.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/NameContext.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Arg.php';
@@ -118,6 +142,7 @@ require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryO
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/Mul.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/NotEqual.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/NotIdentical.php';
+require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/Pipe.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/Plus.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/Pow.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/BinaryOp/ShiftLeft.php';
@@ -135,6 +160,7 @@ require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/In
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/Object_.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/String_.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/Unset_.php';
+require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Cast/Void_.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/ClassConstFetch.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Clone_.php';
 require_once __DIR__ . '/vendor/nikic/php-parser/lib/PhpParser/Node/Expr/Closure.php';
@@ -313,6 +339,7 @@ require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/PureUnlessC
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/RequireExtendsTagValueNode.php';
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/RequireImplementsTagValueNode.php';
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/ReturnTagValueNode.php';
+require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/SealedTagValueNode.php';
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/SelfOutTagValueNode.php';
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/TemplateTagValueNode.php';
 require_once __DIR__ . '/vendor/phpstan/phpdoc-parser/src/Ast/PhpDoc/ThrowsTagValueNode.php';

@@ -9,6 +9,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\TraitUse;
 use PHPStan\Reflection\ClassReflection;
 use Rector\PhpParser\Node\BetterNodeFinder;
+use Rector\PHPUnit\Enum\ProphecyClassName;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Reflection\ReflectionResolver;
@@ -35,17 +36,13 @@ final class AddProphecyTraitRector extends AbstractRector
      * @readonly
      */
     private BetterNodeFinder $betterNodeFinder;
-    /**
-     * @var string
-     */
-    private const PROPHECY_TRAIT = 'Prophecy\\PhpUnit\\ProphecyTrait';
     public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, ReflectionResolver $reflectionResolver, BetterNodeFinder $betterNodeFinder)
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->reflectionResolver = $reflectionResolver;
         $this->betterNodeFinder = $betterNodeFinder;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Add Prophecy trait for method using $this->prophesize()', [new CodeSample(<<<'CODE_SAMPLE'
 use PHPUnit\Framework\TestCase;
@@ -77,23 +74,23 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if ($this->shouldSkipClass($node)) {
             return null;
         }
-        $traitUse = new TraitUse([new FullyQualified(self::PROPHECY_TRAIT)]);
-        $node->stmts = \array_merge([$traitUse], $node->stmts);
+        $traitUse = new TraitUse([new FullyQualified(ProphecyClassName::PROPHECY_TRAIT)]);
+        $node->stmts = array_merge([$traitUse], $node->stmts);
         return $node;
     }
-    private function shouldSkipClass(Class_ $class) : bool
+    private function shouldSkipClass(Class_ $class): bool
     {
         $hasProphesizeMethodCall = (bool) $this->betterNodeFinder->findFirst($class, fn(Node $node): bool => $this->testsNodeAnalyzer->isAssertMethodCallName($node, 'prophesize'));
         if (!$hasProphesizeMethodCall) {
@@ -103,6 +100,6 @@ CODE_SAMPLE
         if (!$classReflection instanceof ClassReflection) {
             return \false;
         }
-        return $classReflection->hasTraitUse(self::PROPHECY_TRAIT);
+        return $classReflection->hasTraitUse(ProphecyClassName::PROPHECY_TRAIT);
     }
 }

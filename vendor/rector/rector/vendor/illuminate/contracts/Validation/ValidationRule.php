@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202506\Illuminate\Contracts\Validation;
+namespace RectorPrefix202606\Illuminate\Contracts\Validation;
 
 use Closure;
 interface ValidationRule
@@ -13,5 +13,5 @@ interface ValidationRule
      * @param  \Closure(string, ?string=): \Illuminate\Translation\PotentiallyTranslatedString  $fail
      * @return void
      */
-    public function validate(string $attribute, $value, Closure $fail) : void;
+    public function validate(string $attribute, $value, Closure $fail): void;
 }

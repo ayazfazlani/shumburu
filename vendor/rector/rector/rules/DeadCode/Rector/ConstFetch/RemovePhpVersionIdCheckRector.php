@@ -36,7 +36,7 @@ final class RemovePhpVersionIdCheckRector extends AbstractRector
         $this->phpVersionProvider = $phpVersionProvider;
         $this->phpVersion = $this->phpVersionProvider->provide();
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove unneeded PHP_VERSION_ID conditional checks', [new CodeSample(<<<'CODE_SAMPLE'
 class SomeClass
@@ -65,13 +65,13 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [If_::class];
     }
     /**
      * @param If_ $node
-     * @return null|int|Stmt[]
+     * @return null|NodeVisitor::REMOVE_NODE|Stmt[]
      */
     public function refactor(Node $node)
     {
@@ -97,7 +97,7 @@ CODE_SAMPLE
         return $this->refactorConstFetch($binaryOp->right, $node, $binaryOp);
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorSmaller(ConstFetch $constFetch, Smaller $smaller, If_ $if)
     {
@@ -110,7 +110,7 @@ CODE_SAMPLE
         return null;
     }
     /**
-     * @return null|int|Stmt[]
+     * @return null|NodeVisitor::REMOVE_NODE|Stmt[]
      */
     private function processGreaterOrEqual(ConstFetch $constFetch, GreaterOrEqual $greaterOrEqual, If_ $if)
     {
@@ -122,7 +122,10 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function refactorSmallerLeft(Smaller $smaller) : ?int
+    /**
+     * @return null|NodeVisitor::REMOVE_NODE
+     */
+    private function refactorSmallerLeft(Smaller $smaller): ?int
     {
         $value = $smaller->right;
         if (!$value instanceof Int_) {
@@ -134,7 +137,7 @@ CODE_SAMPLE
         return null;
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorSmallerRight(Smaller $smaller, If_ $if)
     {
@@ -151,7 +154,7 @@ CODE_SAMPLE
         return $if->stmts;
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorGreaterOrEqualLeft(GreaterOrEqual $greaterOrEqual, If_ $if)
     {
@@ -167,7 +170,10 @@ CODE_SAMPLE
         }
         return $if->stmts;
     }
-    private function refactorGreaterOrEqualRight(GreaterOrEqual $greaterOrEqual) : ?int
+    /**
+     * @return NodeVisitor::REMOVE_NODE|null
+     */
+    private function refactorGreaterOrEqualRight(GreaterOrEqual $greaterOrEqual): ?int
     {
         $value = $greaterOrEqual->left;
         if (!$value instanceof Int_) {
@@ -179,7 +185,7 @@ CODE_SAMPLE
         return null;
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorGreater(ConstFetch $constFetch, Greater $greater, If_ $if)
     {
@@ -192,7 +198,7 @@ CODE_SAMPLE
         return null;
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorGreaterLeft(Greater $greater, If_ $if)
     {
@@ -208,7 +214,10 @@ CODE_SAMPLE
         }
         return $if->stmts;
     }
-    private function refactorGreaterRight(Greater $greater) : ?int
+    /**
+     * @return NodeVisitor::REMOVE_NODE|null
+     */
+    private function refactorGreaterRight(Greater $greater): ?int
     {
         $value = $greater->left;
         if (!$value instanceof Int_) {
@@ -220,7 +229,7 @@ CODE_SAMPLE
         return null;
     }
     /**
-     * @return null|Stmt[]|int
+     * @return null|Stmt[]|NodeVisitor::REMOVE_NODE
      */
     private function refactorConstFetch(ConstFetch $constFetch, If_ $if, BinaryOp $binaryOp)
     {

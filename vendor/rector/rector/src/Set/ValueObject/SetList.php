@@ -26,6 +26,7 @@ final class SetList
      */
     public const DEAD_CODE = __DIR__ . '/../../../config/set/dead-code.php';
     /**
+     * @deprecated As too strict and not practical. Use code quality and coding style sets instead.
      * @var string
      */
     public const STRICT_BOOLEANS = __DIR__ . '/../../../config/set/strict-booleans.php';
@@ -38,8 +39,11 @@ final class SetList
      */
     public const NAMING = __DIR__ . '/../../../config/set/naming.php';
     /**
+     * @var string
+     */
+    public const NAMED_ARGS = __DIR__ . '/../../../config/set/named-args.php';
+    /**
      * Opinionated rules that match rector coding standard
-     *
      * @var string
      */
     public const RECTOR_PRESET = __DIR__ . '/../../../config/set/rector-preset.php';
@@ -110,11 +114,19 @@ final class SetList
     /**
      * @var string
      */
+    public const PHP_86 = __DIR__ . '/../../../config/set/php86.php';
+    /**
+     * @var string
+     */
     public const PRIVATIZATION = __DIR__ . '/../../../config/set/privatization.php';
     /**
      * @var string
      */
     public const TYPE_DECLARATION = __DIR__ . '/../../../config/set/type-declaration.php';
+    /**
+     * @var string
+     */
+    public const TYPE_DECLARATION_DOCBLOCKS = __DIR__ . '/../../../config/set/type-declaration-docblocks.php';
     /**
      * @var string
      */
@@ -131,4 +143,9 @@ final class SetList
      * @var string
      */
     public const BEHAT_ANNOTATIONS_TO_ATTRIBUTES = __DIR__ . '/../../../config/set/behat-annotations-to-attributes.php';
+    /**
+     * @experimental Check generic types in runtime with assert. Generics for impatient people.
+     * @var string
+     */
+    public const ASSERT = __DIR__ . '/../../../config/set/assert.php';
 }

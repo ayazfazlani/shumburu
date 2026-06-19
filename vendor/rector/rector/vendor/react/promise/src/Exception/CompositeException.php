@@ -1,6 +1,6 @@
 <?php
 
-namespace RectorPrefix202506\React\Promise\Exception;
+namespace RectorPrefix202606\React\Promise\Exception;
 
 /**
  * Represents an exception that is a composite of one or more other exceptions.
@@ -22,7 +22,7 @@ class CompositeException extends \Exception
     /**
      * @return \Throwable[]
      */
-    public function getThrowables() : array
+    public function getThrowables(): array
     {
         return $this->throwables;
     }

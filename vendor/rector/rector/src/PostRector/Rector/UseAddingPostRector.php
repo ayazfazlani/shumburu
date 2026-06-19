@@ -9,7 +9,7 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\NodeVisitor;
 use Rector\CodingStyle\Application\UseImportsAdder;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
-use Rector\PhpParser\Node\CustomNode\FileWithoutNamespace;
+use Rector\PhpParser\Node\FileNode;
 use Rector\PostRector\Collector\UseNodesToAddCollector;
 use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 final class UseAddingPostRector extends \Rector\PostRector\Rector\AbstractPostRector
@@ -36,13 +36,16 @@ final class UseAddingPostRector extends \Rector\PostRector\Rector\AbstractPostRe
      * @param Stmt[] $nodes
      * @return Stmt[]
      */
-    public function beforeTraverse(array $nodes) : array
+    public function beforeTraverse(array $nodes): array
     {
         // no nodes → just return
         if ($nodes === []) {
             return $nodes;
         }
         $rootNode = $this->resolveRootNode($nodes);
+        if (!$rootNode instanceof FileNode && !$rootNode instanceof Namespace_) {
+            return $nodes;
+        }
         $useImportTypes = $this->useNodesToAddCollector->getObjectImportsByFilePath($this->getFile()->getFilePath());
         $constantUseImportTypes = $this->useNodesToAddCollector->getConstantImportsByFilePath($this->getFile()->getFilePath());
         $functionUseImportTypes = $this->useNodesToAddCollector->getFunctionImportsByFilePath($this->getFile()->getFilePath());
@@ -51,15 +54,13 @@ final class UseAddingPostRector extends \Rector\PostRector\Rector\AbstractPostRe
         }
         /** @var FullyQualifiedObjectType[] $useImportTypes */
         $useImportTypes = $this->typeFactory->uniquateTypes($useImportTypes);
-        if ($rootNode instanceof FileWithoutNamespace) {
-            $nodes = $rootNode->stmts;
+        $stmts = $rootNode instanceof FileNode ? $rootNode->stmts : $nodes;
+        if ($this->processStmtsWithImportedUses($stmts, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes, $rootNode)) {
+            $this->addRectorClassWithLine($rootNode);
         }
-        if (!$rootNode instanceof FileWithoutNamespace && !$rootNode instanceof Namespace_) {
-            return $nodes;
-        }
-        return $this->resolveNodesWithImportedUses($nodes, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes, $rootNode);
+        return $nodes;
     }
-    public function enterNode(Node $node) : int
+    public function enterNode(Node $node): int
     {
         /**
          * We stop the traversal because all the work has already been done in the beforeTraverse() function
@@ -72,36 +73,34 @@ final class UseAddingPostRector extends \Rector\PostRector\Rector\AbstractPostRe
         return NodeVisitor::STOP_TRAVERSAL;
     }
     /**
-     * @param Stmt[] $nodes
+     * @param Stmt[] $stmts
      * @param FullyQualifiedObjectType[] $useImportTypes
      * @param FullyQualifiedObjectType[] $constantUseImportTypes
      * @param FullyQualifiedObjectType[] $functionUseImportTypes
-     * @return Stmt[]
-     * @param \Rector\PhpParser\Node\CustomNode\FileWithoutNamespace|\PhpParser\Node\Stmt\Namespace_ $namespace
+     * @param \Rector\PhpParser\Node\FileNode|\PhpParser\Node\Stmt\Namespace_ $namespace
      */
-    private function resolveNodesWithImportedUses(array $nodes, array $useImportTypes, array $constantUseImportTypes, array $functionUseImportTypes, $namespace) : array
+    private function processStmtsWithImportedUses(array $stmts, array $useImportTypes, array $constantUseImportTypes, array $functionUseImportTypes, $namespace): bool
     {
         // A. has namespace? add under it
         if ($namespace instanceof Namespace_) {
             // then add, to prevent adding + removing false positive of same short use
-            $this->useImportsAdder->addImportsToNamespace($namespace, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes);
-            return $nodes;
+            return $this->useImportsAdder->addImportsToNamespace($namespace, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes);
         }
         // B. no namespace? add in the top
         $useImportTypes = $this->filterOutNonNamespacedNames($useImportTypes);
         // then add, to prevent adding + removing false positive of same short use
-        return $this->useImportsAdder->addImportsToStmts($namespace, $nodes, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes);
+        return $this->useImportsAdder->addImportsToStmts($namespace, $stmts, $useImportTypes, $constantUseImportTypes, $functionUseImportTypes);
     }
     /**
      * Prevents
      * @param FullyQualifiedObjectType[] $useImportTypes
      * @return FullyQualifiedObjectType[]
      */
-    private function filterOutNonNamespacedNames(array $useImportTypes) : array
+    private function filterOutNonNamespacedNames(array $useImportTypes): array
     {
         $namespacedUseImportTypes = [];
         foreach ($useImportTypes as $useImportType) {
-            if (\strpos($useImportType->getClassName(), '\\') === \false) {
+            if (strpos($useImportType->getClassName(), '\\') === \false) {
                 continue;
             }
             $namespacedUseImportTypes[] = $useImportType;
@@ -110,15 +109,22 @@ final class UseAddingPostRector extends \Rector\PostRector\Rector\AbstractPostRe
     }
     /**
      * @param Stmt[] $nodes
-     * @return \PhpParser\Node\Stmt\Namespace_|\Rector\PhpParser\Node\CustomNode\FileWithoutNamespace|null
+     * @return \PhpParser\Node\Stmt\Namespace_|\Rector\PhpParser\Node\FileNode|null
      */
     private function resolveRootNode(array $nodes)
     {
-        foreach ($nodes as $node) {
-            if ($node instanceof FileWithoutNamespace || $node instanceof Namespace_) {
-                return $node;
+        if ($nodes === []) {
+            return null;
+        }
+        $firstStmt = $nodes[0];
+        if (!$firstStmt instanceof FileNode) {
+            return null;
+        }
+        foreach ($firstStmt->stmts as $stmt) {
+            if ($stmt instanceof Namespace_) {
+                return $stmt;
             }
         }
-        return null;
+        return $firstStmt;
     }
 }

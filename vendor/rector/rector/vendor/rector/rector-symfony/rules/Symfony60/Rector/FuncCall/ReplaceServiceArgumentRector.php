@@ -10,10 +10,11 @@ use PhpParser\Node\Scalar\String_;
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\PhpParser\Node\Value\ValueResolver;
 use Rector\Rector\AbstractRector;
+use Rector\Symfony\Enum\SymfonyFunctionName;
 use Rector\Symfony\ValueObject\ReplaceServiceArgument;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Symfony\Tests\Symfony60\Rector\FuncCall\ReplaceServiceArgumentRector\ReplaceServiceArgumentRectorTest
  */
@@ -31,7 +32,7 @@ final class ReplaceServiceArgumentRector extends AbstractRector implements Confi
     {
         $this->valueResolver = $valueResolver;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Replace defined service() argument in Symfony PHP config', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -48,16 +49,16 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [FuncCall::class];
     }
     /**
      * @param FuncCall $node
      */
-    public function refactor(Node $node) : ?FuncCall
+    public function refactor(Node $node): ?FuncCall
     {
-        if (!$this->isName($node, 'Symfony\\Component\\DependencyInjection\\Loader\\Configurator\\service')) {
+        if (!$this->isName($node->name, SymfonyFunctionName::SERVICE)) {
             return null;
         }
         $firstArg = $node->args[0];
@@ -76,7 +77,7 @@ CODE_SAMPLE
     /**
      * @param mixed[] $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         Assert::allIsAOf($configuration, ReplaceServiceArgument::class);
         $this->replaceServiceArguments = $configuration;

@@ -5,6 +5,7 @@ namespace Rector\NodeAnalyzer;
 
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\MethodReflection;
@@ -20,9 +21,9 @@ final class VariadicAnalyzer
         $this->reflectionResolver = $reflectionResolver;
     }
     /**
-     * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall $call
+     * @param \PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\New_ $call
      */
-    public function hasVariadicParameters($call) : bool
+    public function hasVariadicParameters($call): bool
     {
         $functionLikeReflection = $this->reflectionResolver->resolveFunctionLikeReflectionFromCall($call);
         if ($functionLikeReflection === null) {
@@ -33,11 +34,11 @@ final class VariadicAnalyzer
     /**
      * @param \PHPStan\Reflection\MethodReflection|\PHPStan\Reflection\FunctionReflection $functionLikeReflection
      */
-    private function hasVariadicVariant($functionLikeReflection) : bool
+    private function hasVariadicVariant($functionLikeReflection): bool
     {
-        foreach ($functionLikeReflection->getVariants() as $variant) {
+        foreach ($functionLikeReflection->getVariants() as $parametersAcceptor) {
             // can be any number of arguments → nothing to limit here
-            if ($variant->isVariadic()) {
+            if ($parametersAcceptor->isVariadic()) {
                 return \true;
             }
         }

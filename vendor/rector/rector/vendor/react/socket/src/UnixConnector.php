@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202506\React\Socket;
+namespace RectorPrefix202606\React\Socket;
 
-use RectorPrefix202506\React\EventLoop\Loop;
-use RectorPrefix202506\React\EventLoop\LoopInterface;
-use RectorPrefix202506\React\Promise;
+use RectorPrefix202606\React\EventLoop\Loop;
+use RectorPrefix202606\React\EventLoop\LoopInterface;
+use RectorPrefix202606\React\Promise;
 use InvalidArgumentException;
 use RuntimeException;
 /**
@@ -23,7 +23,7 @@ final class UnixConnector implements ConnectorInterface
     {
         if ($loop !== null && !$loop instanceof LoopInterface) {
             // manual type check to support legacy PHP < 7.1
-            throw new \InvalidArgumentException('Argument #1 ($loop) expected null|React\\EventLoop\\LoopInterface');
+            throw new \InvalidArgumentException('Argument #1 ($loop) expected null|React\EventLoop\LoopInterface');
         }
         $this->loop = $loop ?: Loop::get();
     }

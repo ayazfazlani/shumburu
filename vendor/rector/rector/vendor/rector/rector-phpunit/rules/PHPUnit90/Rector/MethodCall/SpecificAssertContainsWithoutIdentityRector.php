@@ -36,7 +36,7 @@ final class SpecificAssertContainsWithoutIdentityRector extends AbstractRector
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->valueResolver = $valueResolver;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change assertContains()/assertNotContains() with non-strict comparison to new specific alternatives', [new CodeSample(<<<'CODE_SAMPLE'
 final class SomeTest extends \PHPUnit\Framework\TestCase
@@ -65,14 +65,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [MethodCall::class, StaticCall::class];
     }
     /**
      * @param MethodCall|StaticCall $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if (!$this->testsNodeAnalyzer->isPHPUnitMethodCallNames($node, ['assertContains', 'assertNotContains'])) {
             return null;
@@ -80,7 +80,7 @@ CODE_SAMPLE
         if ($node->isFirstClassCallable()) {
             return null;
         }
-        if (\count($node->getArgs()) < 2) {
+        if (count($node->getArgs()) < 2) {
             return null;
         }
         // when second argument is string: do nothing
@@ -99,6 +99,9 @@ CODE_SAMPLE
         }
         /* here we search for element of array without identity check  and we can replace functions */
         $methodName = $this->getName($node->name);
+        if ($methodName === null) {
+            return null;
+        }
         $node->name = new Identifier(self::OLD_METHODS_NAMES_TO_NEW_NAMES['string'][$methodName]);
         unset($node->args[3], $node->args[4]);
         return $node;

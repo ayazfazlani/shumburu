@@ -10,6 +10,7 @@ use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\Doctrine\Enum\DoctrineClass;
 use Rector\Doctrine\NodeManipulator\ToManyRelationPropertyTypeResolver;
+use Rector\Doctrine\TypedCollections\NodeModifier\PropertyDefaultNullRemover;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\Rector\AbstractRector;
 use Rector\StaticTypeMapper\StaticTypeMapper;
@@ -30,14 +31,19 @@ final class TypedPropertyFromToManyRelationTypeRector extends AbstractRector imp
      * @readonly
      */
     private StaticTypeMapper $staticTypeMapper;
-    public function __construct(ToManyRelationPropertyTypeResolver $toManyRelationPropertyTypeResolver, StaticTypeMapper $staticTypeMapper)
+    /**
+     * @readonly
+     */
+    private PropertyDefaultNullRemover $propertyDefaultNullRemover;
+    public function __construct(ToManyRelationPropertyTypeResolver $toManyRelationPropertyTypeResolver, StaticTypeMapper $staticTypeMapper, PropertyDefaultNullRemover $propertyDefaultNullRemover)
     {
         $this->toManyRelationPropertyTypeResolver = $toManyRelationPropertyTypeResolver;
         $this->staticTypeMapper = $staticTypeMapper;
+        $this->propertyDefaultNullRemover = $propertyDefaultNullRemover;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Add "Doctrine\\Common\\Collections\\Collection" type declaration, based on @ORM\\*toMany and @ODM\\*toMany annotations/attributes', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Add "Doctrine\Common\Collections\Collection" type declaration, based on @ORM\*toMany and @ODM\*toMany annotations/attributes', [new CodeSample(<<<'CODE_SAMPLE'
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\ManyToMany;
 
@@ -73,14 +79,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Property::class];
     }
     /**
      * @param Property $node
      */
-    public function refactor(Node $node) : ?Property
+    public function refactor(Node $node): ?Property
     {
         if ($node->type !== null && $this->isName($node->type, DoctrineClass::COLLECTION)) {
             return null;
@@ -94,15 +100,13 @@ CODE_SAMPLE
             return null;
         }
         // remove default null value if any
-        if ($node->props[0]->default !== null) {
-            $node->props[0]->default = null;
-        }
+        $this->propertyDefaultNullRemover->remove($node);
         if (!$propertyType instanceof UnionType) {
             $node->type = $typeNode;
         }
         return $node;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::TYPED_PROPERTIES;
     }

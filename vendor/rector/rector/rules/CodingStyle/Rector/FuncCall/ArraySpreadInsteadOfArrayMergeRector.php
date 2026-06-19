@@ -11,9 +11,6 @@ use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Variable;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\Constant\ConstantArrayType;
-use Rector\NodeTypeResolver\TypeAnalyzer\ArrayTypeAnalyzer;
 use Rector\Php\PhpVersionProvider;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\PhpVersionFeature;
@@ -29,17 +26,12 @@ final class ArraySpreadInsteadOfArrayMergeRector extends AbstractRector implemen
     /**
      * @readonly
      */
-    private ArrayTypeAnalyzer $arrayTypeAnalyzer;
-    /**
-     * @readonly
-     */
     private PhpVersionProvider $phpVersionProvider;
-    public function __construct(ArrayTypeAnalyzer $arrayTypeAnalyzer, PhpVersionProvider $phpVersionProvider)
+    public function __construct(PhpVersionProvider $phpVersionProvider)
     {
-        $this->arrayTypeAnalyzer = $arrayTypeAnalyzer;
         $this->phpVersionProvider = $phpVersionProvider;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Change array_merge() to spread operator', [new CodeSample(<<<'CODE_SAMPLE'
 class SomeClass
@@ -73,25 +65,25 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [FuncCall::class];
     }
     /**
      * @param FuncCall $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if ($this->isName($node, 'array_merge')) {
             return $this->refactorArray($node);
         }
         return null;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ARRAY_SPREAD;
     }
-    private function refactorArray(FuncCall $funcCall) : ?Array_
+    private function refactorArray(FuncCall $funcCall): ?Array_
     {
         if ($funcCall->isFirstClassCallable()) {
             return null;
@@ -106,11 +98,11 @@ CODE_SAMPLE
                 return null;
             }
             $value = $arg->value;
-            if ($this->shouldSkipArrayForInvalidTypeOrKeys($value)) {
+            if ($this->shouldSkipArrayForInvalidKeys($value)) {
                 return null;
             }
             if ($value instanceof Array_) {
-                $array->items = \array_merge($array->items, $value->items);
+                $array->items = array_merge($array->items, $value->items);
                 continue;
             }
             $value = $this->resolveValue($value);
@@ -118,30 +110,23 @@ CODE_SAMPLE
         }
         return $array;
     }
-    private function shouldSkipArrayForInvalidTypeOrKeys(Expr $expr) : bool
+    private function shouldSkipArrayForInvalidKeys(Expr $expr): bool
     {
-        // we have no idea what it is → cannot change it
-        if (!$this->arrayTypeAnalyzer->isArrayType($expr)) {
-            return \true;
-        }
-        $arrayStaticType = $this->getType($expr);
-        if (!$arrayStaticType instanceof ArrayType && !$arrayStaticType instanceof ConstantArrayType) {
-            return \true;
-        }
-        return !$this->isArrayKeyTypeAllowed($arrayStaticType);
-    }
-    /**
-     * @param \PHPStan\Type\ArrayType|\PHPStan\Type\Constant\ConstantArrayType $arrayType
-     */
-    private function isArrayKeyTypeAllowed($arrayType) : bool
-    {
-        if ($arrayType->getIterableKeyType()->isInteger()->yes()) {
-            return \true;
+        $type = $this->getType($expr);
+        if ($type->getIterableKeyType()->isInteger()->yes()) {
+            // when on PHP 8.0+, pass non-array values already error on the first place
+            // this check avoid unpack non-array values that cause error on php 7.4 as well,
+            // @see https://3v4l.org/DuYHu#v7.4.33
+            if (!$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::ARRAY_ON_ARRAY_MERGE)) {
+                $nativeType = $this->nodeTypeResolver->getNativeType($expr);
+                return !$nativeType->isArray()->yes();
+            }
+            return \false;
         }
         // php 8.1+ allow mixed key: int, string, and null
-        return $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::ARRAY_SPREAD_STRING_KEYS);
+        return !$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::ARRAY_SPREAD_STRING_KEYS);
     }
-    private function resolveValue(Expr $expr) : Expr
+    private function resolveValue(Expr $expr): Expr
     {
         if ($expr instanceof FuncCall && $this->isIteratorToArrayFuncCall($expr)) {
             /** @var Arg $arg */
@@ -163,11 +148,11 @@ CODE_SAMPLE
         }
         return $expr;
     }
-    private function createUnpackedArrayItem(Expr $expr) : ArrayItem
+    private function createUnpackedArrayItem(Expr $expr): ArrayItem
     {
         return new ArrayItem($expr, null, \false, [], \true);
     }
-    private function isIteratorToArrayFuncCall(Expr $expr) : bool
+    private function isIteratorToArrayFuncCall(Expr $expr): bool
     {
         if (!$expr instanceof FuncCall) {
             return \false;

@@ -8,11 +8,11 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202506\Symfony\Component\Console\Debug;
+namespace RectorPrefix202606\Symfony\Component\Console\Debug;
 
-use RectorPrefix202506\Symfony\Component\Console\Command\TraceableCommand;
-use RectorPrefix202506\Symfony\Component\HttpFoundation\Request;
-use RectorPrefix202506\Symfony\Component\HttpFoundation\Response;
+use RectorPrefix202606\Symfony\Component\Console\Command\TraceableCommand;
+use RectorPrefix202606\Symfony\Component\HttpFoundation\Request;
+use RectorPrefix202606\Symfony\Component\HttpFoundation\Response;
 /**
  * @internal
  */
@@ -28,7 +28,7 @@ final class CliRequest extends Request
         parent::__construct(attributes: ['_controller' => \get_class($command->command), '_virtual_type' => 'command'], server: $_SERVER);
     }
     // Methods below allow to populate a profile, thus enable search and filtering
-    public function getUri() : string
+    public function getUri(): string
     {
         if ($this->server->has('SYMFONY_CLI_BINARY_NAME')) {
             $binary = $this->server->get('SYMFONY_CLI_BINARY_NAME') . ' console';
@@ -37,11 +37,11 @@ final class CliRequest extends Request
         }
         return $binary . ' ' . $this->command->input;
     }
-    public function getMethod() : string
+    public function getMethod(): string
     {
         return $this->command->isInteractive ? 'INTERACTIVE' : 'BATCH';
     }
-    public function getResponse() : Response
+    public function getResponse(): Response
     {
         return new class($this->command->exitCode) extends Response
         {
@@ -54,13 +54,13 @@ final class CliRequest extends Request
                 $this->exitCode = $exitCode;
                 parent::__construct();
             }
-            public function getStatusCode() : int
+            public function getStatusCode(): int
             {
                 return $this->exitCode;
             }
         };
     }
-    public function getClientIp() : string
+    public function getClientIp(): string
     {
         $application = $this->command->getApplication();
         return $application->getName() . ' ' . $application->getVersion();

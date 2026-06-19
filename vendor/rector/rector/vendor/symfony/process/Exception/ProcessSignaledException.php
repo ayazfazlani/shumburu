@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202506\Symfony\Component\Process\Exception;
+namespace RectorPrefix202606\Symfony\Component\Process\Exception;
 
-use RectorPrefix202506\Symfony\Component\Process\Process;
+use RectorPrefix202606\Symfony\Component\Process\Process;
 /**
  * Exception that is thrown when a process has been signaled.
  *
@@ -24,11 +24,11 @@ final class ProcessSignaledException extends RuntimeException
         $this->process = $process;
         parent::__construct(\sprintf('The process has been signaled with signal "%s".', $process->getTermSignal()));
     }
-    public function getProcess() : Process
+    public function getProcess(): Process
     {
         return $this->process;
     }
-    public function getSignal() : int
+    public function getSignal(): int
     {
         return $this->getProcess()->getTermSignal();
     }

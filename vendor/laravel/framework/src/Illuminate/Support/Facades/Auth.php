@@ -4,7 +4,6 @@ namespace Illuminate\Support\Facades;
 
 use Laravel\Ui\UiServiceProvider;
 use RuntimeException;
-use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @method static \Illuminate\Contracts\Auth\Guard|\Illuminate\Contracts\Auth\StatefulGuard guard(string|null $name = null)
@@ -40,6 +39,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @method static \Symfony\Component\HttpFoundation\Response|null basic(string $field = 'email', array $extraConditions = [])
  * @method static \Symfony\Component\HttpFoundation\Response|null onceBasic(string $field = 'email', array $extraConditions = [])
  * @method static bool attemptWhen(array $credentials = [], array|callable|null $callbacks = null, bool $remember = false)
+ * @method static string hashPasswordForCookie(string $passwordHash)
  * @method static void logoutCurrentDevice()
  * @method static \Illuminate\Contracts\Auth\Authenticatable|null logoutOtherDevices(string $password)
  * @method static void attempting(mixed $callback)
@@ -70,7 +70,6 @@ use Spatie\Permission\Traits\HasRoles;
  */
 class Auth extends Facade
 {
-    use HasRoles;
     /**
      * Get the registered name of the component.
      *

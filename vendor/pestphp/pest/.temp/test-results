@@ -1,1 +1,0 @@
-{"version":"pest_3.8.2","defects":{"Tests\\Feature\\StockOutAvailabilityTest::test_stock_out_availability_logic":8,"Tests\\Feature\\MaterialStockOutLineTest::test_can_create_material_stock_out_line":8,"Tests\\Feature\\MaterialStockOutLineTest::test_validation_prevents_over_consumption":8},"times":[]}

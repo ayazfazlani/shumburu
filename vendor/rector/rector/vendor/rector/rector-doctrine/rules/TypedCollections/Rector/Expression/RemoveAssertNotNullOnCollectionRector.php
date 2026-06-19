@@ -7,7 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\NodeVisitor;
-use RectorPrefix202506\PHPUnit\Framework\Assert;
+use RectorPrefix202606\PHPUnit\Framework\Assert;
 use Rector\Doctrine\TypedCollections\TypeAnalyzer\CollectionTypeDetector;
 use Rector\PHPUnit\Enum\PHPUnitClassName;
 use Rector\Rector\AbstractRector;
@@ -26,7 +26,7 @@ final class RemoveAssertNotNullOnCollectionRector extends AbstractRector
     {
         $this->collectionTypeDetector = $collectionTypeDetector;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove ' . Assert::class . '::assertNotNull() on a Collection type', [new CodeSample(<<<'CODE_SAMPLE'
 use Doctrine\Common\Collections\Collection;
@@ -51,14 +51,14 @@ class SomeClass
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Expression::class];
     }
     /**
      * @param Expression $node
      */
-    public function refactor(Node $node) : ?int
+    public function refactor(Node $node): ?int
     {
         if (!$node->expr instanceof StaticCall) {
             return null;

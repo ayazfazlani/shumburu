@@ -5,10 +5,8 @@ namespace Rector\Strict\Rector;
 
 use Rector\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Rector\AbstractRector;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
- * @see \Rector\Tests\Strict\Rector\BooleanNot\BooleanInBooleanNotRuleFixerRector\BooleanInBooleanNotRuleFixerRectorTest
- *
  * @internal
  */
 abstract class AbstractFalsyScalarRuleFixerRector extends AbstractRector implements ConfigurableRectorInterface
@@ -20,11 +18,11 @@ abstract class AbstractFalsyScalarRuleFixerRector extends AbstractRector impleme
     public const TREAT_AS_NON_EMPTY = 'treat_as_non_empty';
     protected bool $treatAsNonEmpty = \false;
     /**
-     * @param mixed[] $configuration
+     * @param array<string, mixed> $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
-        $treatAsNonEmpty = $configuration[self::TREAT_AS_NON_EMPTY] ?? (bool) \current($configuration);
+        $treatAsNonEmpty = $configuration[self::TREAT_AS_NON_EMPTY] ?? (bool) current($configuration);
         Assert::boolean($treatAsNonEmpty);
         $this->treatAsNonEmpty = $treatAsNonEmpty;
     }

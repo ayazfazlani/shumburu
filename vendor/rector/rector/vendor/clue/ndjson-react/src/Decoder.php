@@ -1,11 +1,11 @@
 <?php
 
-namespace RectorPrefix202506\Clue\React\NDJson;
+namespace RectorPrefix202606\Clue\React\NDJson;
 
-use RectorPrefix202506\Evenement\EventEmitter;
-use RectorPrefix202506\React\Stream\ReadableStreamInterface;
-use RectorPrefix202506\React\Stream\Util;
-use RectorPrefix202506\React\Stream\WritableStreamInterface;
+use RectorPrefix202606\Evenement\EventEmitter;
+use RectorPrefix202606\React\Stream\ReadableStreamInterface;
+use RectorPrefix202606\React\Stream\Util;
+use RectorPrefix202606\React\Stream\WritableStreamInterface;
 /**
  * The Decoder / Parser reads from a plain stream and emits data objects for each JSON element
  */
@@ -97,7 +97,7 @@ class Decoder extends EventEmitter implements ReadableStreamInterface
             if ($this->options === 0) {
                 $data = \json_decode($data, $this->assoc, $this->depth);
             } else {
-                \assert(\PHP_VERSION_ID >= 50400);
+                assert(\PHP_VERSION_ID >= 50400);
                 $data = \json_decode($data, $this->assoc, $this->depth, $this->options);
             }
             // @codeCoverageIgnoreEnd

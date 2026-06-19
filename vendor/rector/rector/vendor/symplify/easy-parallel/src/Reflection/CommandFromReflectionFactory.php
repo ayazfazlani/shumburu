@@ -1,12 +1,12 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202506\Symplify\EasyParallel\Reflection;
+namespace RectorPrefix202606\Symplify\EasyParallel\Reflection;
 
 use ReflectionClass;
 use ReflectionMethod;
-use RectorPrefix202506\Symfony\Component\Console\Command\Command;
-use RectorPrefix202506\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202606\Symfony\Component\Console\Command\Command;
+use RectorPrefix202606\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
 /**
  * @api
  */
@@ -15,7 +15,7 @@ final class CommandFromReflectionFactory
     /**
      * @param class-string<Command> $className
      */
-    public function create(string $className) : Command
+    public function create(string $className): Command
     {
         $commandReflectionClass = new ReflectionClass($className);
         $command = $commandReflectionClass->newInstanceWithoutConstructor();

@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
@@ -49,11 +50,11 @@ final class CommandHelpToAttributeRector extends AbstractRector implements MinPh
         $this->reflectionProvider = $reflectionProvider;
         $this->attributeFinder = $attributeFinder;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::ATTRIBUTES;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Moves $this->setHelp() to the "help" named argument of #[AsCommand]', [new CodeSample(<<<'CODE_SAMPLE'
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -84,14 +85,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if ($node->isAbstract()) {
             return null;
@@ -128,11 +129,12 @@ CODE_SAMPLE
     }
     /**
      * Returns the argument passed to setHelp() and removes the MethodCall node.
+     * Supports plain string literals and concatenated string expressions.
      */
-    private function findAndRemoveSetHelpExpr(ClassMethod $configureClassMethod) : ?String_
+    private function findAndRemoveSetHelpExpr(ClassMethod $configureClassMethod): ?String_
     {
         $helpString = null;
-        $this->traverseNodesWithCallable((array) $configureClassMethod->stmts, function (Node $node) use(&$helpString) {
+        $this->traverseNodesWithCallable((array) $configureClassMethod->stmts, function (Node $node) use (&$helpString) {
             if ($node instanceof Class_ || $node instanceof Function_) {
                 return NodeVisitor::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
             }
@@ -146,9 +148,11 @@ CODE_SAMPLE
                 return null;
             }
             $argExpr = $node->getArgs()[0]->value;
-            if ($argExpr instanceof String_) {
-                $helpString = $argExpr;
+            $resolvedValue = $this->resolveStringExpr($argExpr);
+            if ($resolvedValue === null) {
+                return null;
             }
+            $helpString = new String_($resolvedValue);
             $parent = $node->getAttribute('parent');
             if ($parent instanceof Expression) {
                 unset($parent);
@@ -162,7 +166,27 @@ CODE_SAMPLE
         }
         return $helpString;
     }
-    private function isExpressionVariableThis(Stmt $stmt) : bool
+    /**
+     * Resolves a scalar string expression — a plain String_ literal or a tree
+     * of Concat nodes — to its runtime string value. Returns null for any
+     * expression that contains non-literal parts (variables, function calls, …).
+     */
+    private function resolveStringExpr(Expr $expr): ?string
+    {
+        if ($expr instanceof String_) {
+            return $expr->value;
+        }
+        if ($expr instanceof Concat) {
+            $left = $this->resolveStringExpr($expr->left);
+            $right = $this->resolveStringExpr($expr->right);
+            if ($left === null || $right === null) {
+                return null;
+            }
+            return $left . $right;
+        }
+        return null;
+    }
+    private function isExpressionVariableThis(Stmt $stmt): bool
     {
         if (!$stmt instanceof Expression) {
             return \false;

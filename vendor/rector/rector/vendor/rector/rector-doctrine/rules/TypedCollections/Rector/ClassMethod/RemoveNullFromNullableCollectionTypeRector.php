@@ -9,13 +9,17 @@ use PhpParser\Node\NullableType;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\NullableTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
-use Rector\Comments\NodeDocBlock\DocBlockUpdater;
+use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
 use Rector\Doctrine\Enum\DoctrineClass;
+use Rector\Doctrine\TypedCollections\NodeModifier\PropertyDefaultNullRemover;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
+use Rector\StaticTypeMapper\StaticTypeMapper;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -34,16 +38,26 @@ final class RemoveNullFromNullableCollectionTypeRector extends AbstractRector
     /**
      * @readonly
      */
-    private DocBlockUpdater $docBlockUpdater;
-    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, PhpDocInfoFactory $phpDocInfoFactory, DocBlockUpdater $docBlockUpdater)
+    private PhpDocTypeChanger $phpDocTypeChanger;
+    /**
+     * @readonly
+     */
+    private StaticTypeMapper $staticTypeMapper;
+    /**
+     * @readonly
+     */
+    private PropertyDefaultNullRemover $propertyDefaultNullRemover;
+    public function __construct(TestsNodeAnalyzer $testsNodeAnalyzer, PhpDocInfoFactory $phpDocInfoFactory, PhpDocTypeChanger $phpDocTypeChanger, StaticTypeMapper $staticTypeMapper, PropertyDefaultNullRemover $propertyDefaultNullRemover)
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
-        $this->docBlockUpdater = $docBlockUpdater;
+        $this->phpDocTypeChanger = $phpDocTypeChanger;
+        $this->staticTypeMapper = $staticTypeMapper;
+        $this->propertyDefaultNullRemover = $propertyDefaultNullRemover;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Remove null from a nullable Collection, as empty ArrayCollection is preferred instead to keep property type strict and always a collection', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Remove null from a nullable Collection, as empty ArrayCollection is preferred instead to keep property/class method type strict and always a collection', [new CodeSample(<<<'CODE_SAMPLE'
 use Doctrine\Common\Collections\Collection;
 
 final class SomeClass
@@ -71,7 +85,7 @@ final class SomeClass
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [ClassMethod::class, Property::class];
     }
@@ -86,11 +100,12 @@ CODE_SAMPLE
         }
         return $this->refactorClassMethod($node);
     }
-    private function refactorClassMethod(ClassMethod $classMethod) : ?\PhpParser\Node\Stmt\ClassMethod
+    private function refactorClassMethod(ClassMethod $classMethod): ?\PhpParser\Node\Stmt\ClassMethod
     {
-        if (\count($classMethod->params) !== 1) {
+        if (count($classMethod->params) !== 1) {
             return null;
         }
+        // nullable might be on purpose, e.g. via data provider
         if ($this->testsNodeAnalyzer->isInTestClass($classMethod)) {
             return null;
         }
@@ -111,8 +126,14 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function refactorProperty(Property $property) : ?Property
+    private function refactorProperty(Property $property): ?Property
     {
+        if ($property->type instanceof NullableType && $this->hasNativeCollectionType($property->type)) {
+            // unwrap nullable type
+            $property->type = $property->type->type;
+            $this->propertyDefaultNullRemover->remove($property);
+            return $property;
+        }
         if (!$this->hasNativeCollectionType($property)) {
             return null;
         }
@@ -124,22 +145,45 @@ CODE_SAMPLE
         if (!$varTagValueNode instanceof VarTagValueNode) {
             return null;
         }
+        if ($varTagValueNode->type instanceof UnionTypeNode) {
+            $hasChanged = \false;
+            $unionTypeNode = $varTagValueNode->type;
+            foreach ($unionTypeNode->types as $key => $unionedType) {
+                if ($unionedType instanceof IdentifierTypeNode && $unionedType->name === 'null') {
+                    unset($unionTypeNode->types[$key]);
+                    $hasChanged = \true;
+                }
+            }
+            if ($hasChanged) {
+                // only one type left, lets use it directly
+                if (count($unionTypeNode->types) === 1) {
+                    $onlyType = array_pop($unionTypeNode->types);
+                    $finalType = $onlyType;
+                } else {
+                    $finalType = $unionTypeNode;
+                }
+                $finalType = $this->staticTypeMapper->mapPHPStanPhpDocTypeNodeToPHPStanType($finalType, $property);
+                $this->phpDocTypeChanger->changeVarType($property, $phpDocInfo, $finalType);
+                return $property;
+            }
+        }
         // remove nullable if has one
         if (!$varTagValueNode->type instanceof NullableTypeNode) {
             return null;
         }
         // unwrap nullable type
-        $varTagValueNode->type = $varTagValueNode->type->type;
-        $phpDocInfo->removeByType(VarTagValueNode::class);
-        $phpDocInfo->addTagValueNode($varTagValueNode);
-        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($property);
+        $finalType = $this->staticTypeMapper->mapPHPStanPhpDocTypeNodeToPHPStanType($varTagValueNode->type->type, $property);
+        $this->phpDocTypeChanger->changeVarType($property, $phpDocInfo, $finalType);
         return $property;
     }
-    private function hasNativeCollectionType(Property $property) : bool
+    /**
+     * @param \PhpParser\Node\Stmt\Property|\PhpParser\Node\NullableType $node
+     */
+    private function hasNativeCollectionType($node): bool
     {
-        if (!$property->type instanceof Name) {
+        if (!$node->type instanceof Name) {
             return \false;
         }
-        return $this->isName($property->type, DoctrineClass::COLLECTION);
+        return $this->isName($node->type, DoctrineClass::COLLECTION);
     }
 }

@@ -5,12 +5,12 @@ namespace Rector\Console;
 
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
 use Rector\Configuration\Option;
-use RectorPrefix202506\Symfony\Component\Console\Command\Command;
-use RectorPrefix202506\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202506\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202606\Symfony\Component\Console\Command\Command;
+use RectorPrefix202606\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202606\Symfony\Component\Console\Input\InputOption;
 final class ProcessConfigureDecorator
 {
-    public static function decorate(Command $command) : void
+    public static function decorate(Command $command): void
     {
         $command->addArgument(Option::SOURCE, InputArgument::OPTIONAL | InputArgument::IS_ARRAY, 'Files or directories to be upgraded.');
         $command->addOption(Option::DRY_RUN, Option::DRY_RUN_SHORT, InputOption::VALUE_NONE, 'Only see the diff of changes, do not save them to files.');
@@ -27,5 +27,6 @@ final class ProcessConfigureDecorator
         $command->addOption(Option::PARALLEL_PORT, null, InputOption::VALUE_REQUIRED);
         $command->addOption(Option::PARALLEL_IDENTIFIER, null, InputOption::VALUE_REQUIRED);
         $command->addOption(Option::XDEBUG, null, InputOption::VALUE_NONE, 'Display xdebug output.');
+        $command->addOption(Option::RULES_SUMMARY, null, InputOption::VALUE_NONE, 'Show summary of rules applied during the run.');
     }
 }

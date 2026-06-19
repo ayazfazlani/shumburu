@@ -4,7 +4,7 @@ declare (strict_types=1);
 namespace Rector\Set\ValueObject;
 
 use Rector\Set\Contract\SetInterface;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @api used by extensions
  */
@@ -29,15 +29,15 @@ final class Set implements SetInterface
         $this->setFilePath = $setFilePath;
         Assert::fileExists($setFilePath);
     }
-    public function getGroupName() : string
+    public function getGroupName(): string
     {
         return $this->groupName;
     }
-    public function getName() : string
+    public function getName(): string
     {
         return $this->setName;
     }
-    public function getSetFilePath() : string
+    public function getSetFilePath(): string
     {
         return $this->setFilePath;
     }

@@ -11,7 +11,8 @@ use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Stmt\Expression;
-use Rector\Contract\PhpParser\Node\StmtsAwareInterface;
+use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\PhpParser\Enum\NodeGroup;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\Rector\AbstractRector;
 use Rector\Symfony\Enum\SymfonyClass;
@@ -32,9 +33,9 @@ final class PushRequestToRequestStackConstructorRector extends AbstractRector
     {
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Move push(request) to "Symfony\\Component\\HttpFoundation\\RequestStack" constructor', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Move push(request) to "Symfony\Component\HttpFoundation\RequestStack" constructor', [new CodeSample(<<<'CODE_SAMPLE'
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use PHPUnit\Framework\TestCase;
@@ -65,15 +66,21 @@ class SomeClass extends TestCase
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    /**
+     * @return array<class-string<Node>>
+     */
+    public function getNodeTypes(): array
     {
-        return [StmtsAwareInterface::class];
+        return NodeGroup::STMTS_AWARE;
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param StmtsAware $node
      */
-    public function refactor(Node $node) : ?StmtsAwareInterface
+    public function refactor(Node $node): ?Node
     {
+        if ($node->stmts === null) {
+            return null;
+        }
         if (!$this->testsNodeAnalyzer->isInTestClass($node)) {
             return null;
         }
@@ -91,6 +98,7 @@ CODE_SAMPLE
                     // possibly request stack push
                     $array = new Array_([new ArrayItem($pushMethodCall->getArgs()[0]->value)]);
                     $requestStack->args[] = new Arg($array);
+                    $requestStack->setAttribute(AttributeKey::ORIGINAL_NODE, null);
                     $hasChanged = \true;
                     unset($node->stmts[$key]);
                 }
@@ -101,7 +109,7 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function matchRequestStackAssignExpr(Expression $expression) : ?New_
+    private function matchRequestStackAssignExpr(Expression $expression): ?New_
     {
         // 1. find new RequestStack assign
         if (!$expression->expr instanceof Assign) {

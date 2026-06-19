@@ -13,6 +13,9 @@ use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Property;
 use Rector\NodeAnalyzer\ExprAnalyzer;
+use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\PhpParser\Node\BetterNodeFinder;
+use Rector\PhpParser\NodeFinder\PropertyFetchFinder;
 use Rector\Rector\AbstractRector;
 use Rector\ValueObject\MethodName;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -26,11 +29,21 @@ final class InlineConstructorDefaultToPropertyRector extends AbstractRector
      * @readonly
      */
     private ExprAnalyzer $exprAnalyzer;
-    public function __construct(ExprAnalyzer $exprAnalyzer)
+    /**
+     * @readonly
+     */
+    private BetterNodeFinder $betterNodeFinder;
+    /**
+     * @readonly
+     */
+    private PropertyFetchFinder $propertyFetchFinder;
+    public function __construct(ExprAnalyzer $exprAnalyzer, BetterNodeFinder $betterNodeFinder, PropertyFetchFinder $propertyFetchFinder)
     {
         $this->exprAnalyzer = $exprAnalyzer;
+        $this->betterNodeFinder = $betterNodeFinder;
+        $this->propertyFetchFinder = $propertyFetchFinder;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Move property default from constructor to property default', [new CodeSample(<<<'CODE_SAMPLE'
 final class SomeClass
@@ -58,14 +71,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         $hasChanged = \false;
         $constructClassMethod = $node->getMethod(MethodName::CONSTRUCT);
@@ -88,7 +101,7 @@ CODE_SAMPLE
             }
             $assign = $stmt->expr;
             $propertyName = $this->matchAssignedLocalPropertyName($assign);
-            if (!\is_string($propertyName)) {
+            if (!is_string($propertyName)) {
                 continue;
             }
             $defaultExpr = $assign->expr;
@@ -105,7 +118,7 @@ CODE_SAMPLE
         }
         return $node;
     }
-    private function matchAssignedLocalPropertyName(Assign $assign) : ?string
+    private function matchAssignedLocalPropertyName(Assign $assign): ?string
     {
         if (!$assign->var instanceof PropertyFetch) {
             return null;
@@ -115,14 +128,27 @@ CODE_SAMPLE
             return null;
         }
         $propertyName = $this->getName($propertyFetch->name);
-        if (!\is_string($propertyName)) {
+        if (!is_string($propertyName)) {
             return null;
         }
         return $propertyName;
     }
-    private function refactorProperty(Class_ $class, string $propertyName, Expr $defaultExpr, ClassMethod $constructClassMethod, int $key) : bool
+    private function isFoundInAnyPropertyHooks(Class_ $class, string $propertyName): bool
+    {
+        $propertyHooks = array_reduce($class->getProperties(), static fn(array $hooks, Property $property): array => array_merge($hooks, $property->hooks), []);
+        return (bool) $this->betterNodeFinder->findFirst($propertyHooks, function (Node $subNode) use ($class, $propertyName): bool {
+            if (!$subNode instanceof PropertyFetch) {
+                return \false;
+            }
+            return $this->propertyFetchFinder->isLocalPropertyFetchByName($subNode, $class, $propertyName);
+        });
+    }
+    private function refactorProperty(Class_ $class, string $propertyName, Expr $defaultExpr, ClassMethod $constructClassMethod, int $key): bool
     {
         if ($class->isReadonly()) {
+            return \false;
+        }
+        if ($this->isFoundInAnyPropertyHooks($class, $propertyName)) {
             return \false;
         }
         foreach ($class->stmts as $classStmt) {
@@ -138,6 +164,7 @@ CODE_SAMPLE
                     continue;
                 }
                 $propertyProperty->default = $defaultExpr;
+                $classStmt->setAttribute(AttributeKey::COMMENTS, array_merge($classStmt->getComments(), isset($constructClassMethod->stmts[$key]) ? $constructClassMethod->stmts[$key]->getComments() : []));
                 // remove assign
                 unset($constructClassMethod->stmts[$key]);
                 return \true;

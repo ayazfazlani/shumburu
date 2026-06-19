@@ -25,7 +25,7 @@ use Rector\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202506\Webmozart\Assert\Assert;
+use RectorPrefix202606\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Doctrine\Tests\CodeQuality\Rector\Property\TypedPropertyFromToOneRelationTypeRector\TypedPropertyFromToOneRelationTypeRectorTest
  */
@@ -55,6 +55,9 @@ final class TypedPropertyFromToOneRelationTypeRector extends AbstractRector impl
      * @readonly
      */
     private StaticTypeMapper $staticTypeMapper;
+    /**
+     * @var string
+     */
     public const FORCE_NULLABLE = 'force_nullable';
     private bool $forceNullable = \true;
     public function __construct(PropertyTypeDecorator $propertyTypeDecorator, PhpDocTypeChanger $phpDocTypeChanger, ToOneRelationPropertyTypeResolver $toOneRelationPropertyTypeResolver, PhpVersionProvider $phpVersionProvider, PhpDocInfoFactory $phpDocInfoFactory, StaticTypeMapper $staticTypeMapper)
@@ -66,9 +69,9 @@ final class TypedPropertyFromToOneRelationTypeRector extends AbstractRector impl
         $this->phpDocInfoFactory = $phpDocInfoFactory;
         $this->staticTypeMapper = $staticTypeMapper;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Complete @var annotations or types based on @ORM\\*toOne annotations or attributes', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Complete @var annotations or types based on @ORM\*toOne annotations or attributes', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 use Doctrine\ORM\Mapping as ORM;
 
 class SimpleColumn
@@ -121,7 +124,7 @@ CODE_SAMPLE
     /**
      * @param array<string, bool> $configuration
      */
-    public function configure(array $configuration) : void
+    public function configure(array $configuration): void
     {
         if (isset($configuration[self::FORCE_NULLABLE])) {
             Assert::boolean($configuration[self::FORCE_NULLABLE]);
@@ -131,14 +134,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Property::class];
     }
     /**
      * @param Property $node
      */
-    public function refactor(Node $node) : ?\PhpParser\Node\Stmt\Property
+    public function refactor(Node $node): ?\PhpParser\Node\Stmt\Property
     {
         if ($node->type !== null) {
             return null;
@@ -157,14 +160,14 @@ CODE_SAMPLE
         $this->completePropertyTypeOrVarDoc($propertyType, $typeNode, $node);
         return $node;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::TYPED_PROPERTIES;
     }
     /**
      * @param \PhpParser\Node\Name|\PhpParser\Node\ComplexType|\PhpParser\Node\Identifier $typeNode
      */
-    private function completePropertyTypeOrVarDoc(Type $propertyType, $typeNode, Property $property) : void
+    private function completePropertyTypeOrVarDoc(Type $propertyType, $typeNode, Property $property): void
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($property);
         if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersion::PHP_74)) {

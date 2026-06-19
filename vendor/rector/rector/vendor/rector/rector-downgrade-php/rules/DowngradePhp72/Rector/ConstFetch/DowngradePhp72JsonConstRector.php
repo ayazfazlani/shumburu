@@ -11,6 +11,7 @@ use PhpParser\Node\Stmt\If_;
 use Rector\DowngradePhp72\NodeManipulator\JsonConstCleaner;
 use Rector\Enum\JsonConstant;
 use Rector\NodeAnalyzer\DefineFuncCallAnalyzer;
+use Rector\PhpParser\NodeTraverser\SimpleNodeTraverser;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -38,7 +39,7 @@ final class DowngradePhp72JsonConstRector extends AbstractRector
         $this->jsonConstCleaner = $jsonConstCleaner;
         $this->defineFuncCallAnalyzer = $defineFuncCallAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove Json constant that available only in php 7.2', [new CodeSample(<<<'CODE_SAMPLE'
 $inDecoder = new Decoder($connection, true, 512, \JSON_INVALID_UTF8_IGNORE);
@@ -55,14 +56,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [ConstFetch::class, BitwiseOr::class, If_::class];
     }
     /**
      * @param ConstFetch|BitwiseOr|If_ $node
      */
-    public function refactor(Node $node) : ?\PhpParser\Node\Expr
+    public function refactor(Node $node): ?\PhpParser\Node\Expr
     {
         if ($node instanceof If_) {
             $this->markConstantKnownInInnerStmts($node);
@@ -74,14 +75,11 @@ CODE_SAMPLE
         }
         return $this->jsonConstCleaner->clean($node, [JsonConstant::INVALID_UTF8_IGNORE, JsonConstant::INVALID_UTF8_SUBSTITUTE]);
     }
-    private function markConstantKnownInInnerStmts(If_ $if) : void
+    private function markConstantKnownInInnerStmts(If_ $if): void
     {
         if (!$this->defineFuncCallAnalyzer->isDefinedWithConstants($if->cond, [JsonConstant::INVALID_UTF8_IGNORE, JsonConstant::INVALID_UTF8_SUBSTITUTE])) {
             return;
         }
-        $this->traverseNodesWithCallable($if, static function (Node $node) {
-            $node->setAttribute(self::PHP72_JSON_CONSTANT_IS_KNOWN, \true);
-            return null;
-        });
+        SimpleNodeTraverser::decorateWithAttributeValue($if, self::PHP72_JSON_CONSTANT_IS_KNOWN, \true);
     }
 }

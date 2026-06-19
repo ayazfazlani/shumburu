@@ -9,6 +9,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\Variable;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\MethodReflection;
@@ -54,11 +55,11 @@ final class StaticCallOnNonStaticToInstanceCallRector extends AbstractRector imp
         $this->reflectionResolver = $reflectionResolver;
         $this->parentClassScopeResolver = $parentClassScopeResolver;
     }
-    public function provideMinPhpVersion() : int
+    public function provideMinPhpVersion(): int
     {
         return PhpVersionFeature::INSTANCE_CALL;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Changes static call to instance call, where not useful', [new CodeSample(<<<'CODE_SAMPLE'
 class Something
@@ -97,16 +98,15 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [StaticCall::class];
     }
     /**
      * @param StaticCall $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
-        $scope = ScopeFetcher::fetch($node);
         if ($node->name instanceof Expr) {
             return null;
         }
@@ -118,8 +118,17 @@ CODE_SAMPLE
         if ($className === null) {
             return null;
         }
+        $scope = ScopeFetcher::fetch($node);
         if ($this->shouldSkip($methodName, $className, $node, $scope)) {
             return null;
+        }
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection instanceof ClassReflection && $classReflection->getName() === $className) {
+            // detect any scope where $this is unavailable or possibly unavailable
+            if (!$scope->hasVariableType('this')->yes()) {
+                return null;
+            }
+            return new MethodCall(new Variable('this'), $node->name, $node->args);
         }
         if ($this->isInstantiable($className, $scope)) {
             $new = new New_($node->class);
@@ -127,7 +136,7 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function resolveStaticCallClassName(StaticCall $staticCall) : ?string
+    private function resolveStaticCallClassName(StaticCall $staticCall): ?string
     {
         if ($staticCall->class instanceof PropertyFetch) {
             $objectType = $this->getType($staticCall->class);
@@ -137,9 +146,9 @@ CODE_SAMPLE
         }
         return $this->getName($staticCall->class);
     }
-    private function shouldSkip(string $methodName, string $className, StaticCall $staticCall, Scope $scope) : bool
+    private function shouldSkip(string $methodName, string $className, StaticCall $staticCall, Scope $scope): bool
     {
-        if (\in_array($methodName, ObjectMagicMethods::METHOD_NAMES, \true)) {
+        if (in_array($methodName, ObjectMagicMethods::METHOD_NAMES, \true)) {
             return \true;
         }
         if (!$this->reflectionProvider->hasClass($className)) {
@@ -157,12 +166,12 @@ CODE_SAMPLE
         if ($isStaticMethod) {
             return \true;
         }
-        $reflection = $scope->getClassReflection();
-        if ($reflection instanceof ClassReflection && $reflection->is($className)) {
+        $currentClassReflection = $scope->getClassReflection();
+        if ($currentClassReflection instanceof ClassReflection && $this->reflectionProvider->hasClass($className) && $currentClassReflection->isSubclassOfClass($this->reflectionProvider->getClass($className))) {
             return \true;
         }
         $className = $this->getName($staticCall->class);
-        if (\in_array($className, [ObjectReference::PARENT, ObjectReference::SELF, ObjectReference::STATIC], \true)) {
+        if (in_array($className, [ObjectReference::PARENT, ObjectReference::SELF, ObjectReference::STATIC], \true)) {
             return \true;
         }
         if ($className === 'class') {
@@ -171,7 +180,7 @@ CODE_SAMPLE
         $parentClassName = $this->parentClassScopeResolver->resolveParentClassName($scope);
         return $className === $parentClassName;
     }
-    private function isInstantiable(string $className, Scope $scope) : bool
+    private function isInstantiable(string $className, Scope $scope): bool
     {
         if (!$this->reflectionProvider->hasClass($className)) {
             return \false;

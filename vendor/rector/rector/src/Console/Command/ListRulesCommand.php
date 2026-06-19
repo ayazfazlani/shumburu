@@ -3,19 +3,17 @@
 declare (strict_types=1);
 namespace Rector\Console\Command;
 
-use RectorPrefix202506\Nette\Utils\Json;
+use RectorPrefix202606\Nette\Utils\Json;
 use Rector\ChangesReporting\Output\ConsoleOutputFormatter;
-use Rector\Configuration\ConfigurationRuleFilter;
-use Rector\Configuration\OnlyRuleResolver;
 use Rector\Configuration\Option;
 use Rector\Contract\Rector\RectorInterface;
 use Rector\PostRector\Contract\Rector\PostRectorInterface;
 use Rector\Skipper\SkipCriteriaResolver\SkippedClassResolver;
-use RectorPrefix202506\Symfony\Component\Console\Command\Command;
-use RectorPrefix202506\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202506\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202506\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202506\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202606\Symfony\Component\Console\Command\Command;
+use RectorPrefix202606\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202606\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202606\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202606\Symfony\Component\Console\Style\SymfonyStyle;
 final class ListRulesCommand extends Command
 {
     /**
@@ -27,14 +25,6 @@ final class ListRulesCommand extends Command
      */
     private SkippedClassResolver $skippedClassResolver;
     /**
-     * @readonly
-     */
-    private OnlyRuleResolver $onlyRuleResolver;
-    /**
-     * @readonly
-     */
-    private ConfigurationRuleFilter $configurationRuleFilter;
-    /**
      * @var RectorInterface[]
      * @readonly
      */
@@ -42,16 +32,14 @@ final class ListRulesCommand extends Command
     /**
      * @param RectorInterface[] $rectors
      */
-    public function __construct(SymfonyStyle $symfonyStyle, SkippedClassResolver $skippedClassResolver, OnlyRuleResolver $onlyRuleResolver, ConfigurationRuleFilter $configurationRuleFilter, array $rectors)
+    public function __construct(SymfonyStyle $symfonyStyle, SkippedClassResolver $skippedClassResolver, array $rectors)
     {
         $this->symfonyStyle = $symfonyStyle;
         $this->skippedClassResolver = $skippedClassResolver;
-        $this->onlyRuleResolver = $onlyRuleResolver;
-        $this->configurationRuleFilter = $configurationRuleFilter;
         $this->rectors = $rectors;
         parent::__construct();
     }
-    protected function configure() : void
+    protected function configure(): void
     {
         $this->setName('list-rules');
         $this->setDescription('Show loaded Rectors');
@@ -59,14 +47,10 @@ final class ListRulesCommand extends Command
         $this->addOption(Option::OUTPUT_FORMAT, null, InputOption::VALUE_REQUIRED, 'Select output format', ConsoleOutputFormatter::NAME);
         $this->addOption(Option::ONLY, null, InputOption::VALUE_REQUIRED, 'Fully qualified rule class name');
     }
-    protected function execute(InputInterface $input, OutputInterface $output) : int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $onlyRule = $input->getOption(Option::ONLY);
-        if ($onlyRule !== null) {
-            $onlyRule = $this->onlyRuleResolver->resolve($onlyRule);
-        }
-        $rectorClasses = $this->resolveRectorClasses($onlyRule);
-        $skippedClasses = $this->getSkippedCheckers();
+        $rectorClasses = $this->resolveRectorClasses();
+        $skippedClasses = $this->getSkippedRectorClasses();
         $outputFormat = $input->getOption(Option::OUTPUT_FORMAT);
         if ($outputFormat === 'json') {
             $data = ['rectors' => $rectorClasses, 'skipped-rectors' => $skippedClasses];
@@ -80,35 +64,32 @@ final class ListRulesCommand extends Command
             $this->symfonyStyle->listing($skippedClasses);
         }
         $this->symfonyStyle->newLine();
-        $this->symfonyStyle->note(\sprintf('Loaded %d rules', \count($rectorClasses)));
+        $this->symfonyStyle->note(sprintf('Loaded %d rules', count($rectorClasses)));
         return Command::SUCCESS;
     }
     /**
      * @return array<class-string<RectorInterface>>
      */
-    private function resolveRectorClasses(?string $onlyRule) : array
+    private function resolveRectorClasses(): array
     {
-        $customRectors = \array_filter($this->rectors, static fn(RectorInterface $rector): bool => !$rector instanceof PostRectorInterface);
-        if ($onlyRule !== null) {
-            $customRectors = $this->configurationRuleFilter->filterOnlyRule($customRectors, $onlyRule);
-        }
-        $rectorClasses = \array_map(static fn(RectorInterface $rector): string => \get_class($rector), $customRectors);
-        \sort($rectorClasses);
-        return \array_unique($rectorClasses);
+        $customRectors = array_filter($this->rectors, static fn(RectorInterface $rector): bool => !$rector instanceof PostRectorInterface);
+        $rectorClasses = array_map(static fn(RectorInterface $rector): string => get_class($rector), $customRectors);
+        sort($rectorClasses);
+        return array_unique($rectorClasses);
     }
     /**
-     * @return string[]
+     * @return array<class-string>
      */
-    private function getSkippedCheckers() : array
+    private function getSkippedRectorClasses(): array
     {
-        $skippedCheckers = [];
-        foreach ($this->skippedClassResolver->resolve() as $checkerClass => $fileList) {
+        $skippedRectorClasses = [];
+        foreach ($this->skippedClassResolver->resolve() as $rectorClass => $fileList) {
             // ignore specific skips
             if ($fileList !== null) {
                 continue;
             }
-            $skippedCheckers[] = $checkerClass;
+            $skippedRectorClasses[] = $rectorClass;
         }
-        return $skippedCheckers;
+        return $skippedRectorClasses;
     }
 }

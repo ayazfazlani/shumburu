@@ -17,10 +17,13 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\NodeVisitor;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\IntersectionType;
 use Rector\DeadCode\NodeAnalyzer\SafeLeftTypeBooleanAndOrAnalyzer;
 use Rector\NodeAnalyzer\ExprAnalyzer;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpParser\Node\BetterNodeFinder;
+use Rector\PHPStan\ScopeFetcher;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -47,7 +50,7 @@ final class RemoveAlwaysTrueIfConditionRector extends AbstractRector
         $this->betterNodeFinder = $betterNodeFinder;
         $this->safeLeftTypeBooleanAndOrAnalyzer = $safeLeftTypeBooleanAndOrAnalyzer;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove if condition that is always true', [new CodeSample(<<<'CODE_SAMPLE'
 final class SomeClass
@@ -78,7 +81,7 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [If_::class];
     }
@@ -112,12 +115,25 @@ CODE_SAMPLE
         if ($hasAssign) {
             return null;
         }
+        $scope = ScopeFetcher::fetch($node);
+        $type = $scope->getNativeType($node->cond);
+        if (!$type->isTrue()->yes()) {
+            return null;
+        }
+        $classReflection = $scope->getClassReflection();
+        if ($classReflection instanceof ClassReflection && $classReflection->isTrait()) {
+            return null;
+        }
         if ($node->stmts === []) {
             return NodeVisitor::REMOVE_NODE;
         }
+        // keep original comments
+        if ($node->getComments() !== []) {
+            $node->stmts[0]->setAttribute(AttributeKey::COMMENTS, array_merge($node->getComments(), $node->stmts[0]->getComments()));
+        }
         return $node->stmts;
     }
-    private function shouldSkipFromVariable(Expr $expr) : bool
+    private function shouldSkipFromVariable(Expr $expr): bool
     {
         /** @var Variable[] $variables */
         $variables = $this->betterNodeFinder->findInstancesOf($expr, [Variable::class]);
@@ -136,11 +152,11 @@ CODE_SAMPLE
         }
         return \false;
     }
-    private function shouldSkipExpr(Expr $expr) : bool
+    private function shouldSkipExpr(Expr $expr): bool
     {
         return (bool) $this->betterNodeFinder->findInstancesOf($expr, [PropertyFetch::class, StaticPropertyFetch::class, ArrayDimFetch::class, MethodCall::class, StaticCall::class]);
     }
-    private function refactorIfWithBooleanAnd(If_ $if) : ?If_
+    private function refactorIfWithBooleanAnd(If_ $if): ?If_
     {
         if (!$if->cond instanceof BooleanAnd) {
             return null;

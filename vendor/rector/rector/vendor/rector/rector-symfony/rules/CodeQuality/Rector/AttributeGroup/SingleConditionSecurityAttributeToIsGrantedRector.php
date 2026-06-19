@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Symfony\CodeQuality\Rector\AttributeGroup;
 
-use RectorPrefix202506\Nette\Utils\Strings;
+use RectorPrefix202606\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\AttributeGroup;
@@ -30,9 +30,9 @@ final class SingleConditionSecurityAttributeToIsGrantedRector extends AbstractRe
     {
         $this->attributePresenceDetector = $attributePresenceDetector;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
-        return new RuleDefinition('Narrow #[Security] attribute with inner sigle "is_granted/has_role" condition string to #[IsGranted] attribute', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Narrow #[Security] attribute with inner single "is_granted/has_role" condition string to #[IsGranted] attribute', [new CodeSample(<<<'CODE_SAMPLE'
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 
 #[Security("is_granted('ROLE_USER')")]
@@ -50,14 +50,14 @@ class SomeClass
 CODE_SAMPLE
 )]);
     }
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [AttributeGroup::class];
     }
     /**
      * @param AttributeGroup $node
      */
-    public function refactor(Node $node) : ?AttributeGroup
+    public function refactor(Node $node): ?AttributeGroup
     {
         if (!$this->attributePresenceDetector->detect(SensioAttribute::SECURITY)) {
             return null;
@@ -70,7 +70,7 @@ CODE_SAMPLE
             if (!$firstArgValue instanceof String_) {
                 continue;
             }
-            $matches = Strings::match($firstArgValue->value, '#^(is_granted|has_role)\\(\'(?<access_right>[A-Za-z_]+)\'\\)$#');
+            $matches = Strings::match($firstArgValue->value, '#^(is_granted|has_role)\(\'(?<access_right>[A-Za-z_]+)\'\)$#');
             if (!isset($matches['access_right'])) {
                 continue;
             }

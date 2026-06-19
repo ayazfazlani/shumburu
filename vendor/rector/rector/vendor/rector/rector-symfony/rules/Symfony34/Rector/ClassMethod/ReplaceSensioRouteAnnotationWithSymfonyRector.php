@@ -14,6 +14,7 @@ use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
 use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Configuration\RenamedClassesDataCollector;
 use Rector\Rector\AbstractRector;
+use Rector\Symfony\Enum\SensioAnnotation;
 use Rector\Symfony\Enum\SymfonyAnnotation;
 use Rector\Symfony\PhpDocNode\SymfonyRouteTagValueNodeFactory;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -46,10 +47,6 @@ final class ReplaceSensioRouteAnnotationWithSymfonyRector extends AbstractRector
      * @readonly
      */
     private PhpDocInfoFactory $phpDocInfoFactory;
-    /**
-     * @var string
-     */
-    private const SENSIO_ROUTE_NAME = 'Sensio\\Bundle\\FrameworkExtraBundle\\Configuration\\Route';
     public function __construct(SymfonyRouteTagValueNodeFactory $symfonyRouteTagValueNodeFactory, PhpDocTagRemover $phpDocTagRemover, RenamedClassesDataCollector $renamedClassesDataCollector, DocBlockUpdater $docBlockUpdater, PhpDocInfoFactory $phpDocInfoFactory)
     {
         $this->symfonyRouteTagValueNodeFactory = $symfonyRouteTagValueNodeFactory;
@@ -58,7 +55,7 @@ final class ReplaceSensioRouteAnnotationWithSymfonyRector extends AbstractRector
         $this->docBlockUpdater = $docBlockUpdater;
         $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Replace Sensio @Route annotation with Symfony one', [new CodeSample(<<<'CODE_SAMPLE'
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -91,14 +88,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [ClassMethod::class, Class_::class];
     }
     /**
      * @param ClassMethod|Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         // early return in case of non public method
         if ($node instanceof ClassMethod && !$node->isPublic()) {
@@ -108,7 +105,7 @@ CODE_SAMPLE
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return null;
         }
-        $sensioDoctrineAnnotationTagValueNodes = $phpDocInfo->findByAnnotationClass(self::SENSIO_ROUTE_NAME);
+        $sensioDoctrineAnnotationTagValueNodes = $phpDocInfo->findByAnnotationClass(SensioAnnotation::ROUTE);
         // nothing to find
         if ($sensioDoctrineAnnotationTagValueNodes === []) {
             return null;
@@ -125,19 +122,19 @@ CODE_SAMPLE
             }
             $phpDocInfo->addTagValueNode($symfonyRouteTagValueNode);
         }
-        $this->renamedClassesDataCollector->addOldToNewClasses([self::SENSIO_ROUTE_NAME => SymfonyAnnotation::ROUTE]);
+        $this->renamedClassesDataCollector->addOldToNewClasses([SensioAnnotation::ROUTE => SymfonyAnnotation::ROUTE]);
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
         return $node;
     }
     /**
-     * @param mixed[] $values
+     * @param ArrayItemNode[] $values
      */
-    private function isEmptySensioRoute(array $values) : bool
+    private function isEmptySensioRoute(array $values): bool
     {
         if ($values === []) {
             return \true;
         }
-        if (\count($values) !== 1) {
+        if (count($values) !== 1) {
             return \false;
         }
         $singleValue = $values[0];

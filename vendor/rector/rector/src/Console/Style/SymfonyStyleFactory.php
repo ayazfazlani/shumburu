@@ -4,10 +4,10 @@ declare (strict_types=1);
 namespace Rector\Console\Style;
 
 use Rector\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202506\Symfony\Component\Console\Application;
-use RectorPrefix202506\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202506\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202506\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202606\Symfony\Component\Console\Application;
+use RectorPrefix202606\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202606\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202606\Symfony\Component\Console\Output\OutputInterface;
 final class SymfonyStyleFactory
 {
     /**
@@ -21,7 +21,7 @@ final class SymfonyStyleFactory
     /**
      * @api
      */
-    public function create() : \Rector\Console\Style\RectorStyle
+    public function create(): \Rector\Console\Style\RectorStyle
     {
         // to prevent missing argv indexes
         if (!isset($_SERVER['argv'])) {
@@ -44,8 +44,8 @@ final class SymfonyStyleFactory
     /**
      * Never ever used static methods if not necessary, this is just handy for tests + src to prevent duplication.
      */
-    private function isPHPUnitRun() : bool
+    private function isPHPUnitRun(): bool
     {
-        return \defined('PHPUNIT_COMPOSER_INSTALL') || \defined('__PHPUNIT_PHAR__');
+        return defined('PHPUNIT_COMPOSER_INSTALL') || defined('__PHPUNIT_PHAR__');
     }
 }

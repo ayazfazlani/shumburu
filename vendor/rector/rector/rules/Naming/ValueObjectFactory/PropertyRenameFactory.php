@@ -7,7 +7,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
 use Rector\Naming\ValueObject\PropertyRename;
 use Rector\NodeNameResolver\NodeNameResolver;
-use RectorPrefix202506\Webmozart\Assert\InvalidArgumentException;
+use RectorPrefix202606\Webmozart\Assert\InvalidArgumentException;
 final class PropertyRenameFactory
 {
     /**
@@ -18,7 +18,7 @@ final class PropertyRenameFactory
     {
         $this->nodeNameResolver = $nodeNameResolver;
     }
-    public function createFromExpectedName(Class_ $class, Property $property, string $expectedName) : ?PropertyRename
+    public function createFromExpectedName(Class_ $class, Property $property, string $expectedName): ?PropertyRename
     {
         $currentName = $this->nodeNameResolver->getName($property);
         $className = (string) $this->nodeNameResolver->getName($class);

@@ -6,19 +6,16 @@ namespace Rector\PHPUnit\PHPUnit100\Rector\Class_;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
-use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\Yield_;
-use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Expression;
 use Rector\PHPUnit\NodeAnalyzer\TestsNodeAnalyzer;
 use Rector\PHPUnit\NodeFinder\DataProviderClassMethodFinder;
-use Rector\PHPUnit\Tests\PHPUnit100\Rector\Class_\RemoveNamedArgsInDataProviderRector\RemoveNamedArgsInDataProviderRectorTest;
 use Rector\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
- * @see RemoveNamedArgsInDataProviderRectorTest
+ * @see \Rector\PHPUnit\Tests\PHPUnit100\Rector\Class_\RemoveNamedArgsInDataProviderRector\RemoveNamedArgsInDataProviderRectorTest
  */
 final class RemoveNamedArgsInDataProviderRector extends AbstractRector
 {
@@ -35,7 +32,7 @@ final class RemoveNamedArgsInDataProviderRector extends AbstractRector
         $this->testsNodeAnalyzer = $testsNodeAnalyzer;
         $this->dataProviderClassMethodFinder = $dataProviderClassMethodFinder;
     }
-    public function getRuleDefinition() : RuleDefinition
+    public function getRuleDefinition(): RuleDefinition
     {
         return new RuleDefinition('Remove named arguments in data provider', [new CodeSample(<<<'CODE_SAMPLE'
 use PHPUnit\Framework\TestCase;
@@ -78,14 +75,14 @@ CODE_SAMPLE
     /**
      * @return array<class-string<Node>>
      */
-    public function getNodeTypes() : array
+    public function getNodeTypes(): array
     {
         return [Class_::class];
     }
     /**
      * @param  Class_  $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node): ?Node
     {
         if (!$this->testsNodeAnalyzer->isInTestClass($node)) {
             return null;
@@ -98,6 +95,9 @@ CODE_SAMPLE
                 $expr = $stmt->expr;
                 $arrayChanged = \false;
                 if ($expr instanceof Yield_) {
+                    if (!$expr->value instanceof Array_) {
+                        return null;
+                    }
                     $arrayChanged = $this->handleArray($expr->value);
                 } elseif ($expr instanceof Array_) {
                     $arrayChanged = $this->handleArray($expr);
@@ -112,20 +112,15 @@ CODE_SAMPLE
         }
         return null;
     }
-    private function handleArray(Array_ $array) : bool
+    private function handleArray(Array_ $array): bool
     {
         $hasChanged = \false;
         foreach ($array->items as $item) {
-            if (!$item instanceof ArrayItem) {
-                continue;
-            }
             if (!$item->key instanceof Expr) {
                 continue;
             }
-            if (!$item->key instanceof Int_ && $item->key instanceof Expr) {
-                $item->key = null;
-                $hasChanged = \true;
-            }
+            $item->key = null;
+            $hasChanged = \true;
         }
         return $hasChanged;
     }

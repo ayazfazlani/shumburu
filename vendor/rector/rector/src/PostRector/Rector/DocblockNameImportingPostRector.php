@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PostRector\Rector;
 
+use Override;
 use PhpParser\Node;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt;
@@ -36,7 +37,7 @@ final class DocblockNameImportingPostRector extends \Rector\PostRector\Rector\Ab
         $this->docBlockUpdater = $docBlockUpdater;
         $this->addUseStatementGuard = $addUseStatementGuard;
     }
-    public function enterNode(Node $node) : ?\PhpParser\Node
+    public function enterNode(Node $node): ?\PhpParser\Node
     {
         if (!$node instanceof Stmt && !$node instanceof Param) {
             return null;
@@ -49,13 +50,15 @@ final class DocblockNameImportingPostRector extends \Rector\PostRector\Rector\Ab
         if (!$hasDocChanged) {
             return null;
         }
+        $this->addRectorClassWithLine($node);
         $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($node);
         return $node;
     }
     /**
      * @param Stmt[] $stmts
      */
-    public function shouldTraverse(array $stmts) : bool
+    #[Override]
+    public function shouldTraverse(array $stmts): bool
     {
         return $this->addUseStatementGuard->shouldTraverse($stmts, $this->getFile()->getFilePath());
     }

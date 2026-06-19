@@ -54,26 +54,32 @@ final class ChangedNodeScopeRefresher
         $this->scopeAnalyzer = $scopeAnalyzer;
         $this->simpleCallableNodeTraverser = $simpleCallableNodeTraverser;
     }
-    public function refresh(Node $node, string $filePath, ?MutatingScope $mutatingScope) : void
+    public function refresh(Node $node, string $filePath, ?MutatingScope $mutatingScope): void
     {
         // nothing to refresh
         if (!$this->scopeAnalyzer->isRefreshable($node)) {
             return;
         }
         if (!$mutatingScope instanceof MutatingScope) {
-            $errorMessage = \sprintf('Node "%s" with is missing scope required for scope refresh', \get_class($node));
+            $errorMessage = sprintf('Node "%s" with is missing scope required for scope refresh', get_class($node));
             throw new ShouldNotHappenException($errorMessage);
         }
-        // reindex stmt_key already covered on StmtKeyNodeVisitor on next processNodes()
-        // so set flag $reIndexStmtKey to false to avoid double loop
-        \Rector\Application\NodeAttributeReIndexer::reIndexNodeAttributes($node, \false);
+        /**
+         * The reindex is needed to:
+         *      - be used by PHPStan processNodes() that relies on indexed arrays start from 0
+         *      - use traverser to avoid issues when multiples rules apply, and higher node remove deep node,
+         *        which the next rule use deep node, for example:
+         *              - first rule: - Class_ → ClassMethod → remove stmt with index 0
+         *              - second rule: - ClassMethod → here fetch the index 0 that no longer exists
+         */
+        SimpleCallableNodeTraverser::traverse($node, fn(Node $subNode): ?Node => \Rector\Application\NodeAttributeReIndexer::reIndexNodeAttributes($subNode));
         $stmts = $this->resolveStmts($node);
         $this->phpStanNodeScopeResolver->processNodes($stmts, $filePath, $mutatingScope);
     }
     /**
      * @return Stmt[]
      */
-    private function resolveStmts(Node $node) : array
+    private function resolveStmts(Node $node): array
     {
         if ($node instanceof Stmt) {
             return [$node];
@@ -124,16 +130,20 @@ final class ChangedNodeScopeRefresher
             $new = new New_($class, [$node]);
             return [new Expression($new)];
         }
-        $errorMessage = \sprintf('Complete parent node of "%s" be a stmt.', \get_class($node));
+        $errorMessage = sprintf('Complete parent node of "%s" be a stmt.', get_class($node));
         throw new ShouldNotHappenException($errorMessage);
     }
     /**
      * @param \PhpParser\Node\Attribute|\PhpParser\Node\AttributeGroup $node
      */
-    private function setLineAttributesOnClass(Class_ $class, $node) : void
+    private function setLineAttributesOnClass(Class_ $class, $node): void
     {
-        $this->simpleCallableNodeTraverser->traverseNodesWithCallable([$class], function (Node $subNode) use($node) : Node {
-            $subNode->setAttributes(['startLine' => $node->getStartLine(), 'endLine' => $node->getEndLine()]);
+        $this->simpleCallableNodeTraverser->traverseNodesWithCallable([$class], function (Node $subNode) use ($node): Node {
+            if ($subNode->getStartLine() >= 0 && $subNode->getEndLine() >= 0) {
+                return $subNode;
+            }
+            $subNode->setAttribute('startLine', $node->getStartLine());
+            $subNode->setAttribute('endLine', $node->getEndLine());
             return $subNode;
         });
     }

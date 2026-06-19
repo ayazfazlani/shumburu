@@ -1,11 +1,11 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202506;
+namespace RectorPrefix202606;
 
 use Rector\Config\RectorConfig;
 # https://github.com/symfony/symfony/blob/4.4/UPGRADE-4.3.md
-return static function (RectorConfig $rectorConfig) : void {
+return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->import(__DIR__ . '/symfony43/symfony43-browser-kit.php');
     $rectorConfig->import(__DIR__ . '/symfony43/symfony43-cache.php');
     $rectorConfig->import(__DIR__ . '/symfony43/symfony43-event-dispatcher.php');
