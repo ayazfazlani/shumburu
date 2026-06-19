@@ -3,7 +3,7 @@
         'name' => 'mortenebak/tallstarter',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '704578ac8ffc520e282c442470edf00e849ff25b',
+        'reference' => '0279a24c9aa5c3aa9c5ced5fff05ac5c8200bc71',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -721,7 +721,7 @@
         'mortenebak/tallstarter' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '704578ac8ffc520e282c442470edf00e849ff25b',
+            'reference' => '0279a24c9aa5c3aa9c5ced5fff05ac5c8200bc71',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
