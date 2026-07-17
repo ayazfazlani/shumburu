@@ -36,4 +36,46 @@ class MaterialRequest extends Model
     {
         return $this->belongsTo(ProductionPlan::class);
     }
+
+    public function getOrderNumberAttribute(): string
+    {
+        if ($this->productionRequest && $this->productionRequest->orderItem && $this->productionRequest->orderItem->productionOrder) {
+            return $this->productionRequest->orderItem->productionOrder->order_number;
+        }
+        if ($this->productionPlan && $this->productionPlan->productionOrder) {
+            return $this->productionPlan->productionOrder->order_number;
+        }
+        return 'Manual Planning';
+    }
+
+    public function getCustomerNameAttribute(): string
+    {
+        if ($this->productionRequest && $this->productionRequest->orderItem && $this->productionRequest->orderItem->productionOrder && $this->productionRequest->orderItem->productionOrder->customer) {
+            return $this->productionRequest->orderItem->productionOrder->customer->name;
+        }
+        if ($this->productionPlan && $this->productionPlan->productionOrder && $this->productionPlan->productionOrder->customer) {
+            return $this->productionPlan->productionOrder->customer->name;
+        }
+        return 'N/A';
+    }
+
+    public function getProductNameAttribute(): string
+    {
+        if ($this->productionRequest && $this->productionRequest->product) {
+            return $this->productionRequest->product->name;
+        }
+        if ($this->productionPlan && $this->productionPlan->productionOrder) {
+            $firstItem = $this->productionPlan->productionOrder->orderItems->first();
+            if ($firstItem && $firstItem->product) {
+                return $firstItem->product->name;
+            }
+        }
+        return 'Unknown Product';
+    }
+
+    public function getPlanReferenceIdAttribute()
+    {
+        return $this->production_plan_id ?? $this->production_request_id ?? 'N/A';
+    }
 }
+

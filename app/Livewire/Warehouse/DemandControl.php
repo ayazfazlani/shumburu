@@ -31,7 +31,14 @@ class DemandControl extends Component
             ->latest()
             ->get();
 
-        $rmRequests = MaterialRequest::with(['rawMaterial', 'requestedBy', 'productionRequest.product'])
+        $rmRequests = MaterialRequest::with([
+                'rawMaterial', 
+                'requestedBy', 
+                'productionRequest.product',
+                'productionRequest.orderItem.productionOrder.customer',
+                'productionPlan.productionOrder.customer',
+                'productionPlan.productionOrder.orderItems.product'
+            ])
             ->where('status', 'pending')
             ->latest()
             ->get();
@@ -53,7 +60,10 @@ class DemandControl extends Component
     public function stockOutMaterial($requestId)
     {
         DB::transaction(function () use ($requestId) {
-            $request = MaterialRequest::lockForUpdate()->findOrFail($requestId);
+            $request = MaterialRequest::with([
+                'productionRequest',
+                'productionPlan'
+            ])->lockForUpdate()->findOrFail($requestId);
             $material = RawMaterial::lockForUpdate()->findOrFail($request->raw_material_id);
 
             if ($material->quantity < $request->quantity) {
@@ -68,7 +78,7 @@ class DemandControl extends Component
                 'issued_date' => now(),
                 'issued_by' => Auth::id(),
                 'status' => 'material_on_process',
-                'notes' => "Issued from Material Request #$requestId | Plan #{$request->production_request_id}",
+                'notes' => "Issued from Material Request #$requestId | Plan #{$request->plan_reference_id}",
             ]);
 
             // Update material request status
@@ -84,7 +94,10 @@ class DemandControl extends Component
     public function forwardToProcurement($requestId)
     {
         DB::transaction(function () use ($requestId) {
-            $request = MaterialRequest::findOrFail($requestId);
+            $request = MaterialRequest::with([
+                'productionRequest',
+                'productionPlan'
+            ])->findOrFail($requestId);
 
             PurchaseRequest::create([
                 'raw_material_id' => $request->raw_material_id,
@@ -92,7 +105,7 @@ class DemandControl extends Component
                 'quantity' => $request->quantity,
                 'status' => 'pending',
                 'requested_by' => Auth::id(),
-                'notes' => "Auto-forwarded from Warehouse due to shortage. Ref: Material Request #$requestId",
+                'notes' => "Auto-forwarded from Warehouse due to shortage. Ref: Material Request #$requestId | Plan #{$request->plan_reference_id}",
             ]);
 
             $request->update(['status' => 'purchase_raised']);

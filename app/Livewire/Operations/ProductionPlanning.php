@@ -2,192 +2,249 @@
 
 namespace App\Livewire\Operations;
 
-use App\Models\ProductionRequest;
-use App\Models\MaterialRequest;
-use App\Models\RawMaterial;
 use App\Models\ProductionPlan;
+use App\Models\ProductionPlanItem;
 use Livewire\Component;
-use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 
 class ProductionPlanning extends Component
 {
-    use WithPagination;
-
     public $activeFilter = 'active'; // active, historical
+
+    public $selectedOrderId = null;
+    public $recentDowntime = [];
+
+    // Plan schedule fields
+    public $productionLineId;
+    public $startDate;
+    public $endDate;
+    public $planNotes;
+
+    // Add / Edit raw material plan item modal
+    public $showMaterialModal = false;
+    public $editingPlanItemId = null; // null = new, otherwise = editing
+    public $materialId;
+    public $materialQty;
 
     public function mount()
     {
         abort_unless(auth()->user()->can('operations.production-planning'), 403);
     }
-    public $selectedOrderId = null;
-    public $recentDowntime = [];
-
-    // New Planning State
-    public $productionLineId;
-    public $startDate;
-    public $endDate;
-    public $notes;
-    public $planItems = []; // [{material_id, quantity}]
-
-    // For "Add Demand" modal (plan-level material quantity entry)
-    public $showDemandModal = false;
-    public $demandRequestId;
-    public $demandMaterialId;
-    public $demandQuantity;
 
     #[Layout('components.layouts.app')]
     public function render()
     {
-        // 1. Orders that need planning or are in planning
-        $query = \App\Models\ProductionOrder::with(['customer', 'plan.items.rawMaterial', 'plan.productionLine']);
-        
+        // 1. Orders list
+        $query = \App\Models\ProductionOrder::with([
+            'customer',
+            'items.product',
+            'plan.items.rawMaterial',
+            'plan.productionLine',
+        ]);
+
         if ($this->activeFilter === 'active') {
-            $query->whereIn('status', ['pending', 'pending_production']);
+            $query->whereIn('status', ['pending', 'pending_production', 'approved']);
         } else {
-            $query->whereIn('status', ['approved', 'in_production', 'completed']);
+            $query->whereIn('status', ['in_production', 'completed']);
         }
 
         $ordersWithDemands = $query->latest()->get();
 
-        // 2. Global aggregated PLANNED material demands (from ProductionPlanItem)
-        $globalMaterialSummary = \App\Models\ProductionPlanItem::with('rawMaterial')
-            ->whereHas('plan', function($q) {
-                $q->where('status', 'draft');
-            })
+        // 2. Global material demand summary across all active plans
+        $globalMaterialSummary = ProductionPlanItem::with('rawMaterial')
+            ->whereHas('plan', fn($q) => $q->whereIn('status', ['draft', 'approved']))
             ->get()
             ->groupBy('raw_material_id')
-            ->map(function ($group) {
-                return [
-                    'name' => $group->first()->rawMaterial->name,
-                    'unit' => $group->first()->rawMaterial->unit,
-                    'total_quantity' => $group->sum('planned_quantity'),
-                    'in_stock' => $group->first()->rawMaterial->quantity,
-                    'status' => 'planned',
-                ];
-            });
+            ->map(fn($group) => [
+                'name'           => $group->first()->rawMaterial->name,
+                'unit'           => $group->first()->rawMaterial->unit,
+                'total_quantity' => $group->sum('planned_quantity'),
+                'in_stock'       => $group->first()->rawMaterial->quantity,
+            ]);
 
-        $viewingOrder = null;
-        $selectedOrderDemands = [];
-        $aggregatedMaterialSummary = [];
+        // 3. Detail for selected order
+        $viewingOrder          = null;
+        $orderItems            = collect();
+        $aggregatedMaterialSummary = collect();
 
         if ($this->selectedOrderId) {
-            $viewingOrder = \App\Models\ProductionOrder::with(['customer', 'plan.items.rawMaterial', 'plan.productionLine'])->find($this->selectedOrderId);
+            $viewingOrder = \App\Models\ProductionOrder::with([
+                'customer',
+                'items.product',
+                'plan.items.rawMaterial',
+                'plan.productionLine',
+            ])->find($this->selectedOrderId);
+
             if ($viewingOrder) {
-                // If plan exists, load its data into form
-                if ($viewingOrder->plan) {
+                // Load plan schedule into form fields (only if not dirty)
+                if ($viewingOrder->plan && !$this->productionLineId) {
                     $this->productionLineId = $viewingOrder->plan->production_line_id;
-                    $this->startDate = $viewingOrder->plan->start_date ? $viewingOrder->plan->start_date->format('Y-m-d\TH:i') : null;
-                    $this->endDate = $viewingOrder->plan->end_date ? $viewingOrder->plan->end_date->format('Y-m-d\TH:i') : null;
-                    $this->notes = $viewingOrder->plan->notes;
+                    $this->startDate = $viewingOrder->plan->start_date
+                        ? $viewingOrder->plan->start_date->format('Y-m-d\TH:i')
+                        : null;
+                    $this->endDate = $viewingOrder->plan->end_date
+                        ? $viewingOrder->plan->end_date->format('Y-m-d\TH:i')
+                        : null;
+                    $this->planNotes = $viewingOrder->plan->notes;
                 }
 
-                $selectedOrderDemands = \App\Models\ProductionRequest::where('production_order_id', $this->selectedOrderId)->get();
-                
-                // Aggregated material summary for THIS specific order (from its PLAN)
+                // Order items = what products need to be produced
+                $orderItems = $viewingOrder->items;
+
+                // Planned materials for this order's plan
                 if ($viewingOrder->plan) {
                     $aggregatedMaterialSummary = $viewingOrder->plan->items
                         ->groupBy('raw_material_id')
-                        ->map(function ($group) {
-                            return [
-                                'name' => $group->first()->rawMaterial->name,
-                                'unit' => $group->first()->rawMaterial->unit,
-                                'total_quantity' => $group->sum('planned_quantity'),
-                                'in_stock' => $group->first()->rawMaterial->quantity,
-                            ];
-                        });
+                        ->map(fn($group) => [
+                            'id'             => $group->first()->id,
+                            'plan_item_ids'  => $group->pluck('id'),
+                            'material_id'    => $group->first()->raw_material_id,
+                            'name'           => $group->first()->rawMaterial->name,
+                            'unit'           => $group->first()->rawMaterial->unit,
+                            'total_quantity' => $group->sum('planned_quantity'),
+                            'in_stock'       => $group->first()->rawMaterial->quantity,
+                        ]);
                 }
             }
         }
 
         return view('livewire.operations.production-planning', [
-            'ordersWithDemands' => $ordersWithDemands,
-            'globalMaterialSummary' => $globalMaterialSummary,
-            'viewingOrder' => $viewingOrder,
-            'selectedOrderDemands' => $selectedOrderDemands,
-            'aggregatedMaterialSummary' => $aggregatedMaterialSummary,
-            'productionLines' => \App\Models\ProductionLine::all(),
-            'rawMaterials' => \App\Models\RawMaterial::all(),
+            'ordersWithDemands'        => $ordersWithDemands,
+            'globalMaterialSummary'    => $globalMaterialSummary,
+            'viewingOrder'             => $viewingOrder,
+            'orderItems'               => $orderItems,
+            'aggregatedMaterialSummary'=> $aggregatedMaterialSummary,
+            'productionLines'          => \App\Models\ProductionLine::all(),
+            'rawMaterials'             => \App\Models\RawMaterial::orderBy('name')->get(),
         ]);
     }
 
+    // ── Navigation ───────────────────────────────────────────────────────────
+
     public function selectOrder($id)
     {
-        $this->selectedOrderId = $id;
+        $this->selectedOrderId  = $id;
+        $this->productionLineId = null;
+        $this->startDate        = null;
+        $this->endDate          = null;
+        $this->planNotes        = null;
     }
 
     public function backToList()
     {
-        $this->selectedOrderId = null;
+        $this->selectedOrderId  = null;
+        $this->productionLineId = null;
+        $this->startDate        = null;
+        $this->endDate          = null;
+        $this->planNotes        = null;
     }
 
-    public function openDemandModal($requestId)
+    // ── Material modal ───────────────────────────────────────────────────────
+
+    public function openAddMaterialModal()
     {
-        $this->demandRequestId = $requestId;
-        $this->demandMaterialId = null;
-        $this->demandQuantity = null;
-        $this->showDemandModal = true;
+        $this->editingPlanItemId = null;
+        $this->materialId        = null;
+        $this->materialQty       = null;
+        $this->showMaterialModal = true;
     }
 
-    public function submitPlannedDemand()
+    public function openEditMaterialModal($planItemId)
+    {
+        $item = ProductionPlanItem::findOrFail($planItemId);
+        $this->editingPlanItemId = $planItemId;
+        $this->materialId        = $item->raw_material_id;
+        $this->materialQty       = $item->planned_quantity;
+        $this->showMaterialModal = true;
+    }
+
+    public function saveMaterialItem()
     {
         $this->validate([
-            'demandMaterialId' => 'required',
-            'demandQuantity' => 'required|numeric|min:0.01',
+            'materialId'  => 'required|exists:raw_materials,id',
+            'materialQty' => 'required|numeric|min:0.01',
         ]);
 
-        $order = \App\Models\ProductionOrder::find($this->selectedOrderId);
-        $plan = \App\Models\ProductionPlan::firstOrCreate(
+        // Ensure a plan exists
+        $plan = ProductionPlan::firstOrCreate(
             ['production_order_id' => $this->selectedOrderId],
             ['status' => 'draft', 'created_by' => Auth::id()]
         );
 
-        \App\Models\ProductionPlanItem::create([
-            'production_plan_id' => $plan->id,
-            'production_request_id' => $this->demandRequestId,
-            'raw_material_id' => $this->demandMaterialId,
-            'planned_quantity' => $this->demandQuantity,
-        ]);
+        if ($this->editingPlanItemId) {
+            // Update existing
+            ProductionPlanItem::where('id', $this->editingPlanItemId)->update([
+                'raw_material_id'  => $this->materialId,
+                'planned_quantity' => $this->materialQty,
+            ]);
+            $msg = 'Material requirement updated.';
+        } else {
+            // Create new — merge with existing same material if any
+            $existing = ProductionPlanItem::where('production_plan_id', $plan->id)
+                ->where('raw_material_id', $this->materialId)
+                ->first();
 
-        $this->showDemandModal = false;
-        session()->flash('success', 'Plan item added.');
+            if ($existing) {
+                $existing->increment('planned_quantity', $this->materialQty);
+            } else {
+                ProductionPlanItem::create([
+                    'production_plan_id' => $plan->id,
+                    'raw_material_id'    => $this->materialId,
+                    'planned_quantity'   => $this->materialQty,
+                ]);
+            }
+            $msg = 'Material added to plan.';
+        }
+
+        $this->showMaterialModal = false;
+        $this->reset(['editingPlanItemId', 'materialId', 'materialQty']);
+        session()->flash('success', $msg);
     }
+
+    public function deletePlanItem($planItemId)
+    {
+        ProductionPlanItem::destroy($planItemId);
+        session()->flash('success', 'Material removed from plan.');
+    }
+
+    // ── Save / Approve plan ──────────────────────────────────────────────────
 
     public function savePlan()
     {
-        $plan = \App\Models\ProductionPlan::updateOrCreate(
+        $plan = ProductionPlan::updateOrCreate(
             ['production_order_id' => $this->selectedOrderId],
             [
-                'production_line_id' => $this->productionLineId,
-                'start_date' => $this->startDate,
-                'end_date' => $this->endDate,
-                'notes' => $this->notes,
-                'created_by' => Auth::id(),
+                'production_line_id' => $this->productionLineId ?: null,
+                'start_date'         => $this->startDate ?: null,
+                'end_date'           => $this->endDate ?: null,
+                'notes'              => $this->planNotes,
+                'created_by'         => Auth::id(),
             ]
         );
 
-        \App\Models\ProductionOrder::where('id', $this->selectedOrderId)->update(['status' => 'pending_production']);
+        \App\Models\ProductionOrder::where('id', $this->selectedOrderId)
+            ->update(['status' => 'pending_production']);
 
-        session()->flash('success', 'Plan details saved as draft.');
+        session()->flash('success', 'Plan saved as draft.');
     }
 
     public function approvePlan()
     {
         $this->savePlan();
 
-        $plan = \App\Models\ProductionPlan::where('production_order_id', $this->selectedOrderId)->first();
+        $plan = ProductionPlan::where('production_order_id', $this->selectedOrderId)->first();
+
+        if (!$plan || $plan->items->isEmpty()) {
+            session()->flash('error', 'Add at least one raw material before releasing the plan.');
+            return;
+        }
+
         $plan->update(['status' => 'approved']);
+        \App\Models\ProductionOrder::where('id', $this->selectedOrderId)
+            ->update(['status' => 'approved']);
 
-        \App\Models\ProductionOrder::where('id', $this->selectedOrderId)->update(['status' => 'approved']);
-
-        session()->flash('success', 'Plan released to production.');
+        session()->flash('success', 'Plan released to production floor!');
         $this->selectedOrderId = null;
-    }
-
-    public function updateStatus($requestId, $status)
-    {
-        \App\Models\ProductionRequest::where('id', $requestId)->update(['status' => $status]);
-        session()->flash('success', 'Request status updated.');
     }
 }

@@ -13,7 +13,7 @@ class SuppliersCrud extends Component
 
     public function mount()
     {
-        abort_unless(auth()->user()->can('admin.suppliers'), 403);
+        abort_unless(auth()->user()->can('admin.suppliers-crud'), 403);
     }
 
     #[Layout('components.layouts.app')]
@@ -42,24 +42,24 @@ class SuppliersCrud extends Component
             ? 'unique:suppliers,code,' . $this->supplierId
             : 'unique:suppliers,code';
         return [
-            'code'          => ['required', 'string', 'max:50', $uniqueCode],
-            'name'          => 'required|string|max:255',
-            'contact_person'=> 'nullable|string|max:255',
-            'email'         => 'nullable|email|max:255',
-            'phone'         => 'nullable|string|max:32',
-            'address'       => 'nullable|string|max:500',
+            'code' => ['required', 'string', 'max:50', $uniqueCode],
+            'name' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:32',
+            'address' => 'nullable|string|max:500',
             'payment_terms' => 'nullable|string|max:100',
-            'is_active'     => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 
     public function render()
     {
         $suppliers = Supplier::when($this->search, function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                  ->orWhere('code', 'like', "%{$this->search}%")
-                  ->orWhere('phone', 'like', "%{$this->search}%");
-            })
+            $q->where('name', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%")
+                ->orWhere('phone', 'like', "%{$this->search}%");
+        })
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);
 
@@ -76,16 +76,16 @@ class SuppliersCrud extends Component
     public function openEditModal($id)
     {
         $supplier = Supplier::findOrFail($id);
-        $this->supplierId     = $supplier->id;
-        $this->code           = $supplier->code;
-        $this->name           = $supplier->name;
+        $this->supplierId = $supplier->id;
+        $this->code = $supplier->code;
+        $this->name = $supplier->name;
         $this->contact_person = $supplier->contact_person;
-        $this->email          = $supplier->email;
-        $this->phone          = $supplier->phone;
-        $this->address        = $supplier->address;
-        $this->payment_terms  = $supplier->payment_terms;
-        $this->is_active      = $supplier->is_active;
-        $this->isEdit  = true;
+        $this->email = $supplier->email;
+        $this->phone = $supplier->phone;
+        $this->address = $supplier->address;
+        $this->payment_terms = $supplier->payment_terms;
+        $this->is_active = $supplier->is_active;
+        $this->isEdit = true;
         $this->showModal = true;
     }
 
@@ -93,14 +93,14 @@ class SuppliersCrud extends Component
     {
         $this->validate();
         $data = [
-            'code'          => $this->code,
-            'name'          => $this->name,
-            'contact_person'=> $this->contact_person,
-            'email'         => $this->email,
-            'phone'         => $this->phone,
-            'address'       => $this->address,
+            'code' => $this->code,
+            'name' => $this->name,
+            'contact_person' => $this->contact_person,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'address' => $this->address,
             'payment_terms' => $this->payment_terms,
-            'is_active'     => $this->is_active,
+            'is_active' => $this->is_active,
         ];
 
         if ($this->isEdit && $this->supplierId) {
@@ -129,17 +129,23 @@ class SuppliersCrud extends Component
 
     public function resetForm()
     {
-        $this->supplierId     = null;
-        $this->code           = '';
-        $this->name           = '';
+        $this->supplierId = null;
+        $this->code = '';
+        $this->name = '';
         $this->contact_person = '';
-        $this->email          = '';
-        $this->phone          = '';
-        $this->address        = '';
-        $this->payment_terms  = '';
-        $this->is_active      = true;
+        $this->email = '';
+        $this->phone = '';
+        $this->address = '';
+        $this->payment_terms = '';
+        $this->is_active = true;
     }
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingPerPage() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 }

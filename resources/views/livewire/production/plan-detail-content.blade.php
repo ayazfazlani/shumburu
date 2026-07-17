@@ -88,6 +88,64 @@
         @endforelse
     </div>
 
+    {{-- Inbound Release Requests History --}}
+    @php
+        $allRequests = $activePlanRequest->plan ? \App\Models\MaterialRequest::where('production_plan_id', $activePlanRequest->plan->id)
+            ->with(['rawMaterial', 'requestedBy'])
+            ->latest()
+            ->get() : collect();
+    @endphp
+
+    @if($allRequests->isNotEmpty())
+        <div class="mt-12 bg-zinc-50 dark:bg-zinc-800/30 p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-800">
+            <h4 class="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
+                <div class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.6)]"></div>
+                Release Request History
+            </h4>
+            <div class="overflow-x-auto">
+                <table class="table w-full">
+                    <thead>
+                        <tr class="text-[10px] font-black uppercase tracking-widest text-zinc-400 border-b border-zinc-100 dark:border-zinc-800">
+                            <th class="bg-transparent pl-4 py-3 text-left">Date</th>
+                            <th class="bg-transparent py-3 text-left">Material</th>
+                            <th class="bg-transparent py-3 text-right">Requested Qty</th>
+                            <th class="bg-transparent py-3 text-center">Status</th>
+                            <th class="bg-transparent pr-4 py-3 text-right">Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @foreach($allRequests as $req)
+                            <tr class="hover:bg-zinc-100/50 dark:hover:bg-zinc-800/30 transition-colors">
+                                <td class="pl-4 py-4 text-xs font-bold text-zinc-500">{{ $req->created_at->format('d M Y H:i') }}</td>
+                                <td class="py-4">
+                                    <span class="text-xs font-black text-zinc-900 dark:text-white uppercase">{{ $req->rawMaterial->name }}</span>
+                                </td>
+                                <td class="py-4 text-right">
+                                    <span class="text-sm font-black text-zinc-905 dark:text-white tabular-nums">{{ number_format($req->quantity, 1) }}</span>
+                                    <span class="text-[9px] font-bold text-zinc-400 uppercase ml-0.5">{{ $req->rawMaterial->unit }}</span>
+                                </td>
+                                <td class="py-4 text-center">
+                                    @if($req->status === 'pending')
+                                        <span class="px-2.5 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-500/15">Pending</span>
+                                    @elseif($req->status === 'issued')
+                                        <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-500/15">Issued</span>
+                                    @elseif($req->status === 'consumed')
+                                        <span class="px-2.5 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-blue-500/15">Consumed</span>
+                                    @else
+                                        <span class="px-2.5 py-1 bg-zinc-500/10 text-zinc-6500 rounded-full text-[9px] font-black uppercase tracking-widest border border-zinc-500/15">{{ ucfirst($req->status) }}</span>
+                                    @endif
+                                </td>
+                                <td class="pr-4 py-4 text-right text-xs font-medium text-zinc-400 italic">
+                                    {{ $req->notes ?? '-' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
     {{-- Flow Gate: Start Production / Completion Status --}}
     <div class="mt-12 bg-zinc-50 dark:bg-zinc-900/50 p-8 rounded-[2.5rem] border border-zinc-100 dark:border-zinc-800 flex flex-col items-center text-center">
         @if($activePlanRequest->status === 'approved')

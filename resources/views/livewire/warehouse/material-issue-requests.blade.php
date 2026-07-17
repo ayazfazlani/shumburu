@@ -50,7 +50,7 @@
                                 @endphp
                                 @foreach ($currentOrderRequests as $planId => $materialRequests)
                                     @php
-                                        $planInfo = $materialRequests->first()->productionRequest;
+                                        $firstReq = $materialRequests->first();
                                     @endphp
                                     @foreach($materialRequests as $request)
                                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
@@ -63,7 +63,7 @@
                                             <td>
                                                 <div class="flex flex-col">
                                                     <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Plan #{{ $planId }}</span>
-                                                    <span class="text-xs font-bold text-zinc-400 truncate max-w-[200px]">{{ $planInfo->product->name }}</span>
+                                                    <span class="text-xs font-bold text-zinc-400 truncate max-w-[200px]">{{ $firstReq->product_name }}</span>
                                                 </div>
                                             </td>
                                             <td>
@@ -131,7 +131,7 @@
                                 <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
                                     <td class="pl-8 font-black text-zinc-900 dark:text-white uppercase tracking-tighter text-xl py-6">#{{ $orderNumber }}</td>
                                     <td class="font-bold text-zinc-500 uppercase text-xs">
-                                        {{ $plans->first()->first()->productionRequest->orderItem->productionOrder->customer->name ?? 'N/A' }}
+                                        {{ $plans->first()->first()->customer_name }}
                                     </td>
                                     <td class="text-center font-black">
                                         <span class="badge badge-zinc h-7 px-4 font-black uppercase text-[10px] bg-zinc-100 dark:bg-zinc-800 border-none">{{ $plans->count() }} Profiles</span>

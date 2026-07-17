@@ -58,7 +58,6 @@ class Manager extends Component
             'productionPlan.productionOrder.customer',
         ])
             ->where('status', 'pending')
-            ->whereDate('created_at', today())
             ->latest()
             ->get();
 
@@ -175,29 +174,15 @@ class Manager extends Component
             'warehouseRequestQty' => 'required|numeric|min:0.01',
         ]);
 
-        $existing = MaterialRequest::where('production_plan_id', $this->warehouseRequestPlanId)
-            ->where('raw_material_id', $this->warehouseRequestMaterialId)
-            ->where('status', 'pending')
-            ->whereDate('created_at', today())
-            ->first();
-
-        if ($existing) {
-            $existing->update([
-                'quantity' => $this->warehouseRequestQty,
-                'notes' => 'Updated by Manager — ' . now()->format('d M Y H:i'),
-            ]);
-            $msg = 'Warehouse request updated for today.';
-        } else {
-            MaterialRequest::create([
-                'production_plan_id' => $this->warehouseRequestPlanId,
-                'raw_material_id' => $this->warehouseRequestMaterialId,
-                'quantity' => $this->warehouseRequestQty,
-                'status' => 'pending',
-                'requested_by' => Auth::id(),
-                'notes' => 'Daily release by Manager — ' . now()->format('d M Y'),
-            ]);
-            $msg = 'Request sent to warehouse!';
-        }
+        MaterialRequest::create([
+            'production_plan_id' => $this->warehouseRequestPlanId,
+            'raw_material_id' => $this->warehouseRequestMaterialId,
+            'quantity' => $this->warehouseRequestQty,
+            'status' => 'pending',
+            'requested_by' => Auth::id(),
+            'notes' => 'Daily release by Manager — ' . now()->format('d M Y H:i'),
+        ]);
+        $msg = 'Request sent to warehouse!';
 
         $this->showWarehouseRequestForm = false;
         $this->reset(['warehouseRequestMaterialId', 'warehouseRequestQty', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);

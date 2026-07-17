@@ -23,21 +23,21 @@
         </div>
         <div class="p-4 space-y-8">
             @php
-                $groupedRequests = $rmRequests->groupBy('production_request_id');
+                $groupedRequests = $rmRequests->groupBy('plan_reference_id');
             @endphp
 
-            @forelse ($groupedRequests as $prodReqId => $requests)
+            @forelse ($groupedRequests as $planRefId => $requests)
                 @php 
                     $firstReq = $requests->first();
-                    $orderNumber = $firstReq->productionRequest->orderItem->productionOrder->order_number ?? 'N/A';
+                    $orderNumber = $firstReq->order_number;
                 @endphp
                 <div class="border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm">
                     <div class="bg-zinc-50 dark:bg-zinc-800/80 p-3 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                         <div>
                             <span class="text-[10px] font-black uppercase text-zinc-400">Order #{{ $orderNumber }} / Product:</span>
-                            <h4 class="font-bold text-zinc-700 dark:text-zinc-200">{{ $firstReq->productionRequest->product->name ?? 'Unknown Product' }}</h4>
+                            <h4 class="font-bold text-zinc-700 dark:text-zinc-200">{{ $firstReq->product_name }}</h4>
                         </div>
-                        <span class="badge badge-outline text-[10px]">Planning Ref #{{ $prodReqId }}</span>
+                        <span class="badge badge-outline text-[10px]">Planning Ref #{{ $planRefId }}</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="table table-compact w-full text-sm">

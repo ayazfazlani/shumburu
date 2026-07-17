@@ -47,16 +47,16 @@ class MaterialIssueRequests extends Component
                 'rawMaterial', 
                 'requestedBy', 
                 'productionRequest.product', 
-                'productionRequest.orderItem.productionOrder.customer'
+                'productionRequest.orderItem.productionOrder.customer',
+                'productionPlan.productionOrder.customer',
+                'productionPlan.productionOrder.orderItems.product'
             ])
             ->whereIn('status', ['pending', 'purchase_raised'])
             ->latest()
             ->get()
-            ->groupBy(function($item) {
-                return $item->productionRequest->orderItem->productionOrder->order_number ?? 'Manual Planning';
-            })
+            ->groupBy('order_number')
             ->map(function($orderGroup) {
-                return $orderGroup->groupBy('production_request_id');
+                return $orderGroup->groupBy('plan_reference_id');
             });
 
         // ─── 2. Aggregation Logic ───
@@ -93,7 +93,10 @@ class MaterialIssueRequests extends Component
     public function issueStock($requestId)
     {
         DB::transaction(function() use ($requestId) {
-            $request = MaterialRequest::lockForUpdate()->findOrFail($requestId);
+            $request = MaterialRequest::with([
+                'productionRequest.orderItem.productionOrder',
+                'productionPlan.productionOrder'
+            ])->lockForUpdate()->findOrFail($requestId);
 
             // Double Injection Prevention
             if ($request->status === 'issued') {
@@ -119,7 +122,7 @@ class MaterialIssueRequests extends Component
             $material->decrement('quantity', $request->quantity);
             RawMaterial::$skipAutoTransaction = false;
 
-            $orderNumber = $request->productionRequest->orderItem->productionOrder->order_number ?? 'N/A';
+            $orderNumber = $request->order_number;
             
             // Log Stock Out
             \App\Models\MaterialStockOut::create([
@@ -129,7 +132,7 @@ class MaterialIssueRequests extends Component
                 'issued_date' => now(),
                 'issued_by' => Auth::id(),
                 'status' => 'completed',
-                'notes' => "Official Release for Order #{$orderNumber} | Plan #{$request->production_request_id}",
+                'notes' => "Official Release for Order #{$orderNumber} | Plan #{$request->plan_reference_id}",
             ]);
 
             $request->update(['status' => 'issued']);
