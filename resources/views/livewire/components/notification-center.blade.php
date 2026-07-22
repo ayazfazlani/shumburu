@@ -1,106 +1,106 @@
-<div class="relative w-full">
-    <!-- Notification Bell Button - Sidebar Style -->
-    <button 
-        wire:click="toggleNotificationCenter" 
-        class="relative w-full flex items-center justify-center p-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-all duration-200 group hover:shadow-md hover:scale-[1.02]"
+<!-- resources/views/livewire/components/notification-center.blade.php -->
+<div class="bx-notification-wrapper" x-data="{ open: false }">
+    <!-- ─── NOTIFICATION BELL ─── -->
+    <button
+        @click="open = !open; $wire.toggleNotificationCenter()"
+        class="bx-notification-bell {{ $unreadCount > 0 ? 'bx-notification-bell-unread' : '' }}"
         title="Notifications"
     >
-        <div class="flex items-center space-x-3 w-full">
-            <div class="relative">
-                <!-- Bell Icon -->
-                <svg class="w-5 h-5 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+        <div class="bx-notification-bell-content">
+            <div class="bx-notification-bell-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
                 </svg>
-                
+
                 <!-- Unread Count Badge -->
                 @if($unreadCount > 0)
-                    <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse font-medium">
+                    <span class="bx-notification-badge">
                         {{ $unreadCount > 99 ? '99+' : $unreadCount }}
                     </span>
                 @endif
             </div>
-            <span class="text-sm font-medium">Notifications</span>
+            <span class="bx-notification-label">Notifications</span>
         </div>
     </button>
 
-    <!-- Notification Dropdown -->
+    <!-- ─── NOTIFICATION DROPDOWN ─── -->
     @if($showNotificationCenter)
-        @teleport('body')
-            <!-- Dropdown -->
-            <div class="notification-dropdown fixed left-4 top-20 w-80 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl border border-gray-200 dark:border-zinc-700 z-[9999] max-h-80 overflow-hidden transform transition-all duration-300 ease-out animate-in slide-in-from-top-2 fade-in">
+        <div
+            class="bx-notification-dropdown"
+            x-show="open"
+            @click.away="open = false; $wire.toggleNotificationCenter()"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2"
+        >
             <!-- Header -->
-            <div class="px-4 py-3 border-b border-gray-200 dark:border-zinc-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-zinc-800 dark:to-zinc-700">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-2">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                        @if($unreadCount > 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                {{ $unreadCount }} new
-                            </span>
-                        @endif
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        @if($unreadCount > 0)
-                            <button 
-                                wire:click="markAllAsRead" 
-                                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline transition-colors"
-                            >
-                                Mark all read
-                            </button>
-                        @endif
-                        <button 
-                            wire:click="toggleNotificationCenter" 
-                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                            title="Close"
+            <div class="bx-notification-header">
+                <div class="bx-notification-header-left">
+                    <div class="bx-notification-header-dot"></div>
+                    <h3>Notifications</h3>
+                    @if($unreadCount > 0)
+                        <span class="bx-notification-count">{{ $unreadCount }} new</span>
+                    @endif
+                </div>
+                <div class="bx-notification-header-right">
+                    @if($unreadCount > 0)
+                        <button
+                            wire:click="markAllAsRead"
+                            class="bx-notification-mark-read"
                         >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                            Mark all read
                         </button>
-                    </div>
+                    @endif
+                    <button
+                        @click="open = false; $wire.toggleNotificationCenter()"
+                        class="bx-notification-close"
+                        title="Close"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
             <!-- Notifications List -->
-            <div class="max-h-64 overflow-y-auto">
+            <div class="bx-notification-list">
                 @forelse($notifications as $notification)
-                    <div 
+                    <div
                         wire:click="viewNotification('{{ $notification->id }}')"
-                        class="px-4 py-3 border-b border-gray-100 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer transition-all duration-200 group {{ is_null($notification->read_at) ? 'bg-blue-50/50 dark:bg-blue-900/10 border-l-4 border-l-blue-500' : 'hover:border-l-4 hover:border-l-gray-200 dark:hover:border-l-zinc-600' }}"
+                        class="bx-notification-item {{ is_null($notification->read_at) ? 'bx-notification-unread' : '' }}"
                     >
-                        <div class="flex items-start space-x-3">
+                        <div class="bx-notification-item-content">
                             <!-- Icon -->
-                            <div class="flex-shrink-0 mt-1">
+                            <div class="bx-notification-item-icon">
                                 @if(isset($notification->data['icon']))
-                                    <div class="w-8 h-8 bg-{{ $notification->data['color'] ?? 'blue' }}-100 dark:bg-{{ $notification->data['color'] ?? 'blue' }}-900/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                                        <i class="{{ $notification->data['icon'] }} text-{{ $notification->data['color'] ?? 'blue' }}-600 dark:text-{{ $notification->data['color'] ?? 'blue' }}-400 text-sm"></i>
-                                    </div>
+                                    <i class="{{ $notification->data['icon'] }} text-{{ $notification->data['color'] ?? 'blue' }}-600 dark:text-{{ $notification->data['color'] ?? 'blue' }}-400"></i>
                                 @else
-                                    <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
-                                        <i class="fas fa-bell text-blue-600 dark:text-blue-400 text-sm"></i>
-                                    </div>
+                                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
+                                    </svg>
                                 @endif
                             </div>
 
                             <!-- Content -->
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <p class="text-sm font-semibold text-gray-900 dark:text-white truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                    {{ $notification->data['title'] ?? 'Notification' }}
-                                </p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                            {{ Str::limit($notification->data['message'] ?? $notification->data['title'], 70) }}
-                                        </p>
-                                    </div>
+                            <div class="bx-notification-item-body">
+                                <div class="bx-notification-item-header">
+                                    <p class="bx-notification-item-title">
+                                        {{ $notification->data['title'] ?? 'Notification' }}
+                                    </p>
                                     @if(is_null($notification->read_at))
-                                        <div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 animate-pulse"></div>
+                                        <div class="bx-notification-unread-dot"></div>
                                     @endif
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <p class="bx-notification-item-message">
+                                    {{ Str::limit($notification->data['message'] ?? $notification->data['title'], 70) }}
+                                </p>
+                                <p class="bx-notification-item-time">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     {{ $notification->created_at->diffForHumans() }}
@@ -109,26 +109,23 @@
                         </div>
                     </div>
                 @empty
-                    <div class="px-4 py-8 text-center">
-                        <div class="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="bx-notification-empty">
+                        <div class="bx-notification-empty-icon">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"></path>
                             </svg>
                         </div>
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-1">All caught up!</h3>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">No new notifications</p>
+                        <h3>All caught up!</h3>
+                        <p>No new notifications</p>
                     </div>
                 @endforelse
             </div>
 
             <!-- Footer -->
             @if(count($notifications) > 0)
-                <div class="px-4 py-3 border-t border-gray-200 dark:border-zinc-700 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-zinc-800 dark:to-zinc-700">
-                    <a 
-                        href="{{ route('notifications.index') }}" 
-                        class="inline-flex items-center text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium hover:underline transition-colors"
-                    >
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bx-notification-footer">
+                    <a href="{{ route('notifications.index') }}" class="bx-notification-view-all">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                         View all notifications
@@ -136,127 +133,42 @@
                 </div>
             @endif
         </div>
-        @endteleport
     @endif
 
-    <!-- Notification Detail Modal -->
+    <!-- ─── NOTIFICATION DETAIL MODAL ─── -->
     @if($selectedNotification)
-        @teleport('body')
-            <div 
-                x-data="{ show: true }" 
-                x-show="show"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                class="fixed inset-0 flex items-center justify-center z-[10000] bg-zinc-900/50 backdrop-blur-sm" 
-                @click="show = false; $wire.closeModal()"
-            >
-                <div 
-                    class="bg-white dark:bg-zinc-800 rounded-xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300" 
-                    @click.stop
-                    x-show="show"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                >
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-zinc-700">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                            {{ $selectedNotification->data['title'] ?? 'Notification' }}
-                        </h3>
-                        <button @click="show = false; $wire.closeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
+        <div class="bx-modal-overlay bx-modal-overlay-notification" wire:click.self="closeModal">
+            <div class="bx-modal bx-modal-notification">
+                <div class="bx-modal-header">
+                    <h3>{{ $selectedNotification->data['title'] ?? 'Notification' }}</h3>
+                    <button type="button" wire:click="closeModal" class="bx-modal-close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
-                
-                <div class="px-6 py-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-4 whitespace-pre-wrap">
+
+                <div class="bx-modal-body">
+                    <p class="bx-notification-detail-message">
                         {{ $selectedNotification->data['message'] ?? $selectedNotification->data['title'] }}
                     </p>
-                    
+
                     @if(isset($selectedNotification->data['action_url']))
-                        <a 
-                            href="{{ $selectedNotification->data['action_url'] }}" 
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                        >
-                            <i class="fas fa-external-link-alt mr-2 text-xs"></i>
+                        <a href="{{ $selectedNotification->data['action_url'] }}" class="bx-btn bx-btn-primary bx-btn-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
                             View Details
                         </a>
                     @endif
                 </div>
-                
-                <div class="px-6 py-3 bg-gray-50 dark:bg-zinc-700/50 border-t border-gray-200 dark:border-zinc-600 rounded-b-lg">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+
+                <div class="bx-modal-footer bx-modal-footer-notification">
+                    <p class="bx-notification-detail-time">
                         {{ $selectedNotification->created_at->format('M d, Y \a\t g:i A') }}
                     </p>
                 </div>
             </div>
         </div>
-        @endteleport
     @endif
 </div>
-
-<script>
-    // Listen for real-time notifications
-    document.addEventListener('DOMContentLoaded', function() {
-        if (window.Echo) {
-            window.Echo.private('notifications')
-                .listen('ProductionOrderCreated', (e) => {
-                    @this.call('refreshNotifications');
-                    // Show toast notification
-                    showToast(e.message, 'info');
-                })
-                .listen('ProductionOrderStatusChanged', (e) => {
-                    @this.call('refreshNotifications');
-                    // Show toast notification
-                    showToast(e.message, 'success');
-                });
-        }
-
-        // Handle click outside to close notification dropdown
-        document.addEventListener('click', function(event) {
-            const notificationButton = event.target.closest('[wire\\:click="toggleNotificationCenter"]');
-            const notificationDropdown = event.target.closest('.notification-dropdown');
-            
-            if (!notificationButton && !notificationDropdown && @this.showNotificationCenter) {
-                @this.call('toggleNotificationCenter');
-            }
-        });
-    });
-
-    function showToast(message, type = 'info') {
-        // Create toast notification
-        const toast = document.createElement('div');
-        const bgColor = type === 'success' ? 'green' : 'blue';
-        toast.className = `fixed top-4 right-4 bg-${bgColor}-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300 translate-x-full`;
-        toast.innerHTML = `
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Animate in
-        setTimeout(() => {
-            toast.classList.remove('translate-x-full');
-        }, 100);
-        
-        // Remove after 5 seconds
-        setTimeout(() => {
-            toast.classList.add('translate-x-full');
-            setTimeout(() => {
-                if (document.body.contains(toast)) {
-                    document.body.removeChild(toast);
-                }
-            }, 300);
-        }, 5000);
-    }
-</script>

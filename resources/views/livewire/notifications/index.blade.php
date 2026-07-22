@@ -1,164 +1,195 @@
-<div>
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Notifications</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-2">Stay updated with production order activities</p>
-    </div>
-
-    <!-- Filters -->
-    <div class="mb-6 flex flex-wrap gap-4">
-        <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by status</label>
-            <select wire:model.live="filter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="all">All Notifications</option>
-                <option value="unread">Unread Only</option>
-                <option value="read">Read Only</option>
-            </select>
+<!-- resources/views/livewire/notifications/index.blade.php -->
+<div class="bx-page bx-page-notifications">
+    <!-- ─── HEADER ─── -->
+    <div class="bx-header">
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
+                </svg>
+                Notifications
+            </h1>
+            <p class="bx-header-subtitle">Stay updated with production order activities</p>
         </div>
-
-        <div class="flex flex-col">
-            <label class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Filter by type</label>
-            <select wire:model.live="type" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option value="all">All Types</option>
-                <option value="production_order_created">Order Created</option>
-                <option value="production_order_status_changed">Status Changed</option>
-                <option value="order_ready">🚨 Order Ready (URGENT)</option>
-                <option value="order_delivered">Order Delivered</option>
-                <option value="urgent">🚨 Urgent Notifications Only</option>
-            </select>
-        </div>
-
-        @if($notifications->where('read_at', null)->count() > 0)
-            <div class="flex items-end">
-                <button wire:click="markAllAsRead" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+        <div class="bx-header-right">
+            @if($notifications->where('read_at', null)->count() > 0)
+                <button wire:click="markAllAsRead" class="bx-btn bx-btn-secondary bx-btn-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                     Mark All as Read
                 </button>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
-    <!-- Notifications List -->
-    <div class="space-y-4">
-        @forelse($notifications as $notification)
-            <div class="bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-6 shadow-sm">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-start space-x-4 flex-1">
-                        <!-- Icon -->
-                        <div class="flex-shrink-0">
-                            @if(isset($notification->data['icon']))
-                                <div class="w-10 h-10 bg-{{ $notification->data['color'] ?? 'blue' }}-100 rounded-full flex items-center justify-center">
-                                    <i class="{{ $notification->data['icon'] }} text-{{ $notification->data['color'] ?? 'blue' }}-600"></i>
-                                </div>
-                            @else
-                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-bell text-gray-600"></i>
-                                </div>
-                            @endif
-                        </div>
+    <!-- ─── STATS ─── -->
+    <div class="bx-stats">
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total Notifications</div>
+            <div class="bx-stat-value">{{ $notifications->total() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Unread</div>
+            <div class="bx-stat-value text-blue">{{ $notifications->where('read_at', null)->count() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Read</div>
+            <div class="bx-stat-value text-gray">{{ $notifications->where('read_at', '!=', null)->count() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Urgent</div>
+            <div class="bx-stat-value text-danger">{{ $notifications->filter(function($n) { return isset($n->data['priority']) && $n->data['priority'] === 'urgent'; })->count() }}</div>
+        </div>
+    </div>
 
-                        <!-- Content -->
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center space-x-2 mb-2">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                    {{ $notification->data['title'] ?? 'Notification' }}
-                                </h3>
+    <!-- ─── FILTERS ─── -->
+    <div class="bx-filters-bar">
+        <div class="bx-filters-left">
+            <div class="bx-filter-group">
+                <label class="bx-filter-label">Status</label>
+                <select wire:model.live="filter" class="bx-filter-select">
+                    <option value="all">All Notifications</option>
+                    <option value="unread">Unread Only</option>
+                    <option value="read">Read Only</option>
+                </select>
+            </div>
+            <div class="bx-filter-group">
+                <label class="bx-filter-label">Type</label>
+                <select wire:model.live="type" class="bx-filter-select">
+                    <option value="all">All Types</option>
+                    <option value="production_order_created">Order Created</option>
+                    <option value="production_order_status_changed">Status Changed</option>
+                    <option value="order_ready">🚨 Order Ready (URGENT)</option>
+                    <option value="order_delivered">Order Delivered</option>
+                    <option value="urgent">🚨 Urgent Notifications Only</option>
+                </select>
+            </div>
+        </div>
+        <div class="bx-filters-right">
+            <span class="bx-badge bx-badge-secondary">{{ $notifications->total() }} Total</span>
+        </div>
+    </div>
+
+    <!-- ─── NOTIFICATIONS LIST ─── -->
+    <div class="bx-notifications-list">
+        @forelse($notifications as $notification)
+            <div class="bx-notification-card {{ is_null($notification->read_at) ? 'bx-notification-card-unread' : '' }}">
+                <div class="bx-notification-card-content">
+                    <!-- Icon -->
+                    <div class="bx-notification-card-icon">
+                        @if(isset($notification->data['icon']))
+                            <i class="{{ $notification->data['icon'] }} text-{{ $notification->data['color'] ?? 'blue' }}-600 dark:text-{{ $notification->data['color'] ?? 'blue' }}-400"></i>
+                        @else
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
+                            </svg>
+                        @endif
+                    </div>
+
+                    <!-- Content -->
+                    <div class="bx-notification-card-body">
+                        <div class="bx-notification-card-header">
+                            <h3 class="bx-notification-card-title">
+                                {{ $notification->data['title'] ?? 'Notification' }}
+                            </h3>
+                            <div class="bx-notification-card-badges">
                                 @if(is_null($notification->read_at))
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        New
-                                    </span>
+                                    <span class="bx-badge bx-badge-info bx-badge-xs">New</span>
                                 @endif
                                 @if(isset($notification->data['priority']) && $notification->data['priority'] === 'urgent')
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
-                                        🚨 URGENT
-                                    </span>
+                                    <span class="bx-badge bx-badge-danger bx-badge-xs bx-badge-pulse">🚨 URGENT</span>
                                 @endif
                                 @if(isset($notification->data['urgency']) && $notification->data['urgency'] === 'high')
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                        ⚠️ HIGH PRIORITY
-                                    </span>
+                                    <span class="bx-badge bx-badge-warning bx-badge-xs">⚠️ HIGH PRIORITY</span>
                                 @endif
                             </div>
-                            
-                            <p class="text-gray-600 dark:text-gray-300 mb-3">
-                                {{ $notification->data['message'] ?? $notification->data['title'] }}
-                            </p>
+                        </div>
 
-                            <!-- Order Details (if available) -->
-                            @if(isset($notification->data['order_number']))
-                                <div class="bg-gray-50 dark:bg-zinc-700 rounded-lg p-4 mb-3">
-                                    <h4 class="font-medium text-gray-900 dark:text-white mb-2">Order Details</h4>
-                                    <div class="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                            <span class="text-gray-500 dark:text-gray-400">Order #:</span>
-                                            <span class="font-medium text-gray-900 dark:text-white">{{ $notification->data['order_number'] }}</span>
-                                        </div>
-                                        @if(isset($notification->data['customer_name']))
-                                            <div>
-                                                <span class="text-gray-500 dark:text-gray-400">Customer:</span>
-                                                <span class="font-medium text-gray-900 dark:text-white">{{ $notification->data['customer_name'] }}</span>
-                                            </div>
-                                        @endif
-                                        @if(isset($notification->data['status']))
-                                            <div>
-                                                <span class="text-gray-500 dark:text-gray-400">Status:</span>
-                                                <span class="font-medium text-gray-900 dark:text-white">{{ ucfirst($notification->data['status']) }}</span>
-                                            </div>
-                                        @endif
-                                        @if(isset($notification->data['total_price']))
-                                            <div>
-                                                <span class="text-gray-500 dark:text-gray-400">Total:</span>
-                                                <span class="font-medium text-gray-900 dark:text-white">${{ number_format((float)($notification->data['total_price'] ?? 0), 2) }}</span>
-                                            </div>
-                                        @endif
+                        <p class="bx-notification-card-message">
+                            {{ $notification->data['message'] ?? $notification->data['title'] }}
+                        </p>
+
+                        <!-- Order Details -->
+                        @if(isset($notification->data['order_number']))
+                            <div class="bx-notification-order-details">
+                                <h4>Order Details</h4>
+                                <div class="bx-notification-order-grid">
+                                    <div>
+                                        <span class="bx-notification-order-label">Order #:</span>
+                                        <span class="bx-notification-order-value">#{{ $notification->data['order_number'] }}</span>
                                     </div>
+                                    @if(isset($notification->data['customer_name']))
+                                        <div>
+                                            <span class="bx-notification-order-label">Customer:</span>
+                                            <span class="bx-notification-order-value">{{ $notification->data['customer_name'] }}</span>
+                                        </div>
+                                    @endif
+                                    @if(isset($notification->data['status']))
+                                        <div>
+                                            <span class="bx-notification-order-label">Status:</span>
+                                            <span class="bx-notification-order-value">{{ ucfirst($notification->data['status']) }}</span>
+                                        </div>
+                                    @endif
+                                    @if(isset($notification->data['total_price']))
+                                        <div>
+                                            <span class="bx-notification-order-label">Total:</span>
+                                            <span class="bx-notification-order-value bx-notification-order-total">${{ number_format((float)($notification->data['total_price'] ?? 0), 2) }}</span>
+                                        </div>
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
+                        @endif
 
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ $notification->created_at->format('M d, Y \a\t g:i A') }}
-                                    <span class="mx-2">•</span>
-                                    {{ $notification->created_at->diffForHumans() }}
-                                </p>
+                        <div class="bx-notification-card-footer">
+                            <div class="bx-notification-card-time">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {{ $notification->created_at->format('M d, Y \a\t g:i A') }}
+                                <span class="bx-notification-time-separator">•</span>
+                                {{ $notification->created_at->diffForHumans() }}
+                            </div>
 
-                                <div class="flex items-center space-x-2">
-                                    @if(isset($notification->data['action_url']))
-                                        <a 
-                                            href="{{ $notification->data['action_url'] }}" 
-                                            class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                        >
-                                            View Details
-                                        </a>
-                                    @endif
+                            <div class="bx-notification-card-actions">
+                                @if(isset($notification->data['action_url']))
+                                    <a href="{{ $notification->data['action_url'] }}" class="bx-btn bx-btn-secondary bx-btn-xs">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
+                                        View Details
+                                    </a>
+                                @endif
 
-                                    @if(is_null($notification->read_at))
-                                        <button 
-                                            wire:click="markAsRead('{{ $notification->id }}')" 
-                                            class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                        >
-                                            Mark as Read
-                                        </button>
-                                    @endif
-
-                                    <button 
-                                        wire:click="deleteNotification('{{ $notification->id }}')" 
-                                        wire:confirm="Are you sure you want to delete this notification?"
-                                        class="px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 bg-white dark:bg-zinc-800 border border-red-300 dark:border-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                                    >
-                                        Delete
+                                @if(is_null($notification->read_at))
+                                    <button wire:click="markAsRead('{{ $notification->id }}')" class="bx-action bx-action-edit" title="Mark as Read">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
                                     </button>
-                                </div>
+                                @endif
+
+                                <button wire:click="deleteNotification('{{ $notification->id }}')"
+                                        wire:confirm="Are you sure you want to delete this notification?"
+                                        class="bx-action bx-action-delete" title="Delete">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         @empty
-            <div class="text-center py-12">
-                <div class="w-24 h-24 bg-gray-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-bell-slash text-gray-400 text-3xl"></i>
+            <div class="bx-empty-state bx-empty-state-large">
+                <div class="bx-empty-icon">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
+                    </svg>
                 </div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No notifications found</h3>
-                <p class="text-gray-500 dark:text-gray-400">
+                <h3>No notifications found</h3>
+                <p>
                     @if($filter === 'unread')
                         You have no unread notifications.
                     @elseif($filter === 'read')
@@ -171,10 +202,17 @@
         @endforelse
     </div>
 
-    <!-- Pagination -->
+    <!-- ─── PAGINATION ─── -->
     @if($notifications->hasPages())
-        <div class="mt-8">
-            {{ $notifications->links() }}
+        <div class="bx-pagination-wrap">
+            <div class="bx-pagination-info">
+                Showing <strong>{{ $notifications->firstItem() ?? 0 }}</strong>
+                to <strong>{{ $notifications->lastItem() ?? 0 }}</strong>
+                of <strong>{{ $notifications->total() }}</strong> notifications
+            </div>
+            <div class="bx-pagination">
+                {{ $notifications->links() }}
+            </div>
         </div>
     @endif
 </div>

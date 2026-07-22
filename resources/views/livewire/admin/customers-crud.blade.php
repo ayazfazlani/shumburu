@@ -1,165 +1,319 @@
-<section class="w-full p-6">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold">Customers Management</h1>
-            <p class="text-gray-500">Create, edit, and delete customers.</p>
-        </div>
-        <div class="flex gap-2">
-            <input type="text" wire:model.debounce.300ms="search" placeholder="Search customers..."
-                class="input input-bordered" />
-            <select wire:model="perPage" class="select select-bordered">
+<!-- resources/views/livewire/admin/customers-crud.blade.php -->
+<div class="bx-page">
+    <!-- ─── HEADER ─── -->
+    <div class="bx-header">
+        <h1 class="bx-header-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            Customers
+        </h1>
+        <p class="bx-header-subtitle">Manage your customer database</p>
+    </div>
+
+    <!-- ─── TOOLBAR ─── -->
+    <div class="bx-toolbar">
+        <div class="bx-toolbar-left">
+            <div class="bx-search">
+                <svg class="bx-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+                <input type="text"
+                       wire:model.live.debounce.300ms="search"
+                       placeholder="Search..."
+                       class="bx-search-input" />
+            </div>
+            <select wire:model.live="perPage" class="bx-select">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            <button class="btn btn-primary" wire:click="openCreateModal">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </div>
+        <div class="bx-toolbar-right">
+            <button wire:click="openCreateModal" class="bx-btn bx-btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                New Customer
+                <span class="hidden sm:inline">New Customer</span>
+                <span class="sm:hidden">Add</span>
             </button>
         </div>
     </div>
 
+    <!-- ─── ALERTS ─── -->
     @if (session('message'))
-        <div class="alert alert-success mb-4">{{ session('message') }}</div>
+        <div class="bx-alert bx-alert-success">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('message') }}
+        </div>
     @endif
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
-            <thead>
-                <tr>
-                    <th class="py-3 px-4">ID</th>
-                    <th class="py-3 px-4">Code</th>
-                    @can('can see customer name')
-                    <th class="py-3 px-4">Name</th>
-                    @endcan
-                    <th class="py-3 px-4">Contact Person</th>
-                    <th class="py-3 px-4">Phone</th>
-                    <th class="py-3 px-4">Email</th>
-                    <th class="py-3 px-4">Address</th>
-                    <th class="py-3 px-4">Active</th>
-                    <th class="py-3 px-4">Created At</th>
-                    <th class="py-3 px-4">Updated At</th>
-                    <th class="py-3 px-4">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($customers as $customer)
-                    <tr>
-                        <td class="py-3 px-4">{{ $customer->id }}</td>
-                        <td class="py-3 px-4">{{ $customer->code }}</td>
-                        @can('can see customer name')
-                        <td class="py-3 px-4">{{ $customer->name }}</td>
-                        @endcan
-                        <td class="py-3 px-4">{{ $customer->contact_person ?? '-' }}</td>
-                        <td class="py-3 px-4">{{ $customer->phone ?? '-' }}</td>
-                        <td class="py-3 px-4">{{ $customer->email ?? '-' }}</td>
-                        <td class="py-3 px-4">{{ Str::limit($customer->address ?? '-', 30) }}</td>
-                        <td class="py-3 px-4">
-                            @if ($customer->is_active)
-                                <span class="badge badge-sm badge-success whitespace-nowrap">Yes</span>
-                            @else
-                                <span class="badge badge-sm badge-error whitespace-nowrap">No</span>
-                            @endif
-                        </td>
-                        <td class="py-3 px-4">{{ $customer->created_at ? $customer->created_at->format('Y-m-d H:i') : '-' }}</td>
-                        <td class="py-3 px-4">{{ $customer->updated_at ? $customer->updated_at->format('Y-m-d H:i') : '-' }}</td>
-                        <td class="py-3 px-4">
-                            <div class="flex gap-2">
-                                <button class="btn btn-xs btn-primary"
-                                    wire:click="openEditModal({{ $customer->id }})">Edit</button>
-                                <button class="btn btn-xs btn-error"
-                                    wire:click="confirmDelete({{ $customer->id }})">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="11" class="text-center text-gray-400 py-6">No customers found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+    @if (session('error'))
+        <div class="bx-alert bx-alert-danger">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- ─── STATS ─── -->
+    <div class="bx-stats">
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total</div>
+            <div class="bx-stat-value">{{ $customers->total() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Active</div>
+            <div class="bx-stat-value text-green">{{ $customers->where('is_active', true)->count() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Inactive</div>
+            <div class="bx-stat-value text-gray">{{ $customers->where('is_active', false)->count() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">New</div>
+            <div class="bx-stat-value text-blue">{{ $customers->where('created_at', '>=', now()->startOfMonth())->count() }}</div>
+        </div>
     </div>
-    <div class="mt-4">{{ $customers->links() }}</div>
 
-    <!-- Create/Edit Modal -->
-    <dialog id="customer-modal" class="modal" @if ($showModal) open @endif>
-        <form method="dialog" class="modal-box w-full max-w-2xl" wire:submit.prevent="saveCustomer">
-            <h3 class="font-bold text-lg mb-4">{{ $isEdit ? 'Edit Customer' : 'Create Customer' }}</h3>
-            <div class="mb-4">
-                <label class="label">Code</label>
-                <input type="text" wire:model.defer="code" class="input input-bordered w-full"
-                    placeholder="Customer code" />
-                @error('code')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Name</label>
-                <input type="text" wire:model.defer="name" class="input input-bordered w-full"
-                    placeholder="Customer name" />
-                @error('name')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Contact Person</label>
-                <input type="text" wire:model.defer="contact_person" class="input input-bordered w-full"
-                    placeholder="Contact person" />
-                @error('contact_person')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Phone</label>
-                <input type="text" wire:model.defer="phone" class="input input-bordered w-full"
-                    placeholder="Phone" />
-                @error('phone')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Email</label>
-                <input type="email" wire:model.defer="email" class="input input-bordered w-full"
-                    placeholder="Email" />
-                @error('email')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4">
-                <label class="label">Address</label>
-                <input type="text" wire:model.defer="address" class="input input-bordered w-full"
-                    placeholder="Address" />
-                @error('address')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="mb-4 flex items-center gap-2">
-                <input type="checkbox" wire:model.defer="is_active" class="checkbox checkbox-primary" id="is_active" />
-                <label for="is_active" class="label cursor-pointer">Active</label>
-                @error('is_active')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
-            </div>
-            <div class="modal-action flex gap-2">
-                <button type="button" class="btn" wire:click="$set('showModal', false)">Cancel</button>
-                <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Update' : 'Create' }}</button>
-            </div>
-        </form>
-    </dialog>
+    <!-- ─── TABLE ─── -->
+    <div class="bx-table-wrap">
+        <div class="bx-table-scroll">
+            <table class="bx-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Code</th>
+                        @can('can see customer name')
+                            <th>Name</th>
+                        @endcan
+                        <th class="hidden sm:table-cell">Contact</th>
+                        <th class="hidden md:table-cell">Phone</th>
+                        <th class="hidden lg:table-cell">Email</th>
+                        <th class="hidden xl:table-cell">Address</th>
+                        <th>Status</th>
+                        <th class="hidden md:table-cell">Created</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($customers as $customer)
+                        <tr>
+                            <td class="text-gray font-mono text-sm">{{ $customer->id }}</td>
+                            <td><span class="bx-code">{{ $customer->code }}</span></td>
+                            @can('can see customer name')
+                                <td class="font-medium">{{ $customer->name }}</td>
+                            @endcan
+                            <td class="hidden sm:table-cell">{{ $customer->contact_person ?? '—' }}</td>
+                            <td class="hidden md:table-cell">
+                                @if($customer->phone)
+                                    <a href="tel:{{ $customer->phone }}" class="text-blue hover:underline">{{ $customer->phone }}</a>
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="hidden lg:table-cell">
+                                @if($customer->email)
+                                    <a href="mailto:{{ $customer->email }}" class="text-blue hover:underline">{{ Str::limit($customer->email, 20) }}</a>
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="hidden xl:table-cell">{{ Str::limit($customer->address ?? '—', 20) }}</td>
+                            <td>
+                                @if ($customer->is_active)
+                                    <span class="bx-badge bx-badge-success">Active</span>
+                                @else
+                                    <span class="bx-badge bx-badge-gray">Inactive</span>
+                                @endif
+                            </td>
+                            <td class="hidden md:table-cell text-gray text-sm">{{ $customer->created_at ? $customer->created_at->format('M d, Y') : '—' }}</td>
+                            <td>
+                                <div class="bx-actions">
+                                    <button wire:click="openEditModal({{ $customer->id }})"
+                                            class="bx-action bx-action-edit"
+                                            title="Edit">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                    <button wire:click="confirmDelete({{ $customer->id }})"
+                                            class="bx-action bx-action-delete"
+                                            title="Delete">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ Auth::user()->can('can see customer name') ? 11 : 10 }}" class="bx-empty">
+                                <div class="bx-empty-content">
+                                    <div class="bx-empty-icon">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/>
+                                        </svg>
+                                    </div>
+                                    <h3>No customers found</h3>
+                                    <p>{{ $search ? 'Try adjusting your search terms.' : 'Get started by creating your first customer.' }}</p>
+                                    @if(!$search)
+                                        <button wire:click="openCreateModal" class="bx-btn bx-btn-primary">Create Customer</button>
+                                    @else
+                                        <button wire:click="$set('search', '')" class="bx-btn bx-btn-secondary">Clear Search</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <!-- Delete Confirmation Modal -->
-    <dialog id="delete-modal" class="modal" @if ($showDeleteModal) open @endif>
-        <form method="dialog" class="modal-box">
-            <h3 class="font-bold text-lg mb-4">Delete Customer?</h3>
-            <p class="mb-4">Are you sure you want to delete this customer? This action cannot be undone.</p>
-            <div class="modal-action flex gap-2">
-                <button type="button" class="btn" wire:click="$set('showDeleteModal', false)">Cancel</button>
-                <button type="button" class="btn btn-error" wire:click="deleteCustomer">Delete</button>
+    <!-- ─── PAGINATION ─── -->
+    @if($customers->hasPages())
+        <div class="bx-pagination-wrap">
+            <div class="bx-pagination-info">
+                <span class="hidden xs:inline">Showing </span>
+                <strong>{{ $customers->firstItem() ?? 0 }}</strong>
+                <span class="hidden xs:inline">to</span>
+                <strong>{{ $customers->lastItem() ?? 0 }}</strong>
+                <span class="hidden sm:inline">of</span>
+                <strong>{{ $customers->total() }}</strong>
             </div>
-        </form>
-    </dialog>
-</section>
+            <div class="bx-pagination">
+                {{ $customers->links() }}
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── CREATE/EDIT MODAL ─── -->
+    @if($showModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+            <div class="bx-modal">
+                <form wire:submit.prevent="saveCustomer">
+                    <div class="bx-modal-header">
+                        <h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' }}" />
+                            </svg>
+                            {{ $isEdit ? 'Edit Customer' : 'Create Customer' }}
+                        </h3>
+                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bx-modal-body">
+                        <div class="bx-form">
+                            <div class="bx-form-group">
+                                <label class="bx-form-label required">Code</label>
+                                <input type="text" wire:model.defer="code" class="bx-input" placeholder="CUST-001" />
+                                @error('code')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label required">Name</label>
+                                <input type="text" wire:model.defer="name" class="bx-input" placeholder="John Doe" />
+                                @error('name')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label">Contact Person</label>
+                                <input type="text" wire:model.defer="contact_person" class="bx-input" placeholder="Jane Smith" />
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label">Phone</label>
+                                <input type="text" wire:model.defer="phone" class="bx-input" placeholder="+1 (555) 000-0000" />
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label">Email</label>
+                                <input type="email" wire:model.defer="email" class="bx-input" placeholder="john@example.com" />
+                                @error('email')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label">Address</label>
+                                <input type="text" wire:model.defer="address" class="bx-input" placeholder="123 Main St, City" />
+                            </div>
+
+                            <div class="bx-form-full">
+                                <label class="bx-checkbox">
+                                    <input type="checkbox" wire:model.defer="is_active" />
+                                    <span>Active Customer</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bx-modal-footer">
+                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="submit" class="bx-btn bx-btn-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
+                            </svg>
+                            {{ $isEdit ? 'Update' : 'Create' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── DELETE MODAL ─── -->
+    @if($showDeleteModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+            <div class="bx-modal bx-modal-sm">
+                <div class="bx-modal-header">
+                    <h3 class="text-red">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Delete Customer
+                    </h3>
+                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="bx-modal-body text-center">
+                    <div class="bx-delete-icon">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <h4 class="bx-delete-title">Are you sure?</h4>
+                    <p class="bx-delete-text">This action cannot be undone.</p>
+                </div>
+
+                <div class="bx-modal-footer justify-center">
+                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="deleteCustomer" class="bx-btn bx-btn-danger">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>

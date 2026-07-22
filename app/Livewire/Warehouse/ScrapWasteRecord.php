@@ -6,17 +6,19 @@ use App\Models\Product;
 use Livewire\Component;
 use App\Models\ScrapWaste;
 use App\Models\RawMaterial;
+use App\Models\MaterialStockOut;
+use App\Models\ProductionLine;
+use App\Models\MaterialStockOutLine;
 use Livewire\WithPagination;
-
 use Illuminate\Support\Facades\Auth;
 
 class ScrapWasteRecord extends Component
 {
-
     use WithPagination;
 
     public $showForm = false;
     public $editingId = null;
+    public $isEditing = false;  // Add this line
 
     // Form fields
     public $date;
@@ -40,6 +42,7 @@ class ScrapWasteRecord extends Component
     public function mount()
     {
         $this->date = now()->format('Y-m-d');
+        $this->isEditing = false;
     }
 
     public function render()
@@ -48,10 +51,10 @@ class ScrapWasteRecord extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        $stockOuts = \App\Models\MaterialStockOut::all();
-        $lines = \App\Models\ProductionLine::all();
+        $stockOuts = MaterialStockOut::all();
+        $lines = ProductionLine::all();
 
-        return view('livewire.warehouse.scrap-waste-record', [
+        return view('livewire.warehouse.scrap-waste', [
             'scrapWasteRecords' => $scrapWasteRecords,
             'stockOuts' => $stockOuts,
             'lines' => $lines,
@@ -63,13 +66,16 @@ class ScrapWasteRecord extends Component
         $this->resetForm();
         $this->showForm = true;
         $this->editingId = null;
+        $this->isEditing = false;
     }
 
     public function edit($id)
     {
         $record = ScrapWaste::with('materialStockOutLine')->findOrFail($id);
-        // dd($record);
+
         $this->editingId = $id;
+        $this->isEditing = true;
+        $this->showForm = true;
         $this->date = $record->waste_date;
         $this->quantity = $record->quantity;
         $this->reason = $record->reason;
@@ -77,19 +83,22 @@ class ScrapWasteRecord extends Component
         $this->material_stock_out_id = $record->materialStockOutLine->material_stock_out_id;
         $this->production_line_id = $record->materialStockOutLine->production_line_id;
         $this->quantity_used = $record->materialStockOutLine->quantity_consumed;
-
-        $this->showForm = true;
     }
 
     public function save()
     {
         $this->validate();
 
-        $stockOutLine = \App\Models\MaterialStockOutLine::create([
-            'material_stock_out_id' => $this->material_stock_out_id,
-            'production_line_id' => $this->production_line_id,
-            'quantity_consumed' => $this->quantity_used,
-        ]);
+        // Check if stock out line exists or create new one
+        $stockOutLine = MaterialStockOutLine::firstOrCreate(
+            [
+                'material_stock_out_id' => $this->material_stock_out_id,
+                'production_line_id' => $this->production_line_id,
+            ],
+            [
+                'quantity_consumed' => $this->quantity_used,
+            ]
+        );
 
         $data = [
             'waste_date' => $this->date,
@@ -111,6 +120,7 @@ class ScrapWasteRecord extends Component
 
         $this->resetForm();
         $this->showForm = false;
+        $this->isEditing = false;
     }
 
     public function delete($id)
@@ -120,32 +130,11 @@ class ScrapWasteRecord extends Component
         session()->flash('message', 'Scrap/Waste record deleted successfully.');
     }
 
-    public function approve($id)
-    {
-        $record = ScrapWaste::findOrFail($id);
-        $record->update([
-            'status' => 'approved',
-            'approved_by' => Auth::user()->id,
-            'approved_at' => now(),
-        ]);
-        session()->flash('message', 'Scrap/Waste record approved successfully.');
-    }
-
-    public function reject($id)
-    {
-        $record = ScrapWaste::findOrFail($id);
-        $record->update([
-            'status' => 'rejected',
-            'approved_by' => Auth::user()->id,
-            'approved_at' => now(),
-        ]);
-        session()->flash('message', 'Scrap/Waste record rejected successfully.');
-    }
-
     public function cancel()
     {
         $this->resetForm();
         $this->showForm = false;
+        $this->isEditing = false;
     }
 
     private function resetForm()
@@ -157,6 +146,8 @@ class ScrapWasteRecord extends Component
         $this->material_stock_out_id = '';
         $this->production_line_id = '';
         $this->quantity_used = '';
+        $this->editingId = null;
+        $this->isEditing = false;
         $this->resetValidation();
     }
 }

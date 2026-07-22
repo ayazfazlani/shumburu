@@ -1,18 +1,51 @@
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-zinc-800 dark:text-white">Finished Goods Stock</h2>
-            <p class="text-zinc-500 dark:text-zinc-400">Real-time inventory of produced goods available for dispatch.</p>
+<div>
+<!-- resources/views/livewire/warehouse/fg-stock.blade.php -->
+<div class="bx-page bx-page-fg-stock">
+    <!-- ─── HEADER ─── -->
+    <div class="bx-header">
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Finished Goods Stock
+            </h1>
+            <p class="bx-header-subtitle">Real-time inventory of produced goods available for dispatch</p>
         </div>
-        
-        <div class="w-72">
-            <input wire:model.live="search" type="text" placeholder="Search by product or batch..." class="input input-bordered w-full" />
+        <div class="bx-header-right">
+            <div class="bx-search">
+                <svg class="bx-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Search by product or batch..." class="bx-search-input" />
+            </div>
         </div>
     </div>
 
-    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
+    <!-- ─── STATS ─── -->
+    <div class="bx-stats">
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total Products</div>
+            <div class="bx-stat-value">{{ $stocks->total() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total Quantity</div>
+            <div class="bx-stat-value text-blue">{{ number_format($stocks->sum('quantity'), 2) }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Reserved</div>
+            <div class="bx-stat-value text-warning">{{ number_format($stocks->sum('reserved_quantity'), 2) }}</div>
+        </div>
+        <class="bx-stat">
+            <div class="bx-stat-label">Available</div>
+            <div class="bx-stat-value text-success">{{ number_format($stocks->sum('available_quantity'), 2) }}</div>
+        </div>
+    </div>
+
+    <!-- ─── TABLE ─── -->
+    <div class="bx-table-wrap">
+        <div class="bx-table-scroll">
+            <table class="bx-table">
                 <thead>
                     <tr>
                         <th>Product</th>
@@ -21,76 +54,76 @@
                         <th>Reserved</th>
                         <th>Available</th>
                         <th>Status</th>
+                        <th>Location</th>
                         <th>Last Updated</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($stocks as $stock)
+                    @forelse($stocks as $stock)
                         <tr>
                             <td>
-                                <div class="flex flex-col">
-                                    <span class="font-medium text-zinc-900 dark:text-white">{{ $stock->product->name }}</span>
-                                    <span class="text-xs text-zinc-500">{{ $stock->product->code }}</span>
+                                <div class="bx-product-cell">
+                                    <span class="bx-product-name">{{ $stock->product->name }}</span>
+                                    <span class="bx-product-code">{{ $stock->product->code }}</span>
                                 </div>
                             </td>
-                            
                             <td>
-                                <span class="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded text-xs font-mono">
-                                    {{ $stock->batch_number ?? 'N/A' }}
-                                </span>
+                                <span class="bx-code">{{ $stock->batch_number ?? 'N/A' }}</span>
                             </td>
-
+                            <td class="font-semibold">{{ number_format($stock->quantity, 2) }}</td>
                             <td>
-                                <span class="font-semibold text-zinc-600 dark:text-zinc-400">
-                                    {{ number_format($stock->quantity, 2) }}
-                                </span>
+                                <span class="bx-stock-reserved">{{ number_format($stock->reserved_quantity, 2) }}</span>
                             </td>
-
                             <td>
-                                <span class="font-semibold text-orange-600 dark:text-orange-400">
-                                    {{ number_format($stock->reserved_quantity, 2) }}
-                                </span>
+                                <span class="bx-stock-available">{{ number_format($stock->available_quantity, 2) }}</span>
                             </td>
-
                             <td>
-                                <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                    {{ number_format($stock->available_quantity, 2) }}
-                                </span>
+                                @php
+                                    $statusConfig = [
+                                        'available' => ['class' => 'bx-badge-success', 'label' => 'Available'],
+                                        'reserved' => ['class' => 'bx-badge-warning', 'label' => 'Reserved'],
+                                        'dispatched' => ['class' => 'bx-badge-gray', 'label' => 'Dispatched'],
+                                    ];
+                                    $config = $statusConfig[$stock->status] ?? ['class' => 'bx-badge-info', 'label' => ucfirst($stock->status)];
+                                @endphp
+                                <span class="bx-badge {{ $config['class'] }}">{{ $config['label'] }}</span>
                             </td>
-
-                            <td>
-                                @if($stock->status === 'available')
-                                    <span class="badge badge-success">Available</span>
-                                @elseif($stock->status === 'reserved')
-                                    <span class="badge badge-warning">Reserved</span>
-                                @elseif($stock->status === 'dispatched')
-                                    <span class="badge badge-ghost">Dispatched</span>
-                                @else
-                                    <span class="badge badge-info">{{ ucfirst($stock->status) }}</span>
-                                @endif
-                            </td>
-
                             <td>{{ $stock->location ?? 'Main Warehouse' }}</td>
-                            
-                            <td>
-                                <span class="text-xs text-zinc-500">
-                                    {{ $stock->updated_at->diffForHumans() }}
-                                </span>
-                            </td>
+                            <td class="text-xs text-gray-400">{{ $stock->updated_at->diffForHumans() }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-8 text-zinc-500">
-                                No stock found in inventory.
+                            <td colspan="8" class="bx-empty">
+                                <div class="bx-empty-content">
+                                    <div class="bx-empty-icon">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                        </svg>
+                                    </div>
+                                    <h3>No stock found in inventory</h3>
+                                    <p>Finished goods will appear here once produced.</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-
-        <div class="p-4 border-t border-zinc-200 dark:border-zinc-800">
-            {{ $stocks->links() }}
-        </div>
     </div>
+
+    <!-- ─── PAGINATION ─── -->
+    @if($stocks->hasPages())
+        <div class="bx-pagination-wrap">
+            <div class="bx-pagination-info">
+                Showing <strong>{{ $stocks->firstItem() ?? 0 }}</strong>
+                to <strong>{{ $stocks->lastItem() ?? 0 }}</strong>
+                of <strong>{{ $stocks->total() }}</strong> items
+            </div>
+            <div class="bx-pagination">
+                {{ $stocks->links() }}
+            </div>
+        </div>
+    @endif
+</div>
+
 </div>

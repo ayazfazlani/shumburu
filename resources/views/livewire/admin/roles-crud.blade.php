@@ -1,195 +1,360 @@
-<section class="w-full p-6">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold">Roles Management</h1>
-            <p class="text-gray-500">Create, edit, assign permissions, and delete roles.</p>
-        </div>
-        <div class="flex gap-2">
-            <input type="text" wire:model.debounce.300ms="search" placeholder="Search roles..."
-                class="input input-bordered" />
-            <select wire:model="perPage" class="select select-bordered">
+<!-- resources/views/livewire/admin/roles-crud.blade.php -->
+<div class="bx-page">
+    <!-- ─── HEADER ─── -->
+    <div class="bx-header">
+        <h1 class="bx-header-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+            </svg>
+            Roles Management
+        </h1>
+        <p class="bx-header-subtitle">Create, edit, assign permissions, and delete roles</p>
+    </div>
+
+    <!-- ─── TOOLBAR ─── -->
+    <div class="bx-toolbar">
+        <div class="bx-toolbar-left">
+            <div class="bx-search">
+                <svg class="bx-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/>
+                </svg>
+                <input type="text"
+                       wire:model.live.debounce.300ms="search"
+                       placeholder="Search roles..."
+                       class="bx-search-input" />
+            </div>
+            <select wire:model.live="perPage" class="bx-select">
                 <option value="10">10</option>
                 <option value="25">25</option>
                 <option value="50">50</option>
                 <option value="100">100</option>
             </select>
-            <button class="btn btn-primary" wire:click="openCreateModal">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </div>
+        <div class="bx-toolbar-right">
+            <button wire:click="openCreateModal" class="bx-btn bx-btn-primary">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                New Role
+                <span class="hidden sm:inline">New Role</span>
+                <span class="sm:hidden">Add</span>
             </button>
         </div>
     </div>
 
+    <!-- ─── ALERTS ─── -->
     @if (session('message'))
-        <div class="alert alert-success mb-4">{{ session('message') }}</div>
+        <div class="bx-alert bx-alert-success">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('message') }}
+        </div>
     @endif
 
-    <div class="overflow-x-auto">
-        <table class="table table-zebra w-full">
-            <thead>
-                <tr>
-                    <th class="py-3 px-4">ID</th>
-                    <th class="py-3 px-4">Name</th>
-                    <th class="py-3 px-4">Permissions</th>
-                    <th class="py-3 px-4">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($roles as $role)
-                    <tr>
-                        <td class="py-3 px-4">{{ $role->id }}</td>
-                        <td class="py-3 px-4">{{ $role->name }}</td>
-                        <td class="py-3 px-4">
-                            <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
-                                @foreach ($role->permissions as $permission)
-                                    <span class="badge badge-outline badge-sm whitespace-nowrap" title="{{ $permission->name }}">
-                                        {{ $permission->name }}
-                                    </span>
-                                @endforeach
-                                @if($role->permissions->isEmpty())
-                                    <span class="text-gray-400 text-xs">No permissions</span>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="py-3 px-4">
-                            <div class="flex gap-2">
-                                <button class="btn btn-xs btn-primary"
-                                    wire:click="openEditModal({{ $role->id }})">Edit</button>
-                                <button class="btn btn-xs btn-error"
-                                    wire:click="confirmDelete({{ $role->id }})">Delete</button>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="text-center text-gray-400 py-6">No roles found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-    <div class="mt-4">{{ $roles->links() }}</div>
+    @if (session('error'))
+        <div class="bx-alert bx-alert-danger">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('error') }}
+        </div>
+    @endif
 
-    <!-- Create/Edit Modal -->
-    <dialog id="role-modal" class="modal" @if ($showModal) open @endif>
-        <form method="dialog" class="modal-box w-full max-w-2xl" wire:submit.prevent="saveRole">
-            <h3 class="font-bold text-lg mb-4">{{ $isEdit ? 'Edit Role' : 'Create Role' }}</h3>
-            <div class="mb-4">
-                <label class="label">Role Name</label>
-                <input type="text" wire:model.defer="name" class="input input-bordered w-full"
-                    placeholder="Role name" />
-                @error('name')
-                    <span class="text-red-500 text-xs">{{ $message }}</span>
-                @enderror
+    <!-- ─── STATS ─── -->
+    <div class="bx-stats">
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total Roles</div>
+            <div class="bx-stat-value">{{ $roles->total() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Total Permissions</div>
+            <div class="bx-stat-value text-blue">{{ $permissions->count() }}</div>
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Modules</div>
+            <div class="bx-stat-value text-green">
+                @php
+                    $modules = $permissions->map(function($p) {
+                        return str_contains($p->name, '.') ? explode('.', $p->name)[0] : 'General';
+                    })->unique()->count();
+                @endphp
+                {{ $modules }}
             </div>
-            <div class="mb-4">
-                <label class="label font-semibold">Permissions (Grouped by Module)</label>
-                <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                    @php
-                        $groupedPermissions = $permissions->groupBy(function($permission) {
-                            if (str_contains($permission->name, '.')) {
-                                return explode('.', $permission->name)[0];
-                            }
-                            // Detect module from words for old permissions
-                            if (str_contains($permission->name, 'customer')) return 'admin';
-                            if (str_contains($permission->name, 'user')) return 'admin';
-                            if (str_contains($permission->name, 'role')) return 'admin';
-                            if (str_contains($permission->name, 'permission')) return 'admin';
-                            if (str_contains($permission->name, 'sales') || str_contains($permission->name, 'order')) return 'sales';
-                            if (str_contains($permission->name, 'production') || str_contains($permission->name, 'operation')) return 'operations';
-                            if (str_contains($permission->name, 'stock') || str_contains($permission->name, 'warehouse')) return 'warehouse';
-                            if (str_contains($permission->name, 'finance') || str_contains($permission->name, 'payment')) return 'finance';
-                            
-                            return 'General';
-                        });
+        </div>
+        <div class="bx-stat">
+            <div class="bx-stat-label">Roles with Permissions</div>
+            <div class="bx-stat-value text-purple-600">{{ $roles->where('permissions', '!=', null)->count() }}</div>
+        </div>
+    </div>
 
-                        function formatPermissionName($name) {
-                            if (str_contains($name, '.')) {
-                                $parts = explode('.', $name);
-                                $module = $parts[0];
-                                $label = end($parts);
-                                
-                                // Special common mappings
-                                $mappings = [
-                                    'view' => 'View Dashboard',
-                                    'stock-overview' => 'View Finished Goods Stock',
-                                    'pending-receipts' => 'Approve Goods Receipts (GRN)',
-                                    'material-issue-requests' => 'Manage Material Issues (SIV)',
-                                    'demand-aggregation' => 'Consolidate PR Demands',
-                                    'demand-control' => 'Authorize Stock Requests',
-                                    'production-machine' => 'Configure Production Lines',
-                                    'manager' => 'Manage Production Queue',
-                                    'procurement' => 'Procurement Lifecycle (RFQ/PO)',
-                                    'purchase-payments' => 'Suppliers Payments (AP)',
-                                    'revenue-report' => 'Financial Revenue Analysis',
-                                    'inventory-report' => 'Stock Valuation Report',
-                                    'production-report' => 'Daily Production Log',
-                                    'weekly-production-report' => 'Weekly Performance Report',
-                                    'monthly-production-report' => 'Monthly Analytical Report',
-                                    'raw-material-stock-balance-report' => 'Material Balance Sheet',
-                                    'quality-report-manager' => 'Quality Standards Manager',
-                                    'material-stock-out-line-crud' => 'Monitor Material Consumption Logs',
-                                    'finished-goods' => 'Record Produced Finished Goods',
-                                    'finished-good-material-stock-out-line-crud' => 'Link Finished Goods to Raw Materials',
-                                    'scrap-waste-crud' => 'Manage Scrap and Waste Records',
-                                    'management-dashboard' => 'Executive Performance Cockpit',
-                                    'customers-crud' => 'Manage Customer Directory',
-                                    'suppliers-crud' => 'Manage Supplier Directory',
-                                    'users-crud' => 'Manage System Users',
-                                    'roles-crud' => 'Manage Access Roles',
-                                    'raw-materials-crud' => 'Manage Raw Material Catalog',
-                                    'products-crud' => 'Manage Finished Products Catalog',
-                                ];
+    <!-- ─── TABLE ─── -->
+    <div class="bx-table-wrap">
+        <div class="bx-table-scroll">
+            <table class="bx-table">
+                <thead>
+                    <tr>
+                        <th class="w-16">ID</th>
+                        <th>Role Name</th>
+                        <th>Permissions</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($roles as $role)
+                        <tr wire:key="role-{{ $role->id }}">
+                            <td class="text-gray font-mono text-sm">{{ $role->id }}</td>
+                            <td class="font-medium">
+                                <span class="bx-code">{{ $role->name }}</span>
+                            </td>
+                            <td>
+                                <div class="flex flex-wrap gap-1 max-h-16 overflow-y-auto py-1">
+                                    @foreach ($role->permissions as $permission)
+                                        <span class="bx-code" title="{{ $permission->name }}">
+                                            {{ $permission->name }}
+                                        </span>
+                                    @endforeach
+                                    @if($role->permissions->isEmpty())
+                                        <span class="text-gray text-sm">—</span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td>
+                                <div class="bx-actions">
+                                    <button wire:click="openEditModal({{ $role->id }})"
+                                            class="bx-action bx-action-edit"
+                                            title="Edit role">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                    <button wire:click="confirmDelete({{ $role->id }})"
+                                            class="bx-action bx-action-delete"
+                                            title="Delete role">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="bx-empty">
+                                <div class="bx-empty-content">
+                                    <div class="bx-empty-icon">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                        </svg>
+                                    </div>
+                                    <h3>No roles found</h3>
+                                    <p>{{ $search ? 'Try adjusting your search terms.' : 'Get started by creating your first role.' }}</p>
+                                    @if(!$search)
+                                        <button wire:click="openCreateModal" class="bx-btn bx-btn-primary">Create Role</button>
+                                    @else
+                                        <button wire:click="$set('search', '')" class="bx-btn bx-btn-secondary">Clear Search</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-                                if (isset($mappings[$label])) {
-                                    return $mappings[$label];
-                                }
+    <!-- ─── PAGINATION ─── -->
+    @if($roles->hasPages())
+        <div class="bx-pagination-wrap">
+            <div class="bx-pagination-info">
+                <span class="hidden xs:inline">Showing </span>
+                <strong>{{ $roles->firstItem() ?? 0 }}</strong>
+                <span class="hidden xs:inline">to</span>
+                <strong>{{ $roles->lastItem() ?? 0 }}</strong>
+                <span class="hidden sm:inline">of</span>
+                <strong>{{ $roles->total() }}</strong>
+            </div>
+            <div class="bx-pagination">
+                {{ $roles->links() }}
+            </div>
+        </div>
+    @endif
 
-                                return ucwords(str_replace('-', ' ', $label));
-                            }
-                            return ucwords(str_replace(['-', '.', '_'], ' ', $name));
-                        }
-                    @endphp
+    <!-- ─── CREATE/EDIT MODAL ─── -->
+    @if($showModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+            <div class="bx-modal bx-modal-lg">
+                <form wire:submit.prevent="saveRole">
+                    <div class="bx-modal-header">
+                        <h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' }}" />
+                            </svg>
+                            {{ $isEdit ? 'Edit Role' : 'Create Role' }}
+                        </h3>
+                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
 
-                    @foreach ($groupedPermissions as $module => $modulePermissions)
-                        <div class="bg-gray-50 dark:bg-zinc-800/50 p-3 rounded-lg border border-gray-100 dark:border-zinc-700">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 border-b border-gray-200 dark:border-zinc-700 pb-1">
-                                {{ ucfirst($module) }}
-                            </h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                @foreach ($modulePermissions as $permission)
-                                    <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-700 p-2 rounded transition-colors border border-transparent hover:border-gray-200 dark:hover:border-zinc-600">
-                                        <input type="checkbox" wire:model.defer="selectedPermissions"
-                                            value="{{ $permission->name }}" class="checkbox checkbox-sm checkbox-primary" />
-                                        <div class="flex flex-col">
-                                            <span class="text-sm font-medium">{{ formatPermissionName($permission->name) }}</span>
-                                            <span class="text-[10px] text-gray-400 font-mono">{{ $permission->name }}</span>
+                    <div class="bx-modal-body">
+                        <div class="bx-form">
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label required">Role Name</label>
+                                    <input type="text" wire:model.defer="name" class="bx-input" placeholder="e.g. admin, manager, user" />
+                                    @error('name')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="bx-form-full">
+                                <label class="bx-form-label font-semibold">Permissions <span class="text-gray text-sm font-normal">(Grouped by Module)</span></label>
+                                <div class="bx-permissions-grid mt-2">
+                                    @php
+                                        $groupedPermissions = $permissions->groupBy(function($permission) {
+                                            if (str_contains($permission->name, '.')) {
+                                                return explode('.', $permission->name)[0];
+                                            }
+                                            // Detect module from words for old permissions
+                                            if (str_contains($permission->name, 'customer')) return 'admin';
+                                            if (str_contains($permission->name, 'user')) return 'admin';
+                                            if (str_contains($permission->name, 'role')) return 'admin';
+                                            if (str_contains($permission->name, 'permission')) return 'admin';
+                                            if (str_contains($permission->name, 'sales') || str_contains($permission->name, 'order')) return 'sales';
+                                            if (str_contains($permission->name, 'production') || str_contains($permission->name, 'operation')) return 'operations';
+                                            if (str_contains($permission->name, 'stock') || str_contains($permission->name, 'warehouse')) return 'warehouse';
+                                            if (str_contains($permission->name, 'finance') || str_contains($permission->name, 'payment')) return 'finance';
+
+                                            return 'General';
+                                        });
+
+                                        function formatPermissionName($name) {
+                                            if (str_contains($name, '.')) {
+                                                $parts = explode('.', $name);
+                                                $label = end($parts);
+
+                                                // Special common mappings
+                                                $mappings = [
+                                                    'view' => 'View Dashboard',
+                                                    'stock-overview' => 'View Finished Goods Stock',
+                                                    'pending-receipts' => 'Approve Goods Receipts (GRN)',
+                                                    'material-issue-requests' => 'Manage Material Issues (SIV)',
+                                                    'demand-aggregation' => 'Consolidate PR Demands',
+                                                    'demand-control' => 'Authorize Stock Requests',
+                                                    'production-machine' => 'Configure Production Lines',
+                                                    'manager' => 'Manage Production Queue',
+                                                    'procurement' => 'Procurement Lifecycle (RFQ/PO)',
+                                                    'purchase-payments' => 'Suppliers Payments (AP)',
+                                                    'revenue-report' => 'Financial Revenue Analysis',
+                                                    'inventory-report' => 'Stock Valuation Report',
+                                                    'production-report' => 'Daily Production Log',
+                                                    'weekly-production-report' => 'Weekly Performance Report',
+                                                    'monthly-production-report' => 'Monthly Analytical Report',
+                                                    'raw-material-stock-balance-report' => 'Material Balance Sheet',
+                                                    'quality-report-manager' => 'Quality Standards Manager',
+                                                    'material-stock-out-line-crud' => 'Monitor Material Consumption Logs',
+                                                    'finished-goods' => 'Record Produced Finished Goods',
+                                                    'finished-good-material-stock-out-line-crud' => 'Link Finished Goods to Raw Materials',
+                                                    'scrap-waste-crud' => 'Manage Scrap and Waste Records',
+                                                    'management-dashboard' => 'Executive Performance Cockpit',
+                                                    'customers-crud' => 'Manage Customer Directory',
+                                                    'suppliers-crud' => 'Manage Supplier Directory',
+                                                    'users-crud' => 'Manage System Users',
+                                                    'roles-crud' => 'Manage Access Roles',
+                                                    'raw-materials-crud' => 'Manage Raw Material Catalog',
+                                                    'products-crud' => 'Manage Finished Products Catalog',
+                                                ];
+
+                                                if (isset($mappings[$label])) {
+                                                    return $mappings[$label];
+                                                }
+
+                                                return ucwords(str_replace('-', ' ', $label));
+                                            }
+                                            return ucwords(str_replace(['-', '.', '_'], ' ', $name));
+                                        }
+                                    @endphp
+
+                                    @foreach ($groupedPermissions as $module => $modulePermissions)
+                                        <div class="bx-permission-group">
+                                            <h4 class="bx-permission-group-title">{{ ucfirst($module) }}</h4>
+                                            <div class="bx-permission-list">
+                                                @foreach ($modulePermissions as $permission)
+                                                    <label class="bx-permission-item">
+                                                        <input type="checkbox"
+                                                               wire:model.defer="selectedPermissions"
+                                                               value="{{ $permission->name }}"
+                                                               class="bx-permission-checkbox" />
+                                                        <span class="bx-permission-label">{{ formatPermissionName($permission->name) }}</span>
+                                                        <span class="bx-permission-code">{{ $permission->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                    </label>
-                                @endforeach
+                                    @endforeach
+                                </div>
+                                @error('selectedPermissions')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
                         </div>
-                    @endforeach
+                    </div>
+
+                    <div class="bx-modal-footer">
+                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="submit" class="bx-btn bx-btn-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
+                            </svg>
+                            {{ $isEdit ? 'Update Role' : 'Create Role' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── DELETE MODAL ─── -->
+    @if($showDeleteModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+            <div class="bx-modal bx-modal-sm">
+                <div class="bx-modal-header">
+                    <h3 class="text-red">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        Delete Role
+                    </h3>
+                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="bx-modal-body text-center">
+                    <div class="bx-delete-icon">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <h4 class="bx-delete-title">Are you sure?</h4>
+                    <p class="bx-delete-text">This action cannot be undone. This will permanently delete the role and all associated permissions.</p>
+                </div>
+
+                <div class="bx-modal-footer justify-center">
+                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="deleteRole" class="bx-btn bx-btn-danger">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                        Delete
+                    </button>
                 </div>
             </div>
-            <div class="modal-action flex gap-2">
-                <button type="button" class="btn" wire:click="$set('showModal', false)">Cancel</button>
-                <button type="submit" class="btn btn-primary">{{ $isEdit ? 'Update' : 'Create' }}</button>
-            </div>
-        </form>
-    </dialog>
-
-    <!-- Delete Confirmation Modal -->
-    <dialog id="delete-modal" class="modal" @if ($showDeleteModal) open @endif>
-        <form method="dialog" class="modal-box">
-            <h3 class="font-bold text-lg mb-4">Delete Role?</h3>
-            <p class="mb-4">Are you sure you want to delete this role? This action cannot be undone.</p>
-            <div class="modal-action flex gap-2">
-                <button type="button" class="btn" wire:click="$set('showDeleteModal', false)">Cancel</button>
-                <button type="button" class="btn btn-error" wire:click="deleteRole">Delete</button>
-            </div>
-        </form>
-    </dialog>
-</section>
+        </div>
+    @endif
+</div>

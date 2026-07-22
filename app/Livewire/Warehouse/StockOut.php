@@ -12,21 +12,21 @@ class StockOut extends Component
 {
     use WithPagination;
 
+    // Form properties
     public $raw_material_id;
-
     public $quantity;
-
     public $batch_number;
-
     public $issued_date;
-
     public $notes;
 
+    // Edit state
     public $edit_id;
-
     public $is_editing = false;
 
+    // Delete state
     public $delete_id;
+    public $showDeleteModal = false;
+    public $deleteQuantity = 0;
 
     protected $rules = [
         'raw_material_id' => 'required|exists:raw_materials,id',
@@ -39,6 +39,7 @@ class StockOut extends Component
     public function mount()
     {
         $this->issued_date = now()->format('Y-m-d');
+        $this->showDeleteModal = false;
     }
 
     public function save()
@@ -51,9 +52,8 @@ class StockOut extends Component
         $rawMaterial = RawMaterial::find($this->raw_material_id);
 
         // For create, check current stock
-        if (! $this->is_editing && $rawMaterial->quantity < $this->quantity) {
-            session()->flash('error', 'Insufficient stock available. Current stock: '.$rawMaterial->quantity.' '.$rawMaterial->unit);
-
+        if (!$this->is_editing && $rawMaterial->quantity < $this->quantity) {
+            session()->flash('error', 'Insufficient stock available. Current stock: ' . $rawMaterial->quantity . ' ' . $rawMaterial->unit);
             return;
         }
 
@@ -66,8 +66,7 @@ class StockOut extends Component
 
             // Check if sufficient stock for the difference
             if ($rawMaterial->quantity < $quantity_diff) {
-                session()->flash('error', 'Insufficient stock available for update. Current stock: '.$rawMaterial->quantity.' '.$rawMaterial->unit.', Required additional: '.$quantity_diff.' '.$rawMaterial->unit);
-
+                session()->flash('error', 'Insufficient stock available for update. Current stock: ' . $rawMaterial->quantity . ' ' . $rawMaterial->unit . ', Required additional: ' . $quantity_diff . ' ' . $rawMaterial->unit);
                 return;
             }
 
@@ -80,7 +79,7 @@ class StockOut extends Component
                 'notes' => $this->notes,
             ]);
 
-            // Adjust raw material quantity (skip auto-transaction — handled by MaterialStockOut model events)
+            // Adjust raw material quantity
             RawMaterial::$skipAutoTransaction = true;
             $rawMaterial->quantity -= $quantity_diff;
             $rawMaterial->save();
@@ -99,7 +98,7 @@ class StockOut extends Component
                 'notes' => $this->notes,
             ]);
 
-            // Update raw material quantity (skip auto-transaction — handled by MaterialStockOut model events)
+            // Update raw material quantity
             RawMaterial::$skipAutoTransaction = true;
             $rawMaterial->quantity -= $this->quantity;
             $rawMaterial->save();
@@ -134,25 +133,38 @@ class StockOut extends Component
 
     public function setDeleteId($id)
     {
+        $stockOut = MaterialStockOut::findOrFail($id);
         $this->delete_id = $id;
+        $this->deleteQuantity = $stockOut->quantity;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->delete_id = null;
+        $this->deleteQuantity = 0;
     }
 
     public function delete()
     {
-        $stockOut = MaterialStockOut::findOrFail($this->delete_id);
+        if ($this->delete_id) {
+            $stockOut = MaterialStockOut::findOrFail($this->delete_id);
 
-        // Restore raw material quantity (skip auto-transaction)
-        RawMaterial::$skipAutoTransaction = true;
-        $rawMaterial = $stockOut->rawMaterial;
-        $rawMaterial->quantity += $stockOut->quantity;
-        $rawMaterial->save();
-        RawMaterial::$skipAutoTransaction = false;
+            // Restore raw material quantity
+            RawMaterial::$skipAutoTransaction = true;
+            $rawMaterial = $stockOut->rawMaterial;
+            $rawMaterial->quantity += $stockOut->quantity;
+            $rawMaterial->save();
+            RawMaterial::$skipAutoTransaction = false;
 
-        // Delete the stock out record
-        $stockOut->delete();
+            // Delete the stock out record
+            $stockOut->delete();
 
-        $this->delete_id = null;
-        session()->flash('message', 'Stock out record deleted successfully.');
+            session()->flash('message', 'Stock out record deleted successfully.');
+        }
+
+        $this->closeDeleteModal();
     }
 
     public function updateStatus($id, $status)
@@ -175,6 +187,7 @@ class StockOut extends Component
             'delete_id',
         ]);
         $this->issued_date = now()->format('Y-m-d');
+        $this->showDeleteModal = false;
     }
 
     public function render()

@@ -50,11 +50,11 @@
                     Export PDF
                 </button> --}}
 
-                <button 
-    wire:click="exportToPdf" 
+                <button
+    wire:click="exportToPdf"
     wire:loading.attr="disabled"
     wire:target="exportToPdf"
-    class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium 
+    class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium
            hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-70 disabled:cursor-not-allowed"
 >
     <!-- Normal State -->
@@ -132,16 +132,16 @@
                                 $qtyConsumed = $row['total_raw_consumed'] ?? 0;
                                 $productWeight = $row['total_product_weight'] ?? 0;
                                 $qtyByLength = $row['qty_by_length'] ?? [];
-                                
+
                                 // Calculate total meters: sum of (quantity * length) for all lengths
                                 $totalMeters = 0;
                                 foreach ($qtyByLength as $length => $qty) {
                                     $totalMeters += $qty * $length;
                                 }
-                                
+
                                 // Calculate total products: sum of all quantities
                                 $totalProducts = array_sum($qtyByLength);
-                                
+
                                 // Use actual recorded waste instead of calculated waste
                                 $waste = $row['total_waste'] ?? 0;
                                 // Gross (kg) = Total Product Weight (kg) + Waste (kg)

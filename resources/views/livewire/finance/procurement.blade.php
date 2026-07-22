@@ -1,474 +1,659 @@
-<div class="p-6">
-    {{-- Header --}}
-    <div class="mb-8 px-2 flex justify-between items-end">
-        <div>
-            <h2 class="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter">Procurement</h2>
-            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mt-1">PR → Approve → PO → GRN → Payment</p>
+<!-- resources/views/livewire/finance/procurement.blade.php -->
+<div class="bx-page bx-page-procurement">
+    <!-- ─── HEADER ─── -->
+    <div class="bx-header">
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M3 3l9 9 9-9"/>
+                </svg>
+                Procurement
+            </h1>
+            <p class="bx-header-subtitle">PR → Approve → PO → GRN → Payment</p>
         </div>
-        <div class="flex gap-3">
-            <div class="bg-amber-500 px-5 py-3 rounded-2xl shadow-lg text-white text-center">
-                <span class="block text-[8px] font-black uppercase opacity-70 tracking-widest leading-none mb-1">Pending PRs</span>
-                <span class="text-2xl font-black">{{ $stats['pending_count'] }}</span>
-            </div>
-            <div class="bg-blue-600 px-5 py-3 rounded-2xl shadow-lg text-white text-center">
-                <span class="block text-[8px] font-black uppercase opacity-70 tracking-widest leading-none mb-1">Active POs</span>
-                <span class="text-2xl font-black">{{ $stats['active_pos'] }}</span>
-            </div>
-            <div class="bg-emerald-600 px-5 py-3 rounded-2xl shadow-lg text-white text-center">
-                <span class="block text-[8px] font-black uppercase opacity-70 tracking-widest leading-none mb-1">Pending GRN</span>
-                <span class="text-2xl font-black">{{ $stats['pending_grn'] }}</span>
+        <div class="bx-header-right">
+            <div class="bx-stats-mini">
+                <div class="bx-stats-mini-item bx-stats-mini-amber">
+                    <span class="bx-stats-mini-label">Pending PRs</span>
+                    <span class="bx-stats-mini-value">{{ $stats['pending_count'] }}</span>
+                </div>
+                <div class="bx-stats-mini-item bx-stats-mini-blue">
+                    <span class="bx-stats-mini-label">Active POs</span>
+                    <span class="bx-stats-mini-value">{{ $stats['active_pos'] }}</span>
+                </div>
+                <div class="bx-stats-mini-item bx-stats-mini-green">
+                    <span class="bx-stats-mini-label">Pending GRN</span>
+                    <span class="bx-stats-mini-value">{{ $stats['pending_grn'] }}</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- ─── ALERTS ─── -->
     @if (session()->has('success'))
-        <div class="mb-6 px-2">
-            <div class="bg-green-500 text-white py-3 px-4 rounded-xl font-bold flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                {{ session('success') }}
-            </div>
+        <div class="bx-alert bx-alert-success">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('success') }}
         </div>
     @endif
 
-    {{-- Tab Nav --}}
-    <div class="flex gap-1 mb-6 px-2">
-        @foreach(['pending' => '① Pending PRs', 'active_pos' => '② Active POs', 'pending_grn' => '③ Pending GRN', 'history' => '④ History'] as $tab => $label)
-            <button wire:click="setTab('{{ $tab }}')"
-                class="px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all
-                {{ $activeTab === $tab ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}">
-                {{ $label }}
-                @if($tab === 'pending' && $stats['pending_count'] > 0)
-                    <span class="ml-1 bg-amber-500 text-white rounded-full px-2 py-0.5 text-[9px]">{{ $stats['pending_count'] }}</span>
-                @elseif($tab === 'pending_grn' && $stats['pending_grn'] > 0)
-                    <span class="ml-1 bg-emerald-500 text-white rounded-full px-2 py-0.5 text-[9px]">{{ $stats['pending_grn'] }}</span>
-                @endif
-            </button>
-        @endforeach
+    @if (session()->has('error'))
+        <div class="bx-alert bx-alert-danger">
+            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <!-- ─── TABS ─── -->
+    <div class="bx-tabs-container">
+        <div class="bx-tabs bx-tabs-procurement">
+            @foreach(['pending' => '① Pending PRs', 'active_pos' => '② Active POs', 'pending_grn' => '③ Pending GRN', 'history' => '④ History'] as $tab => $label)
+                <button wire:click="setTab('{{ $tab }}')"
+                        class="bx-tab {{ $activeTab === $tab ? 'active' : '' }}">
+                    {{ $label }}
+                    @if($tab === 'pending' && $stats['pending_count'] > 0)
+                        <span class="bx-tab-badge bx-tab-badge-amber">{{ $stats['pending_count'] }}</span>
+                    @elseif($tab === 'pending_grn' && $stats['pending_grn'] > 0)
+                        <span class="bx-tab-badge bx-tab-badge-green">{{ $stats['pending_grn'] }}</span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
     </div>
 
-    {{-- ── TAB 1: PENDING PRs ── --}}
+    <!-- ─── TAB 1: PENDING PRs ─── -->
     @if($activeTab === 'pending')
-    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-amber-50 dark:bg-amber-900/10">
-            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-amber-600">Purchase Requests Awaiting Procurement Approval</h3>
+        <div class="bx-card bx-card-amber">
+            <div class="bx-card-header bx-card-header-amber">
+                <h3>Purchase Requests Awaiting Procurement Approval</h3>
+            </div>
+            <div class="bx-table-wrap">
+                <div class="bx-table-scroll">
+                    <table class="bx-table">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Qty Required</th>
+                                <th>Raised By</th>
+                                <th>Linked Plan</th>
+                                <th>Date Raised</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pendingPRs as $pr)
+                                <tr>
+                                    <td>
+                                        <div class="bx-material-cell">
+                                            <span class="bx-material-name">{{ $pr->rawMaterial->name }}</span>
+                                            <span class="bx-material-unit">Unit: {{ $pr->rawMaterial->unit }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="bx-quantity-amber">{{ number_format($pr->quantity, 2) }}</span>
+                                        <span class="bx-quantity-unit">{{ $pr->rawMaterial->unit }}</span>
+                                    </td>
+                                    <td>{{ $pr->requestedBy->name ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($pr->production_request_id)
+                                            <span class="bx-code">Plan #{{ $pr->production_request_id }}</span>
+                                        @else
+                                            <span class="text-gray">Manual</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-gray text-sm">{{ $pr->created_at->format('d M Y') }}</td>
+                                    <td class="text-right">
+                                        <button wire:click="openApproveModal({{ $pr->id }})"
+                                                class="bx-btn bx-btn-warning bx-btn-sm">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Approve PR
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="bx-empty">
+                                        <div class="bx-empty-content">
+                                            <div class="bx-empty-icon">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <h3>No pending purchase requests</h3>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="table w-full">
-                <thead class="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-100 dark:border-zinc-800">
-                    <tr class="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        <th class="bg-transparent pl-8">Material</th>
-                        <th class="bg-transparent">Qty Required</th>
-                        <th class="bg-transparent">Raised By</th>
-                        <th class="bg-transparent">Linked Plan</th>
-                        <th class="bg-transparent">Date Raised</th>
-                        <th class="bg-transparent text-right pr-8">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-50 dark:divide-zinc-800">
-                    @forelse($pendingPRs as $pr)
-                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                            <td class="pl-8 py-5">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-black text-zinc-900 dark:text-white uppercase">{{ $pr->rawMaterial->name }}</span>
-                                    <span class="text-[9px] font-bold text-zinc-400 uppercase">Unit: {{ $pr->rawMaterial->unit }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="text-xl font-black text-amber-600">{{ number_format($pr->quantity, 2) }}</span>
-                                <span class="text-[10px] font-bold text-zinc-400 uppercase ml-1">{{ $pr->rawMaterial->unit }}</span>
-                            </td>
-                            <td class="text-sm font-bold text-zinc-500">{{ $pr->requestedBy->name ?? 'N/A' }}</td>
-                            <td>
-                                @if($pr->production_request_id)
-                                    <span class="badge badge-outline h-5 text-[8px] font-bold uppercase">Plan #{{ $pr->production_request_id }}</span>
-                                @else
-                                    <span class="text-zinc-300 text-xs">Manual</span>
-                                @endif
-                            </td>
-                            <td class="text-xs font-bold text-zinc-400 uppercase">{{ $pr->created_at->format('d M Y') }}</td>
-                            <td class="text-right pr-8">
-                                <button wire:click="openApproveModal({{ $pr->id }})"
-                                    class="btn btn-warning btn-sm px-6 font-black uppercase text-[10px] text-white border-none">
-                                    Approve PR
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="6" class="text-center py-20 text-zinc-300 font-bold uppercase tracking-widest opacity-50">No pending purchase requests.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
     @endif
 
-    {{-- ── TAB 2: ACTIVE POs ── --}}
+    <!-- ─── TAB 2: ACTIVE POs ─── -->
     @if($activeTab === 'active_pos')
-    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-blue-50 dark:bg-blue-900/10">
-            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-blue-600">Approved PRs — Issue PO & Track Delivery</h3>
+        <div class="bx-card bx-card-blue">
+            <div class="bx-card-header bx-card-header-blue">
+                <h3>Approved PRs — Issue PO & Track Delivery</h3>
+            </div>
+            <div class="bx-table-wrap">
+                <div class="bx-table-scroll">
+                    <table class="bx-table">
+                        <thead>
+                            <tr>
+                                <th>Material</th>
+                                <th>Qty</th>
+                                <th>PO #</th>
+                                <th>Supplier</th>
+                                <th>Unit Price</th>
+                                <th>Total Value</th>
+                                <th>Exp. Delivery</th>
+                                <th>Status</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($activePos as $pr)
+                                <tr>
+                                    <td>
+                                        <span class="bx-material-name">{{ $pr->rawMaterial->name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="bx-quantity">{{ number_format($pr->quantity, 2) }}</span>
+                                        <span class="bx-quantity-unit">{{ $pr->rawMaterial->unit }}</span>
+                                    </td>
+                                    <td>
+                                        @if($pr->po_number)
+                                            <span class="bx-code bx-code-primary">{{ $pr->po_number }}</span>
+                                        @else
+                                            <span class="text-gray">Not issued</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $pr->supplier->name ?? '—' }}</td>
+                                    <td>
+                                        @if($pr->unit_price)
+                                            <span class="font-bold">{{ number_format($pr->unit_price, 2) }}</span>
+                                        @else
+                                            <span class="text-gray">—</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($pr->unit_price)
+                                            <span class="bx-quantity-success">{{ number_format($pr->total_amount, 2) }}</span>
+                                        @else
+                                            <span class="text-gray">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-gray text-sm">{{ $pr->expected_delivery_date ? $pr->expected_delivery_date->format('d M Y') : '—' }}</td>
+                                    <td>
+                                        @if($pr->status === 'approved')
+                                            <span class="bx-badge bx-badge-warning">Approved</span>
+                                        @elseif($pr->status === 'po_issued')
+                                            <span class="bx-badge bx-badge-info">PO Issued</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-right">
+                                        <div class="bx-actions">
+                                            @if($pr->status === 'approved')
+                                                <button wire:click="openPoModal({{ $pr->id }})"
+                                                        class="bx-btn bx-btn-primary bx-btn-sm">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                                    </svg>
+                                                    Issue PO
+                                                </button>
+                                            @elseif($pr->status === 'po_issued')
+                                                <button wire:click="openRfqModal({{ $pr->id }})"
+                                                        class="bx-btn bx-btn-secondary bx-btn-sm">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2v4h10z"/>
+                                                    </svg>
+                                                    Preview PO
+                                                </button>
+                                                <button wire:click="openDeliverModal({{ $pr->id }})"
+                                                        class="bx-btn bx-btn-success bx-btn-sm">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                    Mark Delivered
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="9" class="bx-empty">
+                                        <div class="bx-empty-content">
+                                            <div class="bx-empty-icon">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                                </svg>
+                                            </div>
+                                            <h3>No active purchase orders</h3>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="table w-full">
-                <thead class="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-100 dark:border-zinc-800">
-                    <tr class="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        <th class="bg-transparent pl-8">Material</th>
-                        <th class="bg-transparent">Qty</th>
-                        <th class="bg-transparent">PO #</th>
-                        <th class="bg-transparent">Supplier</th>
-                        <th class="bg-transparent">Unit Price</th>
-                        <th class="bg-transparent">Total Value</th>
-                        <th class="bg-transparent">Exp. Delivery</th>
-                        <th class="bg-transparent">Status</th>
-                        <th class="bg-transparent text-right pr-8">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-50 dark:divide-zinc-800">
-                    @forelse($activePos as $pr)
-                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                            <td class="pl-8 py-5">
-                                <span class="text-sm font-black text-zinc-900 dark:text-white uppercase">{{ $pr->rawMaterial->name }}</span>
-                            </td>
-                            <td>
-                                <span class="font-black text-zinc-700 dark:text-zinc-300">{{ number_format($pr->quantity, 2) }}</span>
-                                <span class="text-[10px] text-zinc-400 uppercase ml-1">{{ $pr->rawMaterial->unit }}</span>
-                            </td>
-                            <td>
-                                @if($pr->po_number)
-                                    <span class="font-mono text-xs font-bold text-blue-600">{{ $pr->po_number }}</span>
-                                @else
-                                    <span class="text-zinc-300 text-xs italic">Not issued</span>
-                                @endif
-                            </td>
-                            <td class="font-bold text-zinc-600 text-sm">{{ $pr->supplier->name ?? '—' }}</td>
-                            <td>
-                                @if($pr->unit_price)
-                                    <span class="font-black text-zinc-700">{{ number_format($pr->unit_price, 2) }}</span>
-                                @else
-                                    <span class="text-zinc-300">—</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($pr->unit_price)
-                                    <span class="font-black text-emerald-600">{{ number_format($pr->total_amount, 2) }}</span>
-                                @else
-                                    <span class="text-zinc-300">—</span>
-                                @endif
-                            </td>
-                            <td class="text-xs font-bold text-zinc-400 uppercase">
-                                {{ $pr->expected_delivery_date ? $pr->expected_delivery_date->format('d M Y') : '—' }}
-                            </td>
-                            <td>
-                                @if($pr->status === 'approved')
-                                    <span class="badge badge-warning h-6 px-3 text-[9px] font-black uppercase text-white">Approved</span>
-                                @elseif($pr->status === 'po_issued')
-                                    <span class="badge badge-info h-6 px-3 text-[9px] font-black uppercase text-white">PO Issued</span>
-                                @endif
-                            </td>
-                            <td class="text-right pr-8">
-                                <div class="flex justify-end gap-2">
-                                    @if($pr->status === 'approved')
-                                        <button wire:click="openPoModal({{ $pr->id }})"
-                                            class="btn btn-primary btn-sm px-5 font-black uppercase text-[10px] border-none">
-                                            Issue PO
-                                        </button>
-                                    @elseif($pr->status === 'po_issued')
-                                        {{-- Printable RFQ (Preview in Modal) --}}
-                                        <button wire:click="openRfqModal({{ $pr->id }})"
-                                            class="btn btn-outline btn-sm px-4 font-black uppercase text-[10px]">
-                                             🖨 Preview PO
-                                        </button>
-                                        <button wire:click="openDeliverModal({{ $pr->id }})"
-                                            onclick="confirm('Confirm supplier has delivered this order?') || event.stopImmediatePropagation()"
-                                            class="btn btn-success btn-sm px-5 font-black uppercase text-[10px] text-white border-none">
-                                            Mark Delivered
-                                        </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="9" class="text-center py-20 text-zinc-300 font-bold uppercase tracking-widest opacity-50">No active purchase orders.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
     @endif
 
-    {{-- ── TAB 3: PENDING GRN ── --}}
+    <!-- ─── TAB 3: PENDING GRN ─── -->
     @if($activeTab === 'pending_grn')
-    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-emerald-50 dark:bg-emerald-900/10">
-            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-emerald-600">Delivered POs — Awaiting Warehouse GRN Confirmation</h3>
-            <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Warehouse must confirm receipt via Stock-In before stock is updated.</p>
+        <div class="bx-card bx-card-green">
+            <div class="bx-card-header bx-card-header-green">
+                <h3>Delivered POs — Awaiting Warehouse GRN Confirmation</h3>
+                <p class="bx-card-subtitle">Warehouse must confirm receipt via Stock-In before stock is updated.</p>
+            </div>
+            <div class="bx-table-wrap">
+                <div class="bx-table-scroll">
+                    <table class="bx-table">
+                        <thead>
+                            <tr>
+                                <th>PO Number</th>
+                                <th>Material</th>
+                                <th>Qty</th>
+                                <th>Supplier</th>
+                                <th>Total Value</th>
+                                <th>Delivered At</th>
+                                <th class="text-right">GRN Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($pendingGrns as $pr)
+                                <tr>
+                                    <td>
+                                        <span class="bx-code bx-code-primary">{{ $pr->po_number }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="bx-material-cell">
+                                            <span class="bx-material-name">{{ $pr->rawMaterial->name }}</span>
+                                            <span class="bx-material-unit">{{ $pr->rawMaterial->unit }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="bx-quantity-success">{{ number_format($pr->quantity, 2) }}</span>
+                                    </td>
+                                    <td>{{ $pr->supplier->name ?? '—' }}</td>
+                                    <td class="font-bold text-success">${{ number_format($pr->total_amount, 2) }}</td>
+                                    <td class="text-gray text-sm">{{ $pr->delivered_at ? $pr->delivered_at->format('d M Y H:i') : '—' }}</td>
+                                    <td class="text-right">
+                                        <div class="bx-actions">
+                                            <span class="bx-badge bx-badge-warning bx-badge-pulse">⏳ Awaiting Warehouse GRN</span>
+                                            <a href="{{ route('warehouse.stock-in') }}"
+                                               class="bx-btn bx-btn-secondary bx-btn-xs">
+                                                Go to Stock-In →
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="bx-empty">
+                                        <div class="bx-empty-content">
+                                            <div class="bx-empty-icon">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                                </svg>
+                                            </div>
+                                            <h3>No pending GRN confirmations</h3>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="table w-full">
-                <thead class="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-100 dark:border-zinc-800">
-                    <tr class="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        <th class="bg-transparent pl-8">PO Number</th>
-                        <th class="bg-transparent">Material</th>
-                        <th class="bg-transparent">Qty</th>
-                        <th class="bg-transparent">Supplier</th>
-                        <th class="bg-transparent">Total Value</th>
-                        <th class="bg-transparent">Delivered At</th>
-                        <th class="bg-transparent text-right pr-8">GRN Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-50 dark:divide-zinc-800">
-                    @forelse($pendingGrns as $pr)
-                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                            <td class="pl-8 py-5">
-                                <span class="font-mono font-black text-blue-600">{{ $pr->po_number }}</span>
-                            </td>
-                            <td>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-black text-zinc-900 dark:text-white uppercase">{{ $pr->rawMaterial->name }}</span>
-                                    <span class="text-[9px] font-bold text-zinc-400 uppercase">{{ $pr->rawMaterial->unit }}</span>
-                                </div>
-                            </td>
-                            <td><span class="font-black text-xl text-emerald-600">{{ number_format($pr->quantity, 2) }}</span></td>
-                            <td class="font-bold text-zinc-600">{{ $pr->supplier->name ?? '—' }}</td>
-                            <td class="font-black text-emerald-600">{{ number_format($pr->total_amount, 2) }}</td>
-                            <td class="text-xs font-bold text-zinc-400 uppercase">{{ $pr->delivered_at ? $pr->delivered_at->format('d M Y H:i') : '—' }}</td>
-                            <td class="text-right pr-8">
-                                <div class="flex items-center justify-end gap-2">
-                                    <span class="badge badge-warning h-7 px-3 text-[9px] font-black uppercase text-white animate-pulse">
-                                        ⏳ Awaiting Warehouse GRN
-                                    </span>
-                                    <a href="{{ route('warehouse.stock-in') }}"
-                                        class="btn btn-outline btn-xs font-black uppercase text-[9px]">
-                                        Go to Stock-In →
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="7" class="text-center py-20 text-zinc-300 font-bold uppercase tracking-widest opacity-50">No pending GRN confirmations.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
     @endif
 
-    {{-- ── TAB 4: HISTORY ── --}}
+    <!-- ─── TAB 4: HISTORY ─── -->
     @if($activeTab === 'history')
-    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm opacity-80 hover:opacity-100 transition-opacity">
-        <div class="p-5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50">
-            <h3 class="font-black text-xs uppercase tracking-[0.2em] text-zinc-500">Completed Purchase History</h3>
+        <div class="bx-card bx-card-gray">
+            <div class="bx-card-header">
+                <h3>Completed Purchase History</h3>
+            </div>
+            <div class="bx-table-wrap">
+                <div class="bx-table-scroll">
+                    <table class="bx-table">
+                        <thead>
+                            <tr>
+                                <th>PO #</th>
+                                <th>Material</th>
+                                <th>Qty</th>
+                                <th>Supplier</th>
+                                <th>Total Value</th>
+                                <th>Total Paid</th>
+                                <th>Balance Due</th>
+                                <th class="text-right">Payment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($history as $pr)
+                                <tr>
+                                    <td>
+                                        <span class="bx-code bx-code-primary">{{ $pr->po_number }}</span>
+                                    </td>
+                                    <td class="font-bold">{{ $pr->rawMaterial->name }}</td>
+                                    <td>{{ number_format($pr->quantity, 2) }}</td>
+                                    <td>{{ $pr->supplier->name ?? '—' }}</td>
+                                    <td class="font-bold">${{ number_format($pr->total_amount, 2) }}</td>
+                                    <td class="font-bold text-success">${{ number_format($pr->total_paid, 2) }}</td>
+                                    <td>
+                                        @if($pr->balance_due > 0)
+                                            <span class="bx-badge bx-badge-danger">${{ number_format($pr->balance_due, 2) }}</span>
+                                        @else
+                                            <span class="bx-badge bx-badge-success">Paid</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-right">
+                                        @if($pr->balance_due > 0)
+                                            <button wire:click="openPaymentModal({{ $pr->id }})"
+                                                    class="bx-btn bx-btn-accent bx-btn-xs">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                                </svg>
+                                                Record Payment
+                                            </button>
+                                        @else
+                                            <span class="text-gray text-sm">Fully Paid</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="bx-empty">
+                                        <div class="bx-empty-content">
+                                            <div class="bx-empty-icon">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3v18h18M3 3l9 9 9-9"/>
+                                                </svg>
+                                            </div>
+                                            <h3>No completed purchases</h3>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="table w-full">
-                <thead class="bg-zinc-50/50 dark:bg-zinc-900/40 border-b border-zinc-100 dark:border-zinc-800">
-                    <tr class="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-                        <th class="bg-transparent pl-8">PO #</th>
-                        <th class="bg-transparent">Material</th>
-                        <th class="bg-transparent">Qty</th>
-                        <th class="bg-transparent">Supplier</th>
-                        <th class="bg-transparent">Total Value</th>
-                        <th class="bg-transparent">Total Paid</th>
-                        <th class="bg-transparent">Balance Due</th>
-                        <th class="bg-transparent text-right pr-8">Payment</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-zinc-50 dark:divide-zinc-800">
-                    @forelse($history as $pr)
-                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors">
-                            <td class="pl-8 py-4 font-mono text-xs font-bold text-blue-600">{{ $pr->po_number }}</td>
-                            <td class="text-sm font-black text-zinc-700 dark:text-zinc-300 uppercase">{{ $pr->rawMaterial->name }}</td>
-                            <td class="font-bold text-zinc-600">{{ number_format($pr->quantity, 2) }}</td>
-                            <td class="font-bold text-zinc-600 text-sm">{{ $pr->supplier->name ?? '—' }}</td>
-                            <td class="font-black text-zinc-700">{{ number_format($pr->total_amount, 2) }}</td>
-                            <td class="font-black text-emerald-600">{{ number_format($pr->total_paid, 2) }}</td>
-                            <td>
-                                @if($pr->balance_due > 0)
-                                    <span class="font-black text-red-500">{{ number_format($pr->balance_due, 2) }}</span>
-                                @else
-                                    <span class="badge badge-success badge-sm font-black">Paid</span>
-                                @endif
-                            </td>
-                            <td class="text-right pr-8">
-                                @if($pr->balance_due > 0)
-                                    <button wire:click="openPaymentModal({{ $pr->id }})"
-                                        class="btn btn-xs btn-accent font-black uppercase text-[9px] px-4">
-                                        + Record Payment
-                                    </button>
-                                @else
-                                    <span class="text-zinc-300 text-[10px] uppercase font-bold">Fully Paid</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="8" class="text-center py-20 text-zinc-300 font-bold uppercase tracking-widest opacity-50">No completed purchases.</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
     @endif
 
-    {{-- ═══════ MODALS ═══════ --}}
-
-    {{-- Approve PR Modal --}}
-    <dialog class="modal" @if($showApproveModal) open @endif>
-        <div class="modal-box rounded-2xl border border-zinc-200 dark:border-zinc-700">
-            <h3 class="font-black text-lg mb-2 uppercase tracking-tight">Approve Purchase Request?</h3>
-            <p class="text-sm text-zinc-500 mb-6">This will move the PR to the procurement queue for PO issuance. You can then select a supplier and issue a Purchase Order.</p>
-            <div class="modal-action gap-2">
-                <button wire:click="$set('showApproveModal', false)" class="btn btn-ghost font-black uppercase text-xs">Cancel</button>
-                <button wire:click="approvePR" class="btn btn-warning font-black uppercase text-xs text-white">✓ Approve</button>
+    <!-- ─── APPROVE PR MODAL ─── -->
+    @if($showApproveModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showApproveModal', false)">
+            <div class="bx-modal bx-modal-sm">
+                <div class="bx-modal-header">
+                    <h3>Approve Purchase Request?</h3>
+                </div>
+                <div class="bx-modal-body text-center">
+                    <p class="text-gray-600">This will move the PR to the procurement queue for PO issuance. You can then select a supplier and issue a Purchase Order.</p>
+                </div>
+                <div class="bx-modal-footer justify-center">
+                    <button wire:click="$set('showApproveModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button wire:click="approvePR" class="bx-btn bx-btn-warning">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Approve
+                    </button>
+                </div>
             </div>
         </div>
-    </dialog>
+    @endif
 
-    {{-- Issue PO Modal --}}
-    <dialog class="modal" @if($showPoModal) open @endif>
-        <div class="modal-box w-full max-w-2xl rounded-2xl border border-zinc-200 dark:border-zinc-700">
-            <h3 class="font-black text-xl mb-6 uppercase tracking-tight">Issue Purchase Order</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Supplier <span class="text-red-500">*</span></label>
-                    <select wire:model="po_supplier_id" class="select select-bordered w-full">
-                        <option value="">— Select Supplier —</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }} ({{ $supplier->code }})</option>
-                        @endforeach
-                    </select>
-                    @error('po_supplier_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">PO Number <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="po_number" class="input input-bordered w-full font-mono" />
-                    @error('po_number') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Unit Price (per {{ optional(optional(\App\Models\PurchaseRequest::find($poRequestId))->rawMaterial)->unit ?? 'unit' }}) <span class="text-red-500">*</span></label>
-                    <input type="number" step="0.0001" wire:model="po_unit_price" class="input input-bordered w-full" placeholder="0.00" />
-                    @error('po_unit_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Expected Delivery Date <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="po_expected_date" class="input input-bordered w-full" />
-                    @error('po_expected_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-            </div>
-            <div class="modal-action gap-2 mt-6">
-                <button wire:click="$set('showPoModal', false)" class="btn btn-ghost font-black uppercase text-xs">Cancel</button>
-                <button wire:click="issuePO" class="btn btn-primary font-black uppercase text-xs">Issue PO →</button>
-            </div>
-        </div>
-    </dialog>
+    <!-- ─── ISSUE PO MODAL ─── -->
+    @if($showPoModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showPoModal', false)">
+            <div class="bx-modal bx-modal-po">
+                <form wire:submit.prevent="issuePO">
+                    <div class="bx-modal-header">
+                        <h3>Issue Purchase Order</h3>
+                        <button type="button" wire:click="$set('showPoModal', false)" class="bx-modal-close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
 
-    {{-- Deliver Modal --}}
-    <dialog class="modal" @if($showDeliverModal) open @endif>
-        <div class="modal-box rounded-2xl border border-zinc-200 dark:border-zinc-700">
-            <h3 class="font-black text-lg mb-2 uppercase tracking-tight">Confirm Delivery</h3>
-            <p class="text-sm text-zinc-500 mb-4">Confirm that the supplier has delivered this order to the factory gate. <strong>Warehouse will then confirm GRN and update stock.</strong></p>
-            <div class="modal-action gap-2">
-                <button wire:click="$set('showDeliverModal', false)" class="btn btn-ghost font-black uppercase text-xs">Cancel</button>
-                <button wire:click="markDelivered" class="btn btn-success font-black uppercase text-xs text-white">✓ Confirm Delivered</button>
-            </div>
-        </div>
-    </dialog>
-
-    {{-- Payment Modal --}}
-    <dialog class="modal" @if($showPaymentModal) open @endif>
-        <div class="modal-box w-full max-w-lg rounded-2xl border border-zinc-200 dark:border-zinc-700">
-            <h3 class="font-black text-xl mb-6 uppercase tracking-tight">Record Purchase Payment</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Amount <span class="text-red-500">*</span></label>
-                    <input type="number" step="0.01" wire:model="pay_amount" class="input input-bordered w-full" placeholder="0.00" />
-                    @error('pay_amount') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Payment Method <span class="text-red-500">*</span></label>
-                    <select wire:model="pay_method" class="select select-bordered w-full">
-                        <option value="bank_transfer">Bank Transfer</option>
-                        <option value="cash">Cash</option>
-                        <option value="cheque">Cheque</option>
-                        <option value="online">Online Payment</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Reference / Slip No.</label>
-                    <input type="text" wire:model="pay_reference" class="input input-bordered w-full" placeholder="Bank slip or cheque number" />
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Payment Date <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="pay_date" class="input input-bordered w-full" />
-                    @error('pay_date') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Notes</label>
-                    <textarea wire:model="pay_notes" class="textarea textarea-bordered w-full" rows="2" placeholder="Optional notes"></textarea>
-                </div>
-                <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-zinc-500 mb-1">Receipt / Proof of Payment</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-zinc-300 border-dashed rounded-xl cursor-pointer bg-zinc-50 dark:hover:bg-zinc-800 dark:bg-zinc-800 hover:bg-zinc-100 transition-all">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <svg class="w-8 h-8 mb-4 text-zinc-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                </svg>
-                                <p class="mb-2 text-xs text-zinc-500 uppercase font-black tracking-widest">
-                                    @if($pay_receipt)
-                                        <span class="text-emerald-500">Photo Selected ✓</span>
-                                    @else
-                                        <span>Click to upload Receipt</span>
-                                    @endif
-                                </p>
-                                <p class="text-[9px] text-zinc-400">PNG, JPG or PDF (MAX. 2MB)</p>
+                    <div class="bx-modal-body">
+                        <div class="bx-form">
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label required">Supplier</label>
+                                    <select wire:model="po_supplier_id" class="bx-select @error('po_supplier_id') bx-input-error @enderror">
+                                        <option value="">— Select Supplier —</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->name }} ({{ $supplier->code }})</option>
+                                        @endforeach
+                                    </select>
+                                    @error('po_supplier_id')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+                                </div>
                             </div>
-                            <input type="file" wire:model="pay_receipt" class="hidden" accept="image/*" />
-                        </label>
-                    </div>
-                    @error('pay_receipt') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                    
-                    <div wire:loading wire:target="pay_receipt" class="mt-2 text-xs font-bold text-zinc-400 animate-pulse">
-                        Uploading digital receipt...
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label required">PO Number</label>
+                                <input type="text" wire:model="po_number" class="bx-input @error('po_number') bx-input-error @enderror" />
+                                @error('po_number')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label required">Unit Price</label>
+                                <input type="number" step="0.0001" wire:model="po_unit_price" class="bx-input @error('po_unit_price') bx-input-error @enderror" placeholder="0.00" />
+                                @error('po_unit_price')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label required">Expected Delivery Date</label>
+                                    <input type="date" wire:model="po_expected_date" class="bx-input @error('po_expected_date') bx-input-error @enderror" />
+                                    @error('po_expected_date')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    @if ($pay_receipt)
-                        <div class="mt-4 p-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl relative group">
-                            <img src="{{ $pay_receipt->temporaryUrl() }}" class="w-full h-32 object-cover rounded-lg shadow-sm">
-                            <button type="button" wire:click="$set('pay_receipt', null)" class="absolute top-4 right-4 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
+                    <div class="bx-modal-footer">
+                        <button type="button" wire:click="$set('showPoModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="submit" class="bx-btn bx-btn-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Issue PO →
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── DELIVER MODAL ─── -->
+    @if($showDeliverModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showDeliverModal', false)">
+            <div class="bx-modal bx-modal-sm">
+                <div class="bx-modal-header">
+                    <h3>Confirm Delivery</h3>
+                </div>
+                <div class="bx-modal-body text-center">
+                    <p class="text-gray-600">Confirm that the supplier has delivered this order to the factory gate. <strong>Warehouse will then confirm GRN and update stock.</strong></p>
+                </div>
+                <div class="bx-modal-footer justify-center">
+                    <button wire:click="$set('showDeliverModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button wire:click="markDelivered" class="bx-btn bx-btn-success">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        Confirm Delivered
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── PAYMENT MODAL ─── -->
+    @if($showPaymentModal)
+        <div class="bx-modal-overlay" wire:click.self="$set('showPaymentModal', false)">
+            <div class="bx-modal bx-modal-payment">
+                <form wire:submit.prevent="recordPayment">
+                    <div class="bx-modal-header">
+                        <h3>Record Purchase Payment</h3>
+                        <button type="button" wire:click="$set('showPaymentModal', false)" class="bx-modal-close">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bx-modal-body">
+                        <div class="bx-form">
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label required">Amount</label>
+                                    <input type="number" step="0.01" wire:model="pay_amount" class="bx-input @error('pay_amount') bx-input-error @enderror" placeholder="0.00" />
+                                    @error('pay_amount')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label required">Payment Method</label>
+                                <select wire:model="pay_method" class="bx-select @error('pay_method') bx-input-error @enderror">
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="cash">Cash</option>
+                                    <option value="cheque">Cheque</option>
+                                    <option value="online">Online Payment</option>
+                                </select>
+                            </div>
+
+                            <div class="bx-form-group">
+                                <label class="bx-form-label">Reference / Slip No.</label>
+                                <input type="text" wire:model="pay_reference" class="bx-input" placeholder="Bank slip or cheque number" />
+                            </div>
+
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label required">Payment Date</label>
+                                    <input type="date" wire:model="pay_date" class="bx-input @error('pay_date') bx-input-error @enderror" />
+                                    @error('pay_date')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label">Notes</label>
+                                    <textarea wire:model="pay_notes" rows="2" class="bx-input" placeholder="Optional notes"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="bx-form-full">
+                                <div class="bx-form-group">
+                                    <label class="bx-form-label">Receipt / Proof of Payment</label>
+                                    <div class="bx-file-upload">
+                                        <label class="bx-file-upload-label">
+                                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                            </svg>
+                                            <span>
+                                                @if($pay_receipt)
+                                                    <span class="text-success">Photo Selected ✓</span>
+                                                @else
+                                                    <span>Click to upload Receipt</span>
+                                                @endif
+                                            </span>
+                                            <span class="text-gray text-xs">PNG, JPG or PDF (MAX. 2MB)</span>
+                                        </label>
+                                        <input type="file" wire:model="pay_receipt" class="bx-file-input" accept="image/*" />
+                                    </div>
+                                    @error('pay_receipt')
+                                        <span class="bx-error">{{ $message }}</span>
+                                    @enderror
+
+                                    <div wire:loading wire:target="pay_receipt" class="bx-loading-text">Uploading digital receipt...</div>
+
+                                    @if($pay_receipt)
+                                        <div class="bx-receipt-preview">
+                                            <img src="{{ $pay_receipt->temporaryUrl() }}" alt="Receipt" />
+                                            <button type="button" wire:click="$set('pay_receipt', null)" class="bx-receipt-remove">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
+                    </div>
+
+                    <div class="bx-modal-footer">
+                        <button type="button" wire:click="$set('showPaymentModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="submit" class="bx-btn bx-btn-accent">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Save Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- ─── RFQ MODAL ─── -->
+    @if($showRfqModal)
+        <div class="bx-modal-overlay bx-modal-overlay-lg" wire:click.self="$set('showRfqModal', false)">
+            <div class="bx-modal bx-modal-rfq">
+                <div class="bx-modal-header bx-modal-header-rfq">
+                    <div class="bx-modal-header-left">
+                        <div class="bx-modal-header-icon">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2v4h10z"/>
+                            </svg>
+                        </div>
+                        <span>Purchase Order Preview</span>
+                    </div>
+                    <button type="button" wire:click="$set('showRfqModal', false)" class="bx-modal-close bx-modal-close-white">✕</button>
+                </div>
+                <div class="bx-modal-body bx-modal-body-rfq">
+                    @if($viewingRfqId)
+                        <iframe src="{{ route('finance.procurement.rfq', $viewingRfqId) }}" class="bx-rfq-iframe"></iframe>
                     @endif
                 </div>
-            </div>
-            <div class="modal-action gap-2 mt-4">
-                <button wire:click="$set('showPaymentModal', false)" class="btn btn-ghost font-black uppercase text-xs">Cancel</button>
-                <button wire:click="recordPayment" class="btn btn-accent font-black uppercase text-xs">Save Payment</button>
-            </div>
-        </div>
-    {{-- RFQ / PO Preview Modal --}}
-    <dialog class="modal" @if($showRfqModal) open @endif>
-        <div class="modal-box w-11/12 max-w-5xl h-[90vh] p-0 flex flex-col rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
-            <div class="p-4 bg-zinc-900 text-white flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2v4h10z" /></svg>
-                    </div>
-                    <span class="text-xs font-black uppercase tracking-widest">Purchase Order Preview</span>
+                <div class="bx-modal-footer-rfq">
+                    <button wire:click="$set('showRfqModal', false)" class="bx-btn bx-btn-secondary bx-btn-sm">Close Preview</button>
+                    <a href="{{ $viewingRfqId ? route('finance.procurement.rfq', $viewingRfqId) : '#' }}" target="_blank" class="bx-btn bx-btn-primary bx-btn-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        Open Full Page
+                    </a>
                 </div>
-                <button wire:click="$set('showRfqModal', false)" class="btn btn-circle btn-ghost btn-sm text-zinc-400 hover:text-white">✕</button>
-            </div>
-            <div class="flex-1 bg-zinc-100 dark:bg-zinc-800 p-4">
-                @if($viewingRfqId)
-                    <iframe src="{{ route('finance.procurement.rfq', $viewingRfqId) }}" class="w-full h-full rounded-xl shadow-2xl border-none bg-white"></iframe>
-                @endif
-            </div>
-            <div class="p-4 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3 font-bold">
-                 <button wire:click="$set('showRfqModal', false)" class="btn btn-ghost btn-sm font-black uppercase text-[10px]">Close Preview</button>
-                 <a href="{{ $viewingRfqId ? route('finance.procurement.rfq', $viewingRfqId) : '#' }}" target="_blank" class="btn btn-primary btn-sm px-6 font-black uppercase text-[10px]">
-                    Open Full Page
-                 </a>
             </div>
         </div>
-    </dialog>
+    @endif
 </div>
