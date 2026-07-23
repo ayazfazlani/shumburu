@@ -305,11 +305,7 @@
                 </svg>
             </button>
 
-            <!-- Logo -->
-            <a href="{{ route('home') }}" class="sidebar-logo" wire:navigate>
-                <x-app-logo class="size-8"></x-app-logo>
-                <span class="text-xl font-bold bx-text-gradient hidden lg:block">YourApp</span>
-            </a>
+
 
             <!-- Top Actions -->
             <div class="px-4 space-y-3">
