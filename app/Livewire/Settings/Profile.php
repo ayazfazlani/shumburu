@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -15,6 +16,10 @@ class Profile extends Component
     public string $name = '';
 
     public string $email = '';
+
+    public string $password = '';
+
+    public bool $showDeleteModal = false;
 
     /**
      * Mount the component.
@@ -34,7 +39,6 @@ class Profile extends Component
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-
             'email' => [
                 'required',
                 'string',
@@ -54,6 +58,7 @@ class Profile extends Component
         $user->save();
 
         $this->dispatch('profile-updated', name: $user->name);
+        session()->flash('message', 'Profile updated successfully.');
     }
 
     /**
@@ -65,13 +70,56 @@ class Profile extends Component
 
         if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false));
-
             return;
         }
 
         $user->sendEmailVerificationNotification();
 
         Session::flash('status', 'verification-link-sent');
+    }
+
+    /**
+     * Open the delete account modal.
+     */
+    public function openDeleteModal(): void
+    {
+        $this->password = '';
+        $this->resetErrorBag();
+        $this->showDeleteModal = true;
+    }
+
+    /**
+     * Close the delete account modal.
+     */
+    public function closeDeleteModal(): void
+    {
+        $this->password = '';
+        $this->resetErrorBag();
+        $this->showDeleteModal = false;
+    }
+
+    /**
+     * Delete the user account.
+     */
+    public function deleteUser(): void
+    {
+        $this->validate([
+            'password' => ['required', 'string', function ($attribute, $value, $fail) {
+                if (!Hash::check($value, Auth::user()->password)) {
+                    $fail('The password is incorrect.');
+                }
+            }],
+        ]);
+
+        $user = Auth::user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        Session::flush();
+
+        $this->redirectRoute('login');
     }
 
     #[Layout('components.layouts.app')]

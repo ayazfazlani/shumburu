@@ -91,8 +91,8 @@
             </div>
             <div class="bx-settings-delete-body">
                 <button type="button"
-                        class="bx-btn bx-btn-danger"
-                        onclick="document.getElementById('delete-account-modal').classList.add('open')">
+                        wire:click="openDeleteModal"
+                        class="bx-btn bx-btn-danger">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                     </svg>
@@ -101,9 +101,9 @@
             </div>
         </div>
 
-        <!-- Delete Modal -->
-        <div id="delete-account-modal" class="bx-modal-overlay bx-modal-overlay-danger" onclick="this.classList.remove('open')">
-            <div class="bx-modal bx-modal-sm" onclick="event.stopPropagation()">
+        <!-- Delete Modal - Livewire Controlled -->
+        <div class="bx-modal-overlay bx-modal-overlay-danger {{ $showDeleteModal ? 'open' : '' }}" wire:click.self="closeDeleteModal">
+            <div class="bx-modal bx-modal-sm" wire:click.stop>
                 <div class="bx-modal-header bx-modal-header-danger">
                     <h3 class="text-red-600 dark:text-red-400">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@
                         </svg>
                         {{ __('settings.delete_are_you_sure') }}
                     </h3>
-                    <button type="button" onclick="document.getElementById('delete-account-modal').classList.remove('open')" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-modal-close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -125,7 +125,8 @@
                         <input type="password"
                                wire:model="password"
                                class="bx-input @error('password') bx-input-error @enderror"
-                               id="password" />
+                               id="password"
+                               placeholder="Enter your password to confirm" />
                         @error('password')
                             <span class="bx-error">{{ $message }}</span>
                         @enderror
@@ -133,14 +134,17 @@
                 </div>
 
                 <div class="bx-modal-footer">
-                    <button type="button" onclick="document.getElementById('delete-account-modal').classList.remove('open')" class="bx-btn bx-btn-secondary">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-btn bx-btn-secondary">
                         {{ __('global.cancel') }}
                     </button>
-                    <button type="button" wire:click="deleteUser" class="bx-btn bx-btn-danger">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                        </svg>
-                        {{ __('settings.delete_account_title') }}
+                    <button type="button" wire:click="deleteUser" class="bx-btn bx-btn-danger" wire:loading.attr="disabled">
+                        <span wire:loading.remove>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            {{ __('settings.delete_account_title') }}
+                        </span>
+                        <span wire:loading>Deleting...</span>
                     </button>
                 </div>
             </div>
