@@ -15,7 +15,7 @@ return [
     'this_action_is_irreversible' => 'This action is irreversible',
     'log_out' => 'Log out',
     'settings' => 'Settings',
-    'go_to_frontend' => 'Go to frontend',
+    'go_to_frontend' => 'Dashboard',
     'save' => 'Save',
     'saved' => 'Saved',
     'admin_dashboard' => 'Admin dashboard',
