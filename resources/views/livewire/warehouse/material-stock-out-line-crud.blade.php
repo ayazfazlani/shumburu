@@ -2,13 +2,15 @@
 <div class="bx-page bx-page-stock-out-lines">
     <!-- ─── HEADER ─── -->
     <div class="bx-header">
-        <h1 class="bx-header-title">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-            </svg>
-            Material Stock Out Lines
-        </h1>
-        <p class="bx-header-subtitle">Batch entry and consumption tracking for production materials</p>
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Material Stock Out Lines
+            </h1>
+            <p class="bx-header-subtitle">Batch entry and consumption tracking for production materials</p>
+        </div>
     </div>
 
     <!-- ─── STATS ─── -->
@@ -46,7 +48,7 @@
                 <!-- Production Line & Shift -->
                 <div class="bx-form-group">
                     <label class="bx-form-label required">Production Line</label>
-                    <select wire:model="production_line_id" class="bx-select">
+                    <select wire:model="production_line_id" class="bx-select @error('production_line_id') bx-input-error @enderror">
                         <option value="">Select Production Line</option>
                         @foreach($lines as $line)
                             <option value="{{ $line->id }}">{{ $line->name ?? ('Line #' . $line->id) }}</option>
@@ -59,7 +61,7 @@
 
                 <div class="bx-form-group">
                     <label class="bx-form-label required">Shift</label>
-                    <select wire:model="shift" class="bx-select">
+                    <select wire:model="shift" class="bx-select @error('shift') bx-input-error @enderror">
                         <option value="">Select Shift</option>
                         <option value="A">A</option>
                         <option value="B">B</option>
@@ -88,7 +90,7 @@
                                     <div class="bx-form-group">
                                         <select wire:model="materials.{{ $index }}.material_stock_out_id"
                                                 wire:change="$refresh"
-                                                class="bx-select">
+                                                class="bx-select @error('materials.' . $index . '.material_stock_out_id') bx-input-error @enderror">
                                             <option value="">Select Material</option>
                                             @foreach($stockOuts as $stockOut)
                                                 @php
@@ -256,7 +258,7 @@
 
     <!-- ─── RETURN MODAL ─── -->
     @if($showReturnModal)
-        <div class="bx-modal-overlay" wire:click.self="closeReturnModal">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-return">
                 <form wire:submit.prevent="processReturn">
                     <div class="bx-modal-header">

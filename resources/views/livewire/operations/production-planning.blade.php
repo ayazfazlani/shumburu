@@ -194,14 +194,14 @@
                                                         @if($item->od)
                                                             <span class="bx-code">{{ $item->od }} mm</span>
                                                         @else
-                                                            <span class="bx-text-muted">—</span>
+                                                            <span class="text-gray">—</span>
                                                         @endif
                                                     </td>
                                                     <td class="text-center">
                                                         @if($item->sdr)
                                                             <span class="bx-code bx-code-blue">SDR {{ $item->sdr }}</span>
                                                         @else
-                                                            <span class="bx-text-muted">—</span>
+                                                            <span class="text-gray">—</span>
                                                         @endif
                                                     </td>
                                                     <td class="text-center">
@@ -540,73 +540,72 @@
     </div>
 
     <!-- ─── ADD/EDIT MATERIAL MODAL ─── -->
-    @if($showMaterialModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showMaterialModal', false)">
-            <div class="bx-modal bx-modal-material">
-                <form wire:submit.prevent="saveMaterialItem">
-                    <div class="bx-modal-header">
-                        <div class="bx-modal-header-icon">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <h3>{{ $editingPlanItemId ? 'Edit Material' : 'Add Raw Material' }}</h3>
-                            <p class="bx-modal-subtitle">Plan the quantity required for this order</p>
-                        </div>
-                        <button type="button" wire:click="$set('showMaterialModal', false)" class="bx-modal-close">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
+    <!-- ─── ADD/EDIT MATERIAL MODAL ─── -->
+@if($showMaterialModal)
+    <div class="bx-modal-overlay open">
+        <div class="bx-modal">
+            <form wire:submit.prevent="saveMaterialItem">
+                <div class="bx-modal-header">
+                    <h3>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm0 2h10v7h-2l-1 2H8l-1-2H5V5z"/>
+                        </svg>
+                        {{ $editingPlanItemId ? 'Edit Material' : 'Add Raw Material' }}
+                    </h3>
+                    <button type="button" wire:click="$set('showMaterialModal', false)" class="bx-modal-close">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
 
-                    <div class="bx-modal-body">
-                        <div class="bx-form">
-                            <div class="bx-form-full">
-                                <div class="bx-form-group">
-                                    <label class="bx-form-label">Raw Material</label>
-                                    <select wire:model="materialId"
-                                            class="bx-select {{ $editingPlanItemId ? 'opacity-60' : '' }}"
-                                            {{ $editingPlanItemId ? 'disabled' : '' }}>
-                                        <option value="">Select a raw material...</option>
-                                        @foreach($rawMaterials as $material)
-                                            <option value="{{ $material->id }}">
-                                                {{ $material->name }} — {{ $material->unit }} (Stock: {{ number_format($material->quantity, 0) }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('materialId')
-                                        <span class="bx-error">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
+                <div class="bx-modal-body">
+                    <div class="bx-form">
+                        <!-- Raw Material -->
+                        <div class="bx-form-group bx-form-full">
+                            <label class="bx-form-label required">Raw Material</label>
+                            <select wire:model="materialId"
+                                    class="bx-select @error('materialId') bx-input-error @enderror"
+                                    {{ $editingPlanItemId ? 'disabled' : '' }}>
+                                <option value="">Select a raw material...</option>
+                                @foreach($rawMaterials as $material)
+                                    <option value="{{ $material->id }}">
+                                        {{ $material->name }} — {{ $material->unit }} (Stock: {{ number_format($material->quantity, 0) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('materialId')
+                                <span class="bx-error">{{ $message }}</span>
+                            @enderror
+                        </div>
 
-                            <div class="bx-form-full">
-                                <div class="bx-form-group">
-                                    <label class="bx-form-label">Quantity Required</label>
-                                    <input type="number" wire:model="materialQty"
-                                           class="bx-input bx-input-lg"
-                                           step="0.01" min="0.01" placeholder="0.0" />
-                                    @error('materialQty')
-                                        <span class="bx-error">{{ $message }}</span>
-                                    @enderror
-                                    <p class="bx-form-hint">
-                                        ⚠️ These quantities represent total order requirements. If this material already exists in the plan, quantities will be merged.
-                                    </p>
-                                </div>
-                            </div>
+                        <!-- Quantity Required -->
+                        <div class="bx-form-group bx-form-full">
+                            <label class="bx-form-label required">Quantity Required</label>
+                            <input type="number" wire:model="materialQty"
+                                   class="bx-input bx-input-lg @error('materialQty') bx-input-error @enderror"
+                                   step="0.01" min="0.01" placeholder="0.0" />
+                            @error('materialQty')
+                                <span class="bx-error">{{ $message }}</span>
+                            @enderror
+                            <p class="bx-form-hint">
+                                ⚠️ These quantities represent total order requirements. If this material already exists in the plan, quantities will be merged.
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    <div class="bx-modal-footer">
-                        <button type="button" wire:click="$set('showMaterialModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
-                        <button type="submit" class="bx-btn bx-btn-primary">
-                            {{ $editingPlanItemId ? 'Update Material' : 'Add to Plan' }}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="bx-modal-footer">
+                    <button type="button" wire:click="$set('showMaterialModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="submit" class="bx-btn bx-btn-primary">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {{ $editingPlanItemId ? 'Update Material' : 'Add to Plan' }}
+                    </button>
+                </div>
+            </form>
         </div>
-    @endif
+    </div>
+@endif
 </div>

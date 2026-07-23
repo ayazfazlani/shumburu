@@ -98,35 +98,28 @@ class ProductsCrud extends Component
 
     public function saveProduct()
     {
+        $this->validate();
+        $data = [
+            'name' => $this->name,
+            'code' => $this->code,
+            'size' => $this->size,
+            'pn' => $this->pn,
+            'weight_per_meter' => $this->WeightPerMeter,
+            'meter_length' => $this->meter_length,
+            'description' => $this->description,
+            'is_active' => $this->is_active,
+        ];
+
         if ($this->isEdit && $this->productId) {
-            $product = Product::findOrFail($this->productId);
-            $this->validate();
-            $product->update([
-                'name' => $this->name,
-                'code' => $this->code,
-                'size' => $this->size,
-                'pn' => $this->pn,
-                'weight_per_meter' => $this->WeightPerMeter,
-                'meter_length' => $this->meter_length,
-                'description' => $this->description,
-                'is_active' => $this->is_active,
-            ]);
+            Product::findOrFail($this->productId)->update($data);
+            session()->flash('message', 'Product updated successfully.');
         } else {
-            $this->validate();
-            Product::create([
-                'name' => $this->name,
-                'code' => $this->code,
-                'size' => $this->size,
-                'pn' => $this->pn,
-                'weight_per_meter' => $this->WeightPerMeter,
-                'meter_length' => $this->meter_length,
-                'description' => $this->description,
-                'is_active' => $this->is_active,
-            ]);
+            Product::create($data);
+            session()->flash('message', 'Product created successfully.');
         }
         $this->showModal = false;
         $this->resetForm();
-        session()->flash('message', $this->isEdit ? 'Product updated.' : 'Product created.');
+        $this->resetPage();
     }
 
     public function confirmDelete($id)
@@ -137,11 +130,28 @@ class ProductsCrud extends Component
 
     public function deleteProduct()
     {
-        $product = Product::findOrFail($this->deleteId);
-        $product->delete();
+        if ($this->deleteId) {
+            $product = Product::find($this->deleteId);
+            if ($product) {
+                $product->delete();
+                session()->flash('message', 'Product deleted successfully.');
+            }
+            $this->deleteId = null;
+        }
+        $this->showDeleteModal = false;
+        $this->resetPage();
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function closeDeleteModal()
+    {
         $this->showDeleteModal = false;
         $this->deleteId = null;
-        session()->flash('message', 'Product deleted.');
     }
 
     public function resetForm()
@@ -155,14 +165,17 @@ class ProductsCrud extends Component
         $this->meter_length = '';
         $this->description = '';
         $this->is_active = true;
+        $this->isEdit = false;
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
-    public function updatingSearch()
+    public function updatedSearch()
     {
         $this->resetPage();
     }
 
-    public function updatingPerPage()
+    public function updatedPerPage()
     {
         $this->resetPage();
     }

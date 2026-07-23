@@ -65,36 +65,31 @@ class UsersCrud extends Component
   public function openEditModal($id)
   {
     $user = User::with('roles')->findOrFail($id);
-    // dd($user);
     $this->userId = $user->id;
     $this->name = $user->name;
     $this->email = $user->email;
     $this->selectedRoles = $user->roles->pluck('name')->toArray();
-    // dd($this->selectedRoles);
     $this->isEdit = true;
     $this->showModal = true;
-    // Do not allow editing name/email/password in edit mode
   }
 
   public function saveUser()
   {
-    // dd();
-    // $this->validate();
-
     if ($this->isEdit && $this->userId) {
       $user = User::findOrFail($this->userId);
-      // Only sync roles, do not update name/email/password
+      session()->flash('message', 'User updated successfully.');
     } else {
       $user = User::create([
         'name' => $this->name,
         'email' => $this->email,
         'password' => Hash::make($this->password),
       ]);
+      session()->flash('message', 'User created successfully.');
     }
     $user->syncRoles($this->selectedRoles);
     $this->showModal = false;
     $this->resetForm();
-    session()->flash('message', $this->isEdit ? 'User updated.' : 'User created.');
+    $this->resetPage();
   }
 
   public function confirmDelete($id)
@@ -105,11 +100,28 @@ class UsersCrud extends Component
 
   public function deleteUser()
   {
-    $user = User::findOrFail($this->deleteId);
-    $user->delete();
+    if ($this->deleteId) {
+      $user = User::find($this->deleteId);
+      if ($user) {
+        $user->delete();
+        session()->flash('message', 'User deleted successfully.');
+      }
+      $this->deleteId = null;
+    }
+    $this->showDeleteModal = false;
+    $this->resetPage();
+  }
+
+  public function closeModal()
+  {
+    $this->showModal = false;
+    $this->resetForm();
+  }
+
+  public function closeDeleteModal()
+  {
     $this->showDeleteModal = false;
     $this->deleteId = null;
-    session()->flash('message', 'User deleted.');
   }
 
   public function resetForm()
@@ -120,13 +132,17 @@ class UsersCrud extends Component
     $this->password = '';
     $this->password_confirmation = '';
     $this->selectedRoles = [];
+    $this->isEdit = false;
+    $this->resetErrorBag();
+    $this->resetValidation();
   }
 
-  public function updatingSearch()
+  public function updatedSearch()
   {
     $this->resetPage();
   }
-  public function updatingPerPage()
+
+  public function updatedPerPage()
   {
     $this->resetPage();
   }

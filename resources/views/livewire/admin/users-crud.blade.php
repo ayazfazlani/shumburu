@@ -2,13 +2,15 @@
 <div class="bx-page">
     <!-- ─── HEADER ─── -->
     <div class="bx-header">
-        <h1 class="bx-header-title">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            Users Management
-        </h1>
-        <p class="bx-header-subtitle">Create, edit, assign roles, and delete users</p>
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                Users Management
+            </h1>
+            <p class="bx-header-subtitle">Create, edit, assign roles, and delete users</p>
+        </div>
     </div>
 
     <!-- ─── TOOLBAR ─── -->
@@ -176,7 +178,7 @@
 
     <!-- ─── CREATE/EDIT MODAL ─── -->
     @if($showModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal">
                 <form wire:submit.prevent="saveUser">
                     <div class="bx-modal-header">
@@ -186,7 +188,7 @@
                             </svg>
                             {{ $isEdit ? 'Edit User Roles' : 'Create User' }}
                         </h3>
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                        <button type="button" wire:click="closeModal" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -196,55 +198,64 @@
                     <div class="bx-modal-body">
                         <div class="bx-form">
                             @if(!$isEdit)
-                                <div class="bx-form-group">
+                                <!-- Name -->
+                                <div class="bx-form-group bx-form-full">
                                     <label class="bx-form-label required">Name</label>
-                                    <input type="text" wire:model.defer="name" class="bx-input" placeholder="Full name" />
+                                    <input type="text" wire:model.defer="name" class="bx-input @error('name') bx-input-error @enderror"
+                                           placeholder="Full name" />
                                     @error('name')
                                         <span class="bx-error">{{ $message }}</span>
                                     @enderror
                                 </div>
 
-                                <div class="bx-form-group">
+                                <!-- Email -->
+                                <div class="bx-form-group bx-form-full">
                                     <label class="bx-form-label required">Email</label>
-                                    <input type="email" wire:model.defer="email" class="bx-input" placeholder="user@example.com" />
+                                    <input type="email" wire:model.defer="email" class="bx-input @error('email') bx-input-error @enderror"
+                                           placeholder="user@example.com" />
                                     @error('email')
                                         <span class="bx-error">{{ $message }}</span>
                                     @enderror
                                 </div>
 
-                                <div class="bx-form-group">
+                                <!-- Password -->
+                                <div class="bx-form-group bx-form-full">
                                     <label class="bx-form-label required">Password</label>
-                                    <input type="password" wire:model.defer="password" class="bx-input" placeholder="Minimum 8 characters" />
+                                    <input type="password" wire:model.defer="password" class="bx-input @error('password') bx-input-error @enderror"
+                                           placeholder="Minimum 8 characters" />
                                     @error('password')
                                         <span class="bx-error">{{ $message }}</span>
                                     @enderror
                                 </div>
 
-                                <div class="bx-form-group">
+                                <!-- Confirm Password -->
+                                <div class="bx-form-group bx-form-full">
                                     <label class="bx-form-label required">Confirm Password</label>
-                                    <input type="password" wire:model.defer="password_confirmation" class="bx-input" placeholder="Confirm password" />
+                                    <input type="password" wire:model.defer="password_confirmation" class="bx-input"
+                                           placeholder="Confirm password" />
                                 </div>
                             @endif
 
-                            <div class="bx-form-full">
-    <label class="bx-form-label">Assign Roles</label>
-    <div class="bx-checkbox-grid">
-        @foreach ($roles as $role)
-            <label class="bx-checkbox">
-                <input type="checkbox" wire:model.defer="selectedRoles" value="{{ $role->name }}" />
-                <span>{{ $role->name }}</span>
-            </label>
-        @endforeach
-    </div>
-    @error('selectedRoles')
-        <span class="bx-error">{{ $message }}</span>
-    @enderror
-</div>
+                            <!-- Assign Roles -->
+                            <div class="bx-form-group bx-form-full">
+                                <label class="bx-form-label">Assign Roles</label>
+                                <div class="bx-checkbox-grid">
+                                    @foreach ($roles as $role)
+                                        <label class="bx-checkbox-wrapper">
+                                            <input type="checkbox" wire:model.defer="selectedRoles" value="{{ $role->name }}" />
+                                            <span>{{ $role->name }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                @error('selectedRoles')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
                     <div class="bx-modal-footer">
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="button" wire:click="closeModal" class="bx-btn bx-btn-secondary">Cancel</button>
                         <button type="submit" class="bx-btn bx-btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
@@ -259,7 +270,7 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-sm">
                 <div class="bx-modal-header">
                     <h3 class="text-red">
@@ -268,7 +279,7 @@
                         </svg>
                         Delete User
                     </h3>
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-modal-close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -286,7 +297,7 @@
                 </div>
 
                 <div class="bx-modal-footer justify-center">
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="closeDeleteModal" class="bx-btn bx-btn-secondary">Cancel</button>
                     <button type="button" wire:click="deleteUser" class="bx-btn bx-btn-danger">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

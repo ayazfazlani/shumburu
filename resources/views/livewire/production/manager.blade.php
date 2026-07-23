@@ -423,19 +423,16 @@
 
     <!-- ─── WAREHOUSE REQUEST MODAL ─── -->
     @if($showWarehouseRequestForm)
-        <div class="bx-modal-overlay" wire:click.self="cancelWarehouseRequest">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-warehouse">
                 <form wire:submit.prevent="sendWarehouseRequest">
                     <div class="bx-modal-header">
-                        <div class="bx-modal-header-icon bx-modal-header-icon-indigo">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                             </svg>
-                        </div>
-                        <div>
-                            <h3>Shift Release</h3>
-                            <p class="bx-modal-subtitle">Factory Floor Daily Batch Allocation</p>
-                        </div>
+                            Shift Release
+                        </h3>
                         <button type="button" wire:click="cancelWarehouseRequest" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -462,7 +459,7 @@
                                 <span class="bx-form-hint-text">{{ $selectedMaterial?->unit ?? 'kg' }} Units</span>
                             </div>
                             <input type="number" wire:model="warehouseRequestQty"
-                                   class="bx-input bx-input-lg bx-input-centered"
+                                   class="bx-input bx-input-lg bx-input-centered @error('warehouseRequestQty') bx-input-error @enderror"
                                    step="0.1" min="0.01" placeholder="0.0" />
                             @error('warehouseRequestQty')
                                 <span class="bx-error">{{ $message }}</span>
@@ -489,19 +486,16 @@
 
     <!-- ─── COMPLETION MODAL ─── -->
     @if($showProductionForm)
-        <div class="bx-modal-overlay" wire:click.self="cancelProduction">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-completion">
                 <form wire:submit.prevent="completeProduction">
                     <div class="bx-modal-header">
-                        <div class="bx-modal-header-icon bx-modal-header-icon-green">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h3>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
-                        </div>
-                        <div>
-                            <h3>Record Exit</h3>
-                            <p class="bx-modal-subtitle">Closing Factory Run & Logging Output</p>
-                        </div>
+                            Record Exit
+                        </h3>
                         <button type="button" wire:click="cancelProduction" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -516,7 +510,7 @@
                                 <span class="bx-form-hint-text bx-form-hint-text-green">UNITS DISPATCH READY</span>
                             </div>
                             <input type="number" wire:model="actualProduced"
-                                   class="bx-input bx-input-lg bx-input-centered bx-input-green"
+                                   class="bx-input bx-input-lg bx-input-centered bx-input-green @error('actualProduced') bx-input-error @enderror"
                                    step="0.1" min="0" placeholder="0" />
                             @error('actualProduced')
                                 <span class="bx-error">{{ $message }}</span>

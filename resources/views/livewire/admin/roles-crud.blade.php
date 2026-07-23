@@ -2,13 +2,15 @@
 <div class="bx-page">
     <!-- ─── HEADER ─── -->
     <div class="bx-header">
-        <h1 class="bx-header-title">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
-            Roles Management
-        </h1>
-        <p class="bx-header-subtitle">Create, edit, assign permissions, and delete roles</p>
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+                Roles Management
+            </h1>
+            <p class="bx-header-subtitle">Create, edit, assign permissions, and delete roles</p>
+        </div>
     </div>
 
     <!-- ─── TOOLBAR ─── -->
@@ -181,7 +183,7 @@
 
     <!-- ─── CREATE/EDIT MODAL ─── -->
     @if($showModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-lg">
                 <form wire:submit.prevent="saveRole">
                     <div class="bx-modal-header">
@@ -191,7 +193,7 @@
                             </svg>
                             {{ $isEdit ? 'Edit Role' : 'Create Role' }}
                         </h3>
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                        <button type="button" wire:click="closeModal" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -200,96 +202,95 @@
 
                     <div class="bx-modal-body">
                         <div class="bx-form">
-                            <div class="bx-form-full">
-                                <div class="bx-form-group">
-                                    <label class="bx-form-label required">Role Name</label>
-                                    <input type="text" wire:model.defer="name" class="bx-input" placeholder="e.g. admin, manager, user" />
-                                    @error('name')
-                                        <span class="bx-error">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                            <!-- Role Name -->
+                            <div class="bx-form-group bx-form-full">
+                                <label class="bx-form-label required">Role Name</label>
+                                <input type="text" wire:model.defer="name" class="bx-input @error('name') bx-input-error @enderror"
+                                       placeholder="e.g. admin, manager, user" />
+                                @error('name')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            <div class="bx-form-full">
-                                <label class="bx-form-label font-semibold">Permissions <span class="text-gray text-sm font-normal">(Grouped by Module)</span></label>
-                                <div class="bx-permissions-grid mt-2">
-                                    @php
-                                        $groupedPermissions = $permissions->groupBy(function($permission) {
-                                            if (str_contains($permission->name, '.')) {
-                                                return explode('.', $permission->name)[0];
-                                            }
-                                            // Detect module from words for old permissions
-                                            if (str_contains($permission->name, 'customer')) return 'admin';
-                                            if (str_contains($permission->name, 'user')) return 'admin';
-                                            if (str_contains($permission->name, 'role')) return 'admin';
-                                            if (str_contains($permission->name, 'permission')) return 'admin';
-                                            if (str_contains($permission->name, 'sales') || str_contains($permission->name, 'order')) return 'sales';
-                                            if (str_contains($permission->name, 'production') || str_contains($permission->name, 'operation')) return 'operations';
-                                            if (str_contains($permission->name, 'stock') || str_contains($permission->name, 'warehouse')) return 'warehouse';
-                                            if (str_contains($permission->name, 'finance') || str_contains($permission->name, 'payment')) return 'finance';
+                            <!-- Permissions -->
+                            <div class="bx-form-group bx-form-full">
+                                <label class="bx-form-label">Permissions <span class="text-gray text-xs font-normal">(Grouped by Module)</span></label>
 
-                                            return 'General';
-                                        });
-
-                                        function formatPermissionName($name) {
-                                            if (str_contains($name, '.')) {
-                                                $parts = explode('.', $name);
-                                                $label = end($parts);
-
-                                                // Special common mappings
-                                                $mappings = [
-                                                    'view' => 'View Dashboard',
-                                                    'stock-overview' => 'View Finished Goods Stock',
-                                                    'pending-receipts' => 'Approve Goods Receipts (GRN)',
-                                                    'material-issue-requests' => 'Manage Material Issues (SIV)',
-                                                    'demand-aggregation' => 'Consolidate PR Demands',
-                                                    'demand-control' => 'Authorize Stock Requests',
-                                                    'production-machine' => 'Configure Production Lines',
-                                                    'manager' => 'Manage Production Queue',
-                                                    'procurement' => 'Procurement Lifecycle (RFQ/PO)',
-                                                    'purchase-payments' => 'Suppliers Payments (AP)',
-                                                    'revenue-report' => 'Financial Revenue Analysis',
-                                                    'inventory-report' => 'Stock Valuation Report',
-                                                    'production-report' => 'Daily Production Log',
-                                                    'weekly-production-report' => 'Weekly Performance Report',
-                                                    'monthly-production-report' => 'Monthly Analytical Report',
-                                                    'raw-material-stock-balance-report' => 'Material Balance Sheet',
-                                                    'quality-report-manager' => 'Quality Standards Manager',
-                                                    'material-stock-out-line-crud' => 'Monitor Material Consumption Logs',
-                                                    'finished-goods' => 'Record Produced Finished Goods',
-                                                    'finished-good-material-stock-out-line-crud' => 'Link Finished Goods to Raw Materials',
-                                                    'scrap-waste-crud' => 'Manage Scrap and Waste Records',
-                                                    'management-dashboard' => 'Executive Performance Cockpit',
-                                                    'customers-crud' => 'Manage Customer Directory',
-                                                    'suppliers-crud' => 'Manage Supplier Directory',
-                                                    'users-crud' => 'Manage System Users',
-                                                    'roles-crud' => 'Manage Access Roles',
-                                                    'raw-materials-crud' => 'Manage Raw Material Catalog',
-                                                    'products-crud' => 'Manage Finished Products Catalog',
-                                                ];
-
-                                                if (isset($mappings[$label])) {
-                                                    return $mappings[$label];
-                                                }
-
-                                                return ucwords(str_replace('-', ' ', $label));
-                                            }
-                                            return ucwords(str_replace(['-', '.', '_'], ' ', $name));
+                                @php
+                                    $groupedPermissions = $permissions->groupBy(function($permission) {
+                                        if (str_contains($permission->name, '.')) {
+                                            return explode('.', $permission->name)[0];
                                         }
-                                    @endphp
+                                        if (str_contains($permission->name, 'customer')) return 'admin';
+                                        if (str_contains($permission->name, 'user')) return 'admin';
+                                        if (str_contains($permission->name, 'role')) return 'admin';
+                                        if (str_contains($permission->name, 'permission')) return 'admin';
+                                        if (str_contains($permission->name, 'sales') || str_contains($permission->name, 'order')) return 'sales';
+                                        if (str_contains($permission->name, 'production') || str_contains($permission->name, 'operation')) return 'operations';
+                                        if (str_contains($permission->name, 'stock') || str_contains($permission->name, 'warehouse')) return 'warehouse';
+                                        if (str_contains($permission->name, 'finance') || str_contains($permission->name, 'payment')) return 'finance';
+                                        return 'General';
+                                    });
 
+                                    function formatPermissionName($name) {
+                                        if (str_contains($name, '.')) {
+                                            $parts = explode('.', $name);
+                                            $label = end($parts);
+
+                                            $mappings = [
+                                                'view' => 'View Dashboard',
+                                                'stock-overview' => 'View Finished Goods Stock',
+                                                'pending-receipts' => 'Approve Goods Receipts (GRN)',
+                                                'material-issue-requests' => 'Manage Material Issues (SIV)',
+                                                'demand-aggregation' => 'Consolidate PR Demands',
+                                                'demand-control' => 'Authorize Stock Requests',
+                                                'production-machine' => 'Configure Production Lines',
+                                                'manager' => 'Manage Production Queue',
+                                                'procurement' => 'Procurement Lifecycle (RFQ/PO)',
+                                                'purchase-payments' => 'Suppliers Payments (AP)',
+                                                'revenue-report' => 'Financial Revenue Analysis',
+                                                'inventory-report' => 'Stock Valuation Report',
+                                                'production-report' => 'Daily Production Log',
+                                                'weekly-production-report' => 'Weekly Performance Report',
+                                                'monthly-production-report' => 'Monthly Analytical Report',
+                                                'raw-material-stock-balance-report' => 'Material Balance Sheet',
+                                                'quality-report-manager' => 'Quality Standards Manager',
+                                                'material-stock-out-line-crud' => 'Monitor Material Consumption Logs',
+                                                'finished-goods' => 'Record Produced Finished Goods',
+                                                'finished-good-material-stock-out-line-crud' => 'Link Finished Goods to Raw Materials',
+                                                'scrap-waste-crud' => 'Manage Scrap and Waste Records',
+                                                'management-dashboard' => 'Executive Performance Cockpit',
+                                                'customers-crud' => 'Manage Customer Directory',
+                                                'suppliers-crud' => 'Manage Supplier Directory',
+                                                'users-crud' => 'Manage System Users',
+                                                'roles-crud' => 'Manage Access Roles',
+                                                'raw-materials-crud' => 'Manage Raw Material Catalog',
+                                                'products-crud' => 'Manage Finished Products Catalog',
+                                            ];
+
+                                            if (isset($mappings[$label])) {
+                                                return $mappings[$label];
+                                            }
+                                            return ucwords(str_replace('-', ' ', $label));
+                                        }
+                                        return ucwords(str_replace(['-', '.', '_'], ' ', $name));
+                                    }
+                                @endphp
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 max-h-[50vh] overflow-y-auto pr-2">
                                     @foreach ($groupedPermissions as $module => $modulePermissions)
-                                        <div class="bx-permission-group">
-                                            <h4 class="bx-permission-group-title">{{ ucfirst($module) }}</h4>
-                                            <div class="bx-permission-list">
+                                        <div class="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700/50">
+                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2 mb-3">{{ ucfirst($module) }}</h4>
+                                            <div class="space-y-2">
                                                 @foreach ($modulePermissions as $permission)
-                                                    <label class="bx-permission-item">
+                                                    <label class="bx-checkbox-wrapper">
                                                         <input type="checkbox"
                                                                wire:model.defer="selectedPermissions"
-                                                               value="{{ $permission->name }}"
-                                                               class="bx-permission-checkbox" />
-                                                        <span class="bx-permission-label">{{ formatPermissionName($permission->name) }}</span>
-                                                        <span class="bx-permission-code">{{ $permission->name }}</span>
+                                                               value="{{ $permission->name }}" />
+                                                        <div>
+                                                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">{{ formatPermissionName($permission->name) }}</span>
+                                                            <span class="block text-[10px] text-gray-400 dark:text-gray-500 font-mono leading-none mt-0.5">{{ $permission->name }}</span>
+                                                        </div>
                                                     </label>
                                                 @endforeach
                                             </div>
@@ -304,7 +305,7 @@
                     </div>
 
                     <div class="bx-modal-footer">
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="button" wire:click="closeModal" class="bx-btn bx-btn-secondary">Cancel</button>
                         <button type="submit" class="bx-btn bx-btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
@@ -319,7 +320,7 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-sm">
                 <div class="bx-modal-header">
                     <h3 class="text-red">
@@ -328,7 +329,7 @@
                         </svg>
                         Delete Role
                     </h3>
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-modal-close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -346,7 +347,7 @@
                 </div>
 
                 <div class="bx-modal-footer justify-center">
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="closeDeleteModal" class="bx-btn bx-btn-secondary">Cancel</button>
                     <button type="button" wire:click="deleteRole" class="bx-btn bx-btn-danger">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

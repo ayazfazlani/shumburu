@@ -64,14 +64,15 @@ class RolesCrud extends Component
     if ($this->isEdit && $this->roleId) {
       $role = Role::findOrFail($this->roleId);
       $role->update(['name' => $this->name]);
+      session()->flash('message', 'Role updated successfully.');
     } else {
       $role = Role::create(['name' => $this->name]);
+      session()->flash('message', 'Role created successfully.');
     }
-    // dd($this->selectedPermissions);
     $role->syncPermissions($this->selectedPermissions);
     $this->showModal = false;
     $this->resetForm();
-    session()->flash('message', $this->isEdit ? 'Role updated.' : 'Role created.');
+    $this->resetPage();
   }
 
   public function confirmDelete($id)
@@ -82,11 +83,28 @@ class RolesCrud extends Component
 
   public function deleteRole()
   {
-    $role = Role::findOrFail($this->deleteId);
-    $role->delete();
+    if ($this->deleteId) {
+      $role = Role::find($this->deleteId);
+      if ($role) {
+        $role->delete();
+        session()->flash('message', 'Role deleted successfully.');
+      }
+      $this->deleteId = null;
+    }
+    $this->showDeleteModal = false;
+    $this->resetPage();
+  }
+
+  public function closeModal()
+  {
+    $this->showModal = false;
+    $this->resetForm();
+  }
+
+  public function closeDeleteModal()
+  {
     $this->showDeleteModal = false;
     $this->deleteId = null;
-    session()->flash('message', 'Role deleted.');
   }
 
   public function resetForm()
@@ -94,13 +112,17 @@ class RolesCrud extends Component
     $this->roleId = null;
     $this->name = '';
     $this->selectedPermissions = [];
+    $this->isEdit = false;
+    $this->resetErrorBag();
+    $this->resetValidation();
   }
 
-  public function updatingSearch()
+  public function updatedSearch()
   {
     $this->resetPage();
   }
-  public function updatingPerPage()
+
+  public function updatedPerPage()
   {
     $this->resetPage();
   }

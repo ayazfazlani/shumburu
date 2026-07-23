@@ -24,11 +24,11 @@ class OrdersOverview extends Component
     public $statusFilter = '';
     public $customerFilter = '';
     public $dateFilter = '';
-    
+
     // Sorting
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
-    
+
     // Modal states
     public $showOrderDetailsModal = false;
     public $selectedOrder = null;
@@ -36,15 +36,15 @@ class OrdersOverview extends Component
     public $showDeliveryModal = false;
 
     // Payment form
-    public $paymentAmount;
+    public $paymentAmount = '';
     public $paymentMethod = 'cash';
-    public $paymentDate;
-    public $paymentNotes;
+    public $paymentDate = '';
+    public $paymentNotes = '';
 
     // Delivery form
-    public $deliveryQuantity;
-    public $deliveryDate;
-    public $deliveryNotes;
+    public $deliveryQuantity = '';
+    public $deliveryDate = '';
+    public $deliveryNotes = '';
 
     protected $rules = [
         'paymentAmount' => 'required|numeric|min:0.01',
@@ -52,6 +52,10 @@ class OrdersOverview extends Component
         'paymentDate' => 'required|date',
         'deliveryQuantity' => 'required|numeric|min:0.01',
         'deliveryDate' => 'required|date',
+    ];
+
+    protected $listeners = [
+        'refreshOrders' => '$refresh'
     ];
 
     public function mount(): void
@@ -64,9 +68,7 @@ class OrdersOverview extends Component
     #[Layout('components.layouts.app')]
     public function render(): View
     {
-        $orders = ProductionOrder::with(['customer', 'items.product', 'payments',
-        //  'deliveries'
-         ])
+        $orders = ProductionOrder::with(['customer', 'items.product', 'payments'])
             ->when($this->search, function ($query) {
                 $query->whereHas('customer', function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -95,17 +97,30 @@ class OrdersOverview extends Component
 
     public function viewOrderDetails($orderId)
     {
-        $this->selectedOrder = ProductionOrder::with(['customer', 'items.product', 'payments', 
-            // 'deliveries'
-        ])
+        $this->selectedOrder = ProductionOrder::with(['customer', 'items.product', 'payments'])
             ->findOrFail($orderId);
         $this->showOrderDetailsModal = true;
     }
 
     public function addPayment($orderId)
     {
-        $this->selectedOrder = ProductionOrder::findOrFail($orderId);
+        $this->selectedOrder = ProductionOrder::with(['customer', 'items.product', 'payments'])->findOrFail($orderId);
+        $this->paymentAmount = '';
+        $this->paymentMethod = 'cash';
+        $this->paymentDate = now()->format('Y-m-d');
+        $this->paymentNotes = '';
+        $this->resetErrorBag();
         $this->showPaymentModal = true;
+    }
+
+    public function addDelivery($orderId)
+    {
+        $this->selectedOrder = ProductionOrder::findOrFail($orderId);
+        $this->deliveryQuantity = '';
+        $this->deliveryDate = now()->format('Y-m-d');
+        $this->deliveryNotes = '';
+        $this->resetErrorBag();
+        $this->showDeliveryModal = true;
     }
 
     public function savePayment()
@@ -116,30 +131,26 @@ class OrdersOverview extends Component
             'paymentDate' => 'required|date',
         ]);
 
-        Payment::create([
-            'production_order_id' => $this->selectedOrder->id,
-            'customer_id' => $this->selectedOrder->customer_id,
-            'amount' => $this->paymentAmount,
-            'payment_method' => $this->paymentMethod,
-            'payment_date' => $this->paymentDate,
-            'notes' => $this->paymentNotes,
-            'recorded_by' => Auth::id(),
-        ]);
+        try {
+            DB::transaction(function () {
+                Payment::create([
+                    'production_order_id' => $this->selectedOrder->id,
+                    'customer_id' => $this->selectedOrder->customer_id,
+                    'amount' => $this->paymentAmount,
+                    'payment_method' => $this->paymentMethod,
+                    'payment_date' => $this->paymentDate,
+                    'notes' => $this->paymentNotes,
+                    'recorded_by' => Auth::id(),
+                ]);
+            });
 
-        session()->flash('message', 'Payment recorded successfully.');
-        $this->closePaymentModal();
-    }
+            session()->flash('message', 'Payment recorded successfully.');
+            $this->closePaymentModal();
+            $this->dispatch('refreshOrders');
 
-    public function addDelivery($orderId)
-    {
-        $order = ProductionOrder::findOrFail($orderId);
-        $oldStatus = $order->status;
-        
-        // Update status to delivered
-        $order->update(['status' => 'delivered']);
-        
-        session()->flash('message', 'Order marked as delivered and notifications sent to sales team!');
-        $this->mount();
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to record payment: ' . $e->getMessage());
+        }
     }
 
     public function saveDelivery()
@@ -149,44 +160,47 @@ class OrdersOverview extends Component
             'deliveryDate' => 'required|date',
         ]);
 
-        // For simplicity, we'll create delivery for the first item
         $firstItem = $this->selectedOrder->items->first();
-        
-        Delivery::create([
-            'production_order_id' => $this->selectedOrder->id,
-            'customer_id' => $this->selectedOrder->customer_id,
-            'product_id' => $firstItem->product_id,
-            'quantity' => $this->deliveryQuantity,
-            'batch_number' => 'BATCH-' . time(),
-            'unit_price' => $firstItem->unit_price,
-            'total_amount' => $this->deliveryQuantity * $firstItem->unit_price,
-            'delivery_date' => $this->deliveryDate,
-            'delivered_by' => Auth::id(),
-            'notes' => $this->deliveryNotes,
-        ]);
+
+        if (!$firstItem) {
+            session()->flash('error', 'No items found in this order.');
+            return;
+        }
 
         try {
             DB::transaction(function () use ($firstItem) {
+                // Create delivery record
+                Delivery::create([
+                    'production_order_id' => $this->selectedOrder->id,
+                    'customer_id' => $this->selectedOrder->customer_id,
+                    'product_id' => $firstItem->product_id,
+                    'quantity' => $this->deliveryQuantity,
+                    'batch_number' => 'BATCH-' . time(),
+                    'unit_price' => $firstItem->unit_price,
+                    'total_amount' => $this->deliveryQuantity * $firstItem->unit_price,
+                    'delivery_date' => $this->deliveryDate,
+                    'delivered_by' => Auth::id(),
+                    'notes' => $this->deliveryNotes,
+                ]);
+
                 $remainingToDispatch = $this->deliveryQuantity;
 
-                // 1. Try to consume active reservations (Must be QC Passed)
+                // 1. Try to consume active reservations (QC Passed)
                 $reservations = $firstItem->reservations()
                     ->where('status', 'active')
                     ->whereHas('fgStock', function($q) {
                         $q->where('is_qc_passed', true);
                     })
                     ->get();
-                
+
                 foreach ($reservations as $res) {
                     if ($remainingToDispatch <= 0) break;
 
                     $consumeAmount = min($remainingToDispatch, $res->quantity);
-                    
-                    // Deduct from physical stock
+
                     $batch = $res->fgStock;
                     $batch->decrement('quantity', $consumeAmount);
-                    
-                    // Update or close reservation
+
                     if ($consumeAmount < $res->quantity) {
                         $res->decrement('quantity', $consumeAmount);
                     } else {
@@ -196,18 +210,18 @@ class OrdersOverview extends Component
                     $remainingToDispatch -= $consumeAmount;
                 }
 
-                // 2. If there's still quantity left (taking from unreserved QC-passed stock)
+                // 2. If remaining, take from QC-passed stock
                 if ($remainingToDispatch > 0) {
                     $stocks = FgStock::where('product_id', $firstItem->product_id)
                         ->where('quantity', '>', 0)
                         ->where('is_qc_passed', true)
                         ->orderBy('created_at', 'asc')
                         ->get();
-                    
+
                     foreach ($stocks as $stock) {
                         if ($remainingToDispatch <= 0) break;
-                        
-                        $deduct = min($remainingToDispatch, $stock->available_quantity);
+
+                        $deduct = min($remainingToDispatch, $stock->quantity);
                         if ($deduct > 0) {
                             $stock->decrement('quantity', $deduct);
                             $remainingToDispatch -= $deduct;
@@ -216,21 +230,22 @@ class OrdersOverview extends Component
                 }
 
                 if ($remainingToDispatch > 0) {
-                    throw new \Exception("Cannot dispatch: " . number_format($remainingToDispatch, 2) . " units have not passed Quality Control yet.");
+                    throw new \Exception("Cannot dispatch: " . number_format($remainingToDispatch, 2) . " units have not passed Quality Control.");
+                }
+
+                // Update order status
+                $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
+                $totalOrdered = $this->selectedOrder->items->sum('quantity');
+
+                if ($totalDelivered >= $totalOrdered) {
+                    $this->selectedOrder->update(['status' => 'delivered']);
                 }
             });
 
-            // Update order status if all items delivered
-            $totalOrdered = $this->selectedOrder->items->sum('quantity');
-            $totalDelivered = $this->selectedOrder->deliveries->sum('quantity') + $this->deliveryQuantity;
-            
-            if ($totalDelivered >= $totalOrdered) {
-                // Update status to delivered
-                $this->selectedOrder->update(['status' => 'delivered']);
-            }
-
             session()->flash('message', 'Delivery recorded successfully.');
             $this->closeDeliveryModal();
+            $this->dispatch('refreshOrders');
+
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());
         }
@@ -238,13 +253,27 @@ class OrdersOverview extends Component
 
     public function updateOrderStatus($orderId, $status)
     {
-        $order = ProductionOrder::findOrFail($orderId);
-        $oldStatus = $order->status;
-        
-        // Update status
-        $order->update(['status' => $status]);
-        
-        session()->flash('message', "Order status updated from {$oldStatus} to {$status}. Notifications sent!");
+        try {
+            $order = ProductionOrder::findOrFail($orderId);
+            $oldStatus = $order->status;
+
+            $order->update(['status' => $status]);
+
+            session()->flash('message', "Order status updated from {$oldStatus} to {$status}.");
+            $this->dispatch('refreshOrders');
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update order status.');
+        }
+    }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->customerFilter = '';
+        $this->dateFilter = '';
+        $this->resetPage();
     }
 
     public function closeOrderDetailsModal()
@@ -261,6 +290,7 @@ class OrdersOverview extends Component
         $this->paymentMethod = 'cash';
         $this->paymentDate = now()->format('Y-m-d');
         $this->paymentNotes = '';
+        $this->resetErrorBag();
     }
 
     public function closeDeliveryModal()
@@ -270,6 +300,7 @@ class OrdersOverview extends Component
         $this->deliveryQuantity = '';
         $this->deliveryDate = now()->format('Y-m-d');
         $this->deliveryNotes = '';
+        $this->resetErrorBag();
     }
 
     public function sortBy($field)
@@ -287,6 +318,7 @@ class OrdersOverview extends Component
         $this->resetPage();
     }
 
+    // Helper methods for views
     public function getOrderTotal($order)
     {
         return $order->items->sum('total_price');
@@ -307,13 +339,13 @@ class OrdersOverview extends Component
     public function getStatusColor($status)
     {
         return match($status) {
-            'pending' => 'badge-warning',
-            'pending_production' => 'badge-info',
-            'approved' => 'badge-primary',
-            'in_production' => 'badge-secondary',
-            'completed' => 'badge-success',
-            'delivered' => 'badge-success',
-            default => 'badge-neutral'
+            'pending' => 'bx-badge-warning',
+            'pending_production' => 'bx-badge-warning',
+            'approved' => 'bx-badge-info',
+            'in_production' => 'bx-badge-primary',
+            'completed' => 'bx-badge-success',
+            'delivered' => 'bx-badge-secondary',
+            default => 'bx-badge-gray'
         };
     }
-} 
+}

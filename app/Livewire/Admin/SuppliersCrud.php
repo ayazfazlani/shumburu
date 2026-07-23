@@ -105,12 +105,14 @@ class SuppliersCrud extends Component
 
         if ($this->isEdit && $this->supplierId) {
             Supplier::findOrFail($this->supplierId)->update($data);
+            session()->flash('message', 'Supplier updated successfully.');
         } else {
             Supplier::create($data);
+            session()->flash('message', 'Supplier created successfully.');
         }
         $this->showModal = false;
         $this->resetForm();
-        session()->flash('message', $this->isEdit ? 'Supplier updated.' : 'Supplier created.');
+        $this->resetPage();
     }
 
     public function confirmDelete($id)
@@ -121,10 +123,28 @@ class SuppliersCrud extends Component
 
     public function deleteSupplier()
     {
-        Supplier::findOrFail($this->deleteId)->delete();
+        if ($this->deleteId) {
+            $supplier = Supplier::find($this->deleteId);
+            if ($supplier) {
+                $supplier->delete();
+                session()->flash('message', 'Supplier deleted successfully.');
+            }
+            $this->deleteId = null;
+        }
+        $this->showDeleteModal = false;
+        $this->resetPage();
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function closeDeleteModal()
+    {
         $this->showDeleteModal = false;
         $this->deleteId = null;
-        session()->flash('message', 'Supplier deleted.');
     }
 
     public function resetForm()
@@ -138,13 +158,17 @@ class SuppliersCrud extends Component
         $this->address = '';
         $this->payment_terms = '';
         $this->is_active = true;
+        $this->isEdit = false;
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
-    public function updatingSearch()
+    public function updatedSearch()
     {
         $this->resetPage();
     }
-    public function updatingPerPage()
+
+    public function updatedPerPage()
     {
         $this->resetPage();
     }

@@ -57,12 +57,14 @@ class PermissionsCrud extends Component
     if ($this->isEdit && $this->permissionId) {
       $permission = Permission::findOrFail($this->permissionId);
       $permission->update(['name' => $this->name]);
+      session()->flash('message', 'Permission updated successfully.');
     } else {
       Permission::create(['name' => $this->name]);
+      session()->flash('message', 'Permission created successfully.');
     }
     $this->showModal = false;
     $this->resetForm();
-    session()->flash('message', $this->isEdit ? 'Permission updated.' : 'Permission created.');
+    $this->resetPage();
   }
 
   public function confirmDelete($id)
@@ -73,24 +75,45 @@ class PermissionsCrud extends Component
 
   public function deletePermission()
   {
-    $permission = Permission::findOrFail($this->deleteId);
-    $permission->delete();
+    if ($this->deleteId) {
+      $permission = Permission::find($this->deleteId);
+      if ($permission) {
+        $permission->delete();
+        session()->flash('message', 'Permission deleted successfully.');
+      }
+      $this->deleteId = null;
+    }
+    $this->showDeleteModal = false;
+    $this->resetPage();
+  }
+
+  public function closeModal()
+  {
+    $this->showModal = false;
+    $this->resetForm();
+  }
+
+  public function closeDeleteModal()
+  {
     $this->showDeleteModal = false;
     $this->deleteId = null;
-    session()->flash('message', 'Permission deleted.');
   }
 
   public function resetForm()
   {
     $this->permissionId = null;
     $this->name = '';
+    $this->isEdit = false;
+    $this->resetErrorBag();
+    $this->resetValidation();
   }
 
-  public function updatingSearch()
+  public function updatedSearch()
   {
     $this->resetPage();
   }
-  public function updatingPerPage()
+
+  public function updatedPerPage()
   {
     $this->resetPage();
   }

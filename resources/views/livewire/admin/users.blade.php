@@ -202,37 +202,37 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
-            <div class="bx-modal bx-modal-sm">
-                <div class="bx-modal-header">
-                    <h3 class="text-red">
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-bold text-red-600 dark:text-red-400 flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                         {{ __('users.delete_user') }}
                     </h3>
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
 
-                <div class="bx-modal-body text-center">
-                    <div class="bx-delete-icon">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="px-6 py-6 text-center">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
+                        <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                         </svg>
                     </div>
-                    <h4 class="bx-delete-title">{{ __('users.you_are_about_to_delete') }}</h4>
-                    <p class="bx-delete-text">{{ __('global.this_action_is_irreversible') }}</p>
+                    <h4 class="text-base font-semibold text-gray-900 dark:text-white mb-1">{{ __('users.you_are_about_to_delete') }}</h4>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('global.this_action_is_irreversible') }}</p>
                 </div>
 
-                <div class="bx-modal-footer justify-center">
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">
+                <div class="flex items-center justify-center gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                    <button type="button" wire:click="closeDeleteModal" class="px-5 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                         {{ __('global.cancel') }}
                     </button>
-                    <button type="button" wire:click="deleteUser" class="bx-btn bx-btn-danger">
+                    <button type="button" wire:click="deleteUser" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm shadow-red-500/25 transition-all hover:shadow-red-500/40 inline-flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>

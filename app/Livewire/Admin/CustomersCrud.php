@@ -90,31 +90,26 @@ class CustomersCrud extends Component
     public function saveCustomer()
     {
         $this->validate();
+        $data = [
+            'code' => $this->code,
+            'name' => $this->name,
+            'contact_person' => $this->contact_person,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'address' => $this->address,
+            'is_active' => $this->is_active,
+        ];
+
         if ($this->isEdit && $this->customerId) {
-            $customer = Customer::findOrFail($this->customerId);
-            $customer->update([
-                'code' => $this->code,
-                'name' => $this->name,
-                'contact_person' => $this->contact_person,
-                'email' => $this->email,
-                'phone' => $this->phone,
-                'address' => $this->address,
-                'is_active' => $this->is_active,
-            ]);
+            Customer::findOrFail($this->customerId)->update($data);
+            session()->flash('message', 'Customer updated successfully.');
         } else {
-            Customer::create([
-                'code' => $this->code,
-                'name' => $this->name,
-                'contact_person' => $this->contact_person,
-                'email' => $this->email,
-                'phone' => $this->phone,
-                'address' => $this->address,
-                'is_active' => $this->is_active,
-            ]);
+            Customer::create($data);
+            session()->flash('message', 'Customer created successfully.');
         }
         $this->showModal = false;
         $this->resetForm();
-        session()->flash('message', $this->isEdit ? 'Customer updated.' : 'Customer created.');
+        $this->resetPage();
     }
 
     public function confirmDelete($id)
@@ -125,11 +120,28 @@ class CustomersCrud extends Component
 
     public function deleteCustomer()
     {
-        $customer = Customer::findOrFail($this->deleteId);
-        $customer->delete();
+        if ($this->deleteId) {
+            $customer = Customer::find($this->deleteId);
+            if ($customer) {
+                $customer->delete();
+                session()->flash('message', 'Customer deleted successfully.');
+            }
+            $this->deleteId = null;
+        }
+        $this->showDeleteModal = false;
+        $this->resetPage();
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function closeDeleteModal()
+    {
         $this->showDeleteModal = false;
         $this->deleteId = null;
-        session()->flash('message', 'Customer deleted.');
     }
 
     public function resetForm()
@@ -142,13 +154,17 @@ class CustomersCrud extends Component
         $this->phone = '';
         $this->address = '';
         $this->is_active = true;
+        $this->isEdit = false;
+        $this->resetErrorBag();
+        $this->resetValidation();
     }
 
-    public function updatingSearch()
+    public function updatedSearch()
     {
         $this->resetPage();
     }
-    public function updatingPerPage()
+
+    public function updatedPerPage()
     {
         $this->resetPage();
     }

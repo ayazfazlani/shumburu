@@ -2,13 +2,15 @@
 <div class="bx-page">
     <!-- ─── HEADER ─── -->
     <div class="bx-header">
-        <h1 class="bx-header-title">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-            Customers
-        </h1>
-        <p class="bx-header-subtitle">Manage your customer database</p>
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+                Customers
+            </h1>
+            <p class="bx-header-subtitle">Manage your customer database</p>
+        </div>
     </div>
 
     <!-- ─── TOOLBAR ─── -->
@@ -195,7 +197,7 @@
 
     <!-- ─── CREATE/EDIT MODAL ─── -->
     @if($showModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal">
                 <form wire:submit.prevent="saveCustomer">
                     <div class="bx-modal-header">
@@ -205,7 +207,7 @@
                             </svg>
                             {{ $isEdit ? 'Edit Customer' : 'Create Customer' }}
                         </h3>
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                        <button type="button" wire:click="closeModal" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -214,56 +216,78 @@
 
                     <div class="bx-modal-body">
                         <div class="bx-form">
+                            <!-- Code -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Code</label>
-                                <input type="text" wire:model.defer="code" class="bx-input" placeholder="CUST-001" />
+                                <input type="text" wire:model.defer="code" class="bx-input @error('code') bx-input-error @enderror"
+                                       placeholder="CUST-001" />
                                 @error('code')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Name -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Name</label>
-                                <input type="text" wire:model.defer="name" class="bx-input" placeholder="John Doe" />
+                                <input type="text" wire:model.defer="name" class="bx-input @error('name') bx-input-error @enderror"
+                                       placeholder="John Doe" />
                                 @error('name')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Contact Person -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label">Contact Person</label>
-                                <input type="text" wire:model.defer="contact_person" class="bx-input" placeholder="Jane Smith" />
+                                <input type="text" wire:model.defer="contact_person" class="bx-input @error('contact_person') bx-input-error @enderror"
+                                       placeholder="Jane Smith" />
+                                @error('contact_person')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
 
+                            <!-- Phone -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label">Phone</label>
-                                <input type="text" wire:model.defer="phone" class="bx-input" placeholder="+1 (555) 000-0000" />
+                                <input type="text" wire:model.defer="phone" class="bx-input @error('phone') bx-input-error @enderror"
+                                       placeholder="+1 (555) 000-0000" />
+                                @error('phone')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            <div class="bx-form-group">
-                                <label class="bx-form-label">Email</label>
-                                <input type="email" wire:model.defer="email" class="bx-input" placeholder="john@example.com" />
+                            <!-- Email -->
+                            <div class="bx-form-group bx-form-full">
+                                <label class="bx-form-label required">Email</label>
+                                <input type="email" wire:model.defer="email" class="bx-input @error('email') bx-input-error @enderror"
+                                       placeholder="john@example.com" />
                                 @error('email')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="bx-form-group">
+                            <!-- Address -->
+                            <div class="bx-form-group bx-form-full">
                                 <label class="bx-form-label">Address</label>
-                                <input type="text" wire:model.defer="address" class="bx-input" placeholder="123 Main St, City" />
+                                <input type="text" wire:model.defer="address" class="bx-input @error('address') bx-input-error @enderror"
+                                       placeholder="123 Main St, City" />
+                                @error('address')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            <div class="bx-form-full">
-                                <label class="bx-checkbox">
-                                    <input type="checkbox" wire:model.defer="is_active" />
-                                    <span>Active Customer</span>
-                                </label>
+                            <!-- Active Checkbox -->
+                            <div class="bx-form-group bx-form-full">
+                                <div class="bx-checkbox-wrapper">
+                                    <input type="checkbox" wire:model.defer="is_active" id="is_active" />
+                                    <label for="is_active">Active Customer</label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="bx-modal-footer">
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="button" wire:click="closeModal" class="bx-btn bx-btn-secondary">Cancel</button>
                         <button type="submit" class="bx-btn bx-btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
@@ -278,7 +302,7 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-sm">
                 <div class="bx-modal-header">
                     <h3 class="text-red">
@@ -287,7 +311,7 @@
                         </svg>
                         Delete Customer
                     </h3>
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-modal-close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -301,11 +325,11 @@
                         </svg>
                     </div>
                     <h4 class="bx-delete-title">Are you sure?</h4>
-                    <p class="bx-delete-text">This action cannot be undone.</p>
+                    <p class="bx-delete-text">This action cannot be undone. This will permanently delete the customer and all associated data.</p>
                 </div>
 
                 <div class="bx-modal-footer justify-center">
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="closeDeleteModal" class="bx-btn bx-btn-secondary">Cancel</button>
                     <button type="button" wire:click="deleteCustomer" class="bx-btn bx-btn-danger">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

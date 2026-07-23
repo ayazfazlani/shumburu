@@ -33,27 +33,49 @@ class Users extends Component
 
     public ?string $role = null;
 
+    public bool $showDeleteModal = false;
+    public ?string $deleteId = null;
+
     public function mount(): void
     {
         // $this->authorize('view users');
     }
 
-    public function updatingSearch(): void
+    public function updatedSearch(): void
     {
         $this->resetPage();
     }
 
-    public function deleteUser(string $userId): void
+    public function updatedRole(): void
     {
+        $this->resetPage();
+    }
 
+    public function confirmDelete(string $id): void
+    {
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deleteId = null;
+    }
+
+    public function deleteUser(): void
+    {
         // $this->authorize('delete users');
-
-        $user = User::query()->where('id', $userId)->firstOrFail();
-
-        $user->delete();
-
-        $this->alert('success', __('users.user_deleted'));
-
+        if ($this->deleteId) {
+            $user = User::find($this->deleteId);
+            if ($user) {
+                $user->delete();
+                $this->alert('success', __('users.user_deleted'));
+            }
+            $this->deleteId = null;
+        }
+        $this->showDeleteModal = false;
+        $this->resetPage();
         $this->dispatch('userDeleted');
     }
 

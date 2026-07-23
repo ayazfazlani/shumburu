@@ -17,9 +17,32 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    Mark All as Read
+                    <span class="hidden sm:inline">Mark All as Read</span>
+                    <span class="sm:hidden">Mark Read</span>
                 </button>
             @endif
+        </div>
+    </div>
+
+    <!-- ─── TOOLBAR ─── -->
+    <div class="bx-toolbar">
+        <div class="bx-toolbar-left">
+            <select wire:model.live="filter" class="bx-select">
+                <option value="all">All Notifications</option>
+                <option value="unread">Unread Only</option>
+                <option value="read">Read Only</option>
+            </select>
+            <select wire:model.live="type" class="bx-select">
+                <option value="all">All Types</option>
+                <option value="production_order_created">Order Created</option>
+                <option value="production_order_status_changed">Status Changed</option>
+                <option value="order_ready">🚨 Order Ready (URGENT)</option>
+                <option value="order_delivered">Order Delivered</option>
+                <option value="urgent">🚨 Urgent Only</option>
+            </select>
+        </div>
+        <div class="bx-toolbar-right">
+            <span class="bx-badge bx-badge-secondary">{{ $notifications->total() }} Total</span>
         </div>
     </div>
 
@@ -43,34 +66,6 @@
         </div>
     </div>
 
-    <!-- ─── FILTERS ─── -->
-    <div class="bx-filters-bar">
-        <div class="bx-filters-left">
-            <div class="bx-filter-group">
-                <label class="bx-filter-label">Status</label>
-                <select wire:model.live="filter" class="bx-filter-select">
-                    <option value="all">All Notifications</option>
-                    <option value="unread">Unread Only</option>
-                    <option value="read">Read Only</option>
-                </select>
-            </div>
-            <div class="bx-filter-group">
-                <label class="bx-filter-label">Type</label>
-                <select wire:model.live="type" class="bx-filter-select">
-                    <option value="all">All Types</option>
-                    <option value="production_order_created">Order Created</option>
-                    <option value="production_order_status_changed">Status Changed</option>
-                    <option value="order_ready">🚨 Order Ready (URGENT)</option>
-                    <option value="order_delivered">Order Delivered</option>
-                    <option value="urgent">🚨 Urgent Notifications Only</option>
-                </select>
-            </div>
-        </div>
-        <div class="bx-filters-right">
-            <span class="bx-badge bx-badge-secondary">{{ $notifications->total() }} Total</span>
-        </div>
-    </div>
-
     <!-- ─── NOTIFICATIONS LIST ─── -->
     <div class="bx-notifications-list">
         @forelse($notifications as $notification)
@@ -79,9 +74,9 @@
                     <!-- Icon -->
                     <div class="bx-notification-card-icon">
                         @if(isset($notification->data['icon']))
-                            <i class="{{ $notification->data['icon'] }} text-{{ $notification->data['color'] ?? 'blue' }}-600 dark:text-{{ $notification->data['color'] ?? 'blue' }}-400"></i>
+                            <i class="{{ $notification->data['icon'] }}"></i>
                         @else
-                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 002.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
                             </svg>
                         @endif
@@ -101,7 +96,7 @@
                                     <span class="bx-badge bx-badge-danger bx-badge-xs bx-badge-pulse">🚨 URGENT</span>
                                 @endif
                                 @if(isset($notification->data['urgency']) && $notification->data['urgency'] === 'high')
-                                    <span class="bx-badge bx-badge-warning bx-badge-xs">⚠️ HIGH PRIORITY</span>
+                                    <span class="bx-badge bx-badge-warning bx-badge-xs">⚠️ HIGH</span>
                                 @endif
                             </div>
                         </div>
@@ -143,7 +138,7 @@
 
                         <div class="bx-notification-card-footer">
                             <div class="bx-notification-card-time">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                                 {{ $notification->created_at->format('M d, Y \a\t g:i A') }}

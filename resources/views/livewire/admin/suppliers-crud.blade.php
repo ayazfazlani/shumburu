@@ -2,13 +2,15 @@
 <div class="bx-page">
     <!-- ─── HEADER ─── -->
     <div class="bx-header">
-        <h1 class="bx-header-title">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-            Suppliers
-        </h1>
-        <p class="bx-header-subtitle">Manage raw material suppliers and vendor details</p>
+        <div class="bx-header-left">
+            <h1 class="bx-header-title">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+                Suppliers
+            </h1>
+            <p class="bx-header-subtitle">Manage raw material suppliers and vendor details</p>
+        </div>
     </div>
 
     <!-- ─── TOOLBAR ─── -->
@@ -193,7 +195,7 @@
 
     <!-- ─── CREATE/EDIT MODAL ─── -->
     @if($showModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal">
                 <form wire:submit.prevent="saveSupplier">
                     <div class="bx-modal-header">
@@ -203,7 +205,7 @@
                             </svg>
                             {{ $isEdit ? 'Edit Supplier' : 'Create Supplier' }}
                         </h3>
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-modal-close">
+                        <button type="button" wire:click="closeModal" class="bx-modal-close">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -212,75 +214,88 @@
 
                     <div class="bx-modal-body">
                         <div class="bx-form">
+                            <!-- Code -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Code</label>
-                                <input type="text" wire:model.defer="code" class="bx-input" placeholder="SUP-001" />
+                                <input type="text" wire:model.defer="code" class="bx-input @error('code') bx-input-error @enderror"
+                                       placeholder="SUP-001" />
                                 @error('code')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Supplier Name -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Supplier Name</label>
-                                <input type="text" wire:model.defer="name" class="bx-input" placeholder="Company name" />
+                                <input type="text" wire:model.defer="name" class="bx-input @error('name') bx-input-error @enderror"
+                                       placeholder="Company name" />
                                 @error('name')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Contact Person -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label">Contact Person</label>
-                                <input type="text" wire:model.defer="contact_person" class="bx-input" placeholder="Contact name" />
+                                <input type="text" wire:model.defer="contact_person" class="bx-input @error('contact_person') bx-input-error @enderror"
+                                       placeholder="Contact name" />
                                 @error('contact_person')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Phone -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label">Phone</label>
-                                <input type="text" wire:model.defer="phone" class="bx-input" placeholder="+92 300 1234567" />
+                                <input type="text" wire:model.defer="phone" class="bx-input @error('phone') bx-input-error @enderror"
+                                       placeholder="+92 300 1234567" />
                                 @error('phone')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="bx-form-group">
+                            <!-- Email -->
+                            <div class="bx-form-group bx-form-full">
                                 <label class="bx-form-label">Email</label>
-                                <input type="email" wire:model.defer="email" class="bx-input" placeholder="supplier@company.com" />
+                                <input type="email" wire:model.defer="email" class="bx-input @error('email') bx-input-error @enderror"
+                                       placeholder="supplier@company.com" />
                                 @error('email')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
+                            <!-- Payment Terms -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label">Payment Terms</label>
-                                <input type="text" wire:model.defer="payment_terms" class="bx-input" placeholder="Net 30, Cash on Delivery" />
+                                <input type="text" wire:model.defer="payment_terms" class="bx-input @error('payment_terms') bx-input-error @enderror"
+                                       placeholder="Net 30, Cash on Delivery" />
                                 @error('payment_terms')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
                             </div>
 
-                            <div class="bx-form-full">
-                                <div class="bx-form-group">
-                                    <label class="bx-form-label">Address</label>
-                                    <input type="text" wire:model.defer="address" class="bx-input" placeholder="Supplier address" />
-                                    @error('address')
-                                        <span class="bx-error">{{ $message }}</span>
-                                    @enderror
-                                </div>
+                            <!-- Address -->
+                            <div class="bx-form-group bx-form-full">
+                                <label class="bx-form-label">Address</label>
+                                <input type="text" wire:model.defer="address" class="bx-input @error('address') bx-input-error @enderror"
+                                       placeholder="Supplier address" />
+                                @error('address')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            <div class="bx-form-full">
-                                <label class="bx-checkbox">
-                                    <input type="checkbox" wire:model.defer="is_active" />
-                                    <span>Active Supplier</span>
-                                </label>
+                            <!-- Active Checkbox -->
+                            <div class="bx-form-group bx-form-full">
+                                <div class="bx-checkbox-wrapper">
+                                    <input type="checkbox" wire:model.defer="is_active" id="is_active" />
+                                    <label for="is_active">Active Supplier</label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="bx-modal-footer">
-                        <button type="button" wire:click="$set('showModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                        <button type="button" wire:click="closeModal" class="bx-btn bx-btn-secondary">Cancel</button>
                         <button type="submit" class="bx-btn bx-btn-primary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
@@ -295,7 +310,7 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showDeleteModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-sm">
                 <div class="bx-modal-header">
                     <h3 class="text-red">
@@ -304,7 +319,7 @@
                         </svg>
                         Delete Supplier
                     </h3>
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-modal-close">
+                    <button type="button" wire:click="closeDeleteModal" class="bx-modal-close">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -322,7 +337,7 @@
                 </div>
 
                 <div class="bx-modal-footer justify-center">
-                    <button type="button" wire:click="$set('showDeleteModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
+                    <button type="button" wire:click="closeDeleteModal" class="bx-btn bx-btn-secondary">Cancel</button>
                     <button type="button" wire:click="deleteSupplier" class="bx-btn bx-btn-danger">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

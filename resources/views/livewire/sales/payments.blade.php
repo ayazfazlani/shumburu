@@ -195,13 +195,13 @@
 
     <!-- ─── CREATE/EDIT MODAL ─── -->
     @if($showPaymentModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showPaymentModal', false)">
-            <div class="bx-modal">
+        <div class="bx-modal-overlay open">
+            <div class="bx-modal bx-modal-lg">
                 <form wire:submit.prevent="savePayment" enctype="multipart/form-data">
                     <div class="bx-modal-header">
                         <h3>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isPaymentEdit ? 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' : 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' }}" />
                             </svg>
                             {{ $isPaymentEdit ? 'Edit Payment' : 'Record Payment' }}
                         </h3>
@@ -214,13 +214,13 @@
 
                     <div class="bx-modal-body">
                         @if($errors->any())
-                            <div class="bx-alert bx-alert-danger">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="bx-alert bx-alert-danger mb-4">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
                                 <div>
-                                    <h4>Please fix the following errors:</h4>
-                                    <ul>
+                                    <strong>Please fix the following errors:</strong>
+                                    <ul class="list-disc list-inside mt-1">
                                         @foreach($errors->all() as $error)
                                             <li>{{ $error }}</li>
                                         @endforeach
@@ -233,7 +233,7 @@
                             <!-- Production Order -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Production Order</label>
-                                <select wire:model="order_id" class="bx-select @error('order_id') bx-input-error @enderror">
+                                <select wire:model="order_id" class="bx-input @error('order_id') bx-input-error @enderror">
                                     <option value="">Select Production Order</option>
                                     @foreach ($orders as $order)
                                         <option value="{{ $order->id }}">
@@ -249,7 +249,7 @@
                             <!-- Customer -->
                             <div class="bx-form-group">
                                 <label class="bx-form-label required">Customer</label>
-                                <select wire:model="customer_id" class="bx-select @error('customer_id') bx-input-error @enderror">
+                                <select wire:model="customer_id" class="bx-input @error('customer_id') bx-input-error @enderror">
                                     <option value="">Select Customer</option>
                                     @foreach ($customers as $customer)
                                         <option value="{{ $customer->id }}">{{ $customer->name }}</option>
@@ -293,7 +293,8 @@
                             <!-- Slip File -->
                             <div class="bx-form-group bx-form-full">
                                 <label class="bx-form-label">Slip File (Image/PDF)</label>
-                                <input type="file" wire:model="slip_file" class="bx-file-input" accept=".jpg,.jpeg,.png,.pdf" />
+                                <input type="file" wire:model="slip_file" class="bx-file-input @error('slip_file') bx-input-error @enderror"
+                                       accept=".jpg,.jpeg,.png,.pdf" />
                                 @error('slip_file')
                                     <span class="bx-error">{{ $message }}</span>
                                 @enderror
@@ -407,7 +408,7 @@
                             <!-- Notes -->
                             <div class="bx-form-group bx-form-full">
                                 <label class="bx-form-label">Notes</label>
-                                <textarea wire:model="notes" rows="3" class="bx-input @error('notes') bx-input-error @enderror"
+                                <textarea wire:model="notes" rows="3" class="bx-input bx-textarea @error('notes') bx-input-error @enderror"
                                           placeholder="Additional notes"></textarea>
                                 @error('notes')
                                     <span class="bx-error">{{ $message }}</span>
@@ -419,7 +420,12 @@
                     <div class="bx-modal-footer">
                         <button type="button" wire:click="$set('showPaymentModal', false)" class="bx-btn bx-btn-secondary">Cancel</button>
                         <button type="submit" wire:loading.attr="disabled" wire:target="savePayment" class="bx-btn bx-btn-primary">
-                            <span wire:loading.remove wire:target="savePayment">{{ $isPaymentEdit ? 'Update' : 'Record' }}</span>
+                            <span wire:loading.remove wire:target="savePayment">
+                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $isPaymentEdit ? 'M5 13l4 4L19 7' : 'M12 4v16m8-8H4' }}" />
+                                </svg>
+                                {{ $isPaymentEdit ? 'Update' : 'Record' }}
+                            </span>
                             <span wire:loading wire:target="savePayment" class="flex items-center gap-2">
                                 <span class="bx-spinner bx-spinner-sm"></span>
                                 Processing...
@@ -433,7 +439,7 @@
 
     <!-- ─── DELETE MODAL ─── -->
     @if($showPaymentDeleteModal)
-        <div class="bx-modal-overlay" wire:click.self="$set('showPaymentDeleteModal', false)">
+        <div class="bx-modal-overlay open">
             <div class="bx-modal bx-modal-sm">
                 <div class="bx-modal-header">
                     <h3 class="text-red">
