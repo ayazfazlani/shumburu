@@ -140,7 +140,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($productionOrders->take(5) as $order)
+                            @forelse($productionOrders as $order)
                                 <tr>
                                     <td>
                                         <span class="bx-order-number">{{ $order->order_number }}</span>
@@ -198,6 +198,18 @@
                     </table>
                 </div>
             </div>
+            @if($productionOrders->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $productionOrders->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $productionOrders->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $productionOrders->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $productionOrders->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -225,7 +237,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($deliveries->take(5) as $delivery)
+                            @forelse($deliveries as $delivery)
                                 <tr>
                                     <td>
                                         <span class="bx-order-number">{{ $delivery->productionOrder->order_number }}</span>
@@ -255,6 +267,18 @@
                     </table>
                 </div>
             </div>
+            @if($deliveries->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $deliveries->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $deliveries->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $deliveries->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $deliveries->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -284,7 +308,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($payments->take(5) as $payment)
+                            @forelse($payments as $payment)
                                 <tr>
                                     <td>
                                         <span class="bx-code">{{ $payment->customer->display_name }}</span>
@@ -328,6 +352,18 @@
                     </table>
                 </div>
             </div>
+            @if($payments->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $payments->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $payments->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $payments->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $payments->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

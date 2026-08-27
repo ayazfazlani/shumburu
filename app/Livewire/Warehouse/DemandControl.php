@@ -17,10 +17,18 @@ class DemandControl extends Component
     use WithPagination;
 
     public $activeTab = 'rm';
+    public $perPage = 10;
+    public $search = '';
 
     public function mount()
     {
         abort_unless(auth()->user()->can('warehouse.demand-control'), 403);
+    }
+
+    public function refresh()
+    {
+        $this->resetPage('demandsPage');
+        $this->resetPage('requestsPage');
     }
 
     #[Layout('components.layouts.app')]
@@ -29,7 +37,7 @@ class DemandControl extends Component
         $rmDemands = PurchaseRequest::with(['rawMaterial', 'requestedBy'])
             ->where('status', 'pending')
             ->latest()
-            ->get();
+            ->paginate($this->perPage, ['*'], 'demandsPage');
 
         $rmRequests = MaterialRequest::with([
                 'rawMaterial', 
@@ -41,7 +49,7 @@ class DemandControl extends Component
             ])
             ->where('status', 'pending')
             ->latest()
-            ->get();
+            ->paginate($this->perPage, ['*'], 'requestsPage');
 
         return view('livewire.warehouse.demand-control', [
             'rmDemands' => $rmDemands,

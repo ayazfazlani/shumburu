@@ -179,6 +179,18 @@
                     </div>
                 </div>
             @endforelse
+            @if($rmRequests->hasPages())
+                <div class="bx-pagination-wrap mt-4">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $rmRequests->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $rmRequests->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $rmRequests->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $rmRequests->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -253,6 +265,18 @@
                     </table>
                 </div>
             </div>
+            @if($rmDemands->hasPages())
+                <div class="bx-pagination-wrap mt-4">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $rmDemands->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $rmDemands->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $rmDemands->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $rmDemands->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>

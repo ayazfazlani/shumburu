@@ -151,7 +151,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($stockIns->take(5) as $stockIn)
+                            @forelse($stockIns as $stockIn)
                                 <tr>
                                     <td>
                                         <div class="bx-table-cell-with-avatar">
@@ -187,6 +187,18 @@
                     </table>
                 </div>
             </div>
+            @if($stockIns->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $stockIns->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $stockIns->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $stockIns->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $stockIns->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -215,7 +227,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($stockOuts->take(5) as $stockOut)
+                            @forelse($stockOuts as $stockOut)
                                 <tr>
                                     <td>
                                         <div class="bx-table-cell-with-avatar">
@@ -260,6 +272,18 @@
                     </table>
                 </div>
             </div>
+            @if($stockOuts->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $stockOuts->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $stockOuts->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $stockOuts->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $stockOuts->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -288,7 +312,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($finishedGoods->take(5) as $finishedGood)
+                            @forelse($finishedGoods as $finishedGood)
                                 <tr>
                                     <td>
                                         <div class="bx-table-cell-with-avatar">
@@ -337,6 +361,18 @@
                     </table>
                 </div>
             </div>
+            @if($finishedGoods->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $finishedGoods->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $finishedGoods->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $finishedGoods->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $finishedGoods->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -366,7 +402,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($scrapWaste->take(5) as $scrap)
+                            @forelse($scrapWaste as $scrap)
                                 <tr>
                                     <td><span class="bx-code">{{ $scrap->materialStockOutLine->materialStockOut->batch_number ?? '-' }}</span></td>
                                     <td>{{ $scrap->materialStockOutLine->productionLine->name ?? '-' }}</td>
@@ -394,6 +430,18 @@
                     </table>
                 </div>
             </div>
+            @if($scrapWaste->hasPages())
+                <div class="bx-pagination-wrap">
+                    <div class="bx-pagination-info">
+                        Showing <strong>{{ $scrapWaste->firstItem() ?? 0 }}</strong>
+                        to <strong>{{ $scrapWaste->lastItem() ?? 0 }}</strong>
+                        of <strong>{{ $scrapWaste->total() }}</strong> records
+                    </div>
+                    <div class="bx-pagination">
+                        {{ $scrapWaste->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 </div>
