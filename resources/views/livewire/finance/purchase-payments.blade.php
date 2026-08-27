@@ -143,7 +143,9 @@
         </div>
         @if($receivedPOs->hasPages())
             <div class="bx-pagination-wrap">
-                {{ $receivedPOs->links() }}
+                {{
+                $receivedPOs->links('components.pagination')
+            }}
             </div>
         @endif
     </div>

@@ -190,7 +190,9 @@
                 <strong>{{ $customers->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $customers->links() }}
+                {{
+                $customers->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

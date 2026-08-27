@@ -254,6 +254,19 @@
                 </table>
             </div>
         </div>
+
+        @if($materialStockOutLines->hasPages())
+            <div class="bx-pagination-wrap mt-4">
+                <div class="bx-pagination-info">
+                    Showing <strong>{{ $materialStockOutLines->firstItem() ?? 0 }}</strong>
+                    to <strong>{{ $materialStockOutLines->lastItem() ?? 0 }}</strong>
+                    of <strong>{{ $materialStockOutLines->total() }}</strong> records
+                </div>
+                <div class="bx-pagination">
+                    {{ $materialStockOutLines->links('components.pagination') }}
+                </div>
+            </div>
+        @endif
     </div>
 
     <!-- ─── RETURN MODAL ─── -->

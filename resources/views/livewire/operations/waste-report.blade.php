@@ -26,5 +26,7 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-4">{{ $wasteRecords->links() }}</div>
+    <div class="mt-4">{{
+                $wasteRecords->links('components.pagination')
+            }}</div>
 </div>

@@ -206,7 +206,9 @@
                 of <strong>{{ $notifications->total() }}</strong> notifications
             </div>
             <div class="bx-pagination">
-                {{ $notifications->links() }}
+                {{
+                $notifications->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

@@ -278,7 +278,9 @@
                     of <strong>{{ $records->total() }}</strong> entries
                 </div>
                 <div class="bx-pagination">
-                    {{ $records->links() }}
+                    {{
+                $records->links('components.pagination')
+            }}
                 </div>
             </div>
         @endif

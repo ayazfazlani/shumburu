@@ -221,6 +221,17 @@
                 </table>
             </div>
 
+            @if(isset($finishedGoods) && method_exists($finishedGoods, 'hasPages') && $finishedGoods->hasPages())
+                <div class="mt-4 flex justify-between items-center text-xs">
+                    <div>
+                        Showing <strong>{{ $finishedGoods->firstItem() ?? 0 }}</strong> to <strong>{{ $finishedGoods->lastItem() ?? 0 }}</strong> of <strong>{{ $finishedGoods->total() }}</strong> records
+                    </div>
+                    <div>
+                        {{ $finishedGoods->links('components.pagination') }}
+                    </div>
+                </div>
+            @endif
+
             {{-- Quality comment area (same style) --}}
             <div class="mt-4 text-xs border border-gray-300 rounded p-3 bg-gray-50">
                 @if($qualityReport)

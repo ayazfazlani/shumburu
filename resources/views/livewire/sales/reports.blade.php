@@ -226,7 +226,9 @@
                         of <strong>{{ $deliveredOrders->total() }}</strong> orders
                     </div>
                     <div class="bx-pagination">
-                        {{ $deliveredOrders->links() }}
+                        {{
+                $deliveredOrders->links('components.pagination')
+            }}
                     </div>
                 </div>
             @endif
@@ -308,7 +310,9 @@
                         of <strong>{{ $deliveries->total() }}</strong> deliveries
                     </div>
                     <div class="bx-pagination">
-                        {{ $deliveries->links() }}
+                        {{
+                $deliveries->links('components.pagination')
+            }}
                     </div>
                 </div>
             @endif
@@ -399,7 +403,9 @@
                         of <strong>{{ $payments->total() }}</strong> payments
                     </div>
                     <div class="bx-pagination">
-                        {{ $payments->links() }}
+                        {{
+                $payments->links('components.pagination')
+            }}
                     </div>
                 </div>
             @endif

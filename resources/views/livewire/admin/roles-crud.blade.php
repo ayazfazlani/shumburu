@@ -176,7 +176,9 @@
                 <strong>{{ $roles->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $roles->links() }}
+                {{
+                $roles->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

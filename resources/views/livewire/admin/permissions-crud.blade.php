@@ -57,7 +57,9 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-4">{{ $permissions->links() }}</div>
+    <div class="mt-4">{{
+                $permissions->links('components.pagination')
+            }}</div>
 
     <!-- Create/Edit Modal -->
     @if ($showModal)

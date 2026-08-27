@@ -120,7 +120,9 @@
                 of <strong>{{ $stocks->total() }}</strong> items
             </div>
             <div class="bx-pagination">
-                {{ $stocks->links() }}
+                {{
+                $stocks->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

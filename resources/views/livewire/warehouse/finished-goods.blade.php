@@ -467,7 +467,9 @@
                     of <strong>{{ $finishedGoods->total() }}</strong> entries
                 </div>
                 <div class="bx-pagination">
-                    {{ $finishedGoods->links() }}
+                    {{
+                $finishedGoods->links('components.pagination')
+            }}
                 </div>
             </div>
         @endif

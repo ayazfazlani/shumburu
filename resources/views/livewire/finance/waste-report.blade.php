@@ -24,5 +24,7 @@
             </tbody>
         </table>
     </div>
-    <div class="mt-4">{{ $scrapWaste->links() }}</div>
+    <div class="mt-4">{{
+                $scrapWaste->links('components.pagination')
+            }}</div>
 </div>

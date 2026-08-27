@@ -178,7 +178,9 @@
                 <strong>{{ $rawMaterials->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $rawMaterials->links() }}
+                {{
+                $rawMaterials->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

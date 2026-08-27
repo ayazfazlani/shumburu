@@ -77,7 +77,9 @@
     </x-table>
 
     <div>
-        {{ $permissions->links() }}
+        {{
+                $permissions->links('components.pagination')
+            }}
     </div>
 
 </section>

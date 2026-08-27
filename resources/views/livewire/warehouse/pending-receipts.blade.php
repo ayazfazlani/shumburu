@@ -137,7 +137,9 @@
                 </div>
                 @if($receipts->hasPages())
                     <div class="bx-pagination-wrap">
-                        {{ $receipts->links() }}
+                        {{
+                $receipts->links('components.pagination')
+            }}
                     </div>
                 @endif
             </div>
@@ -233,7 +235,9 @@
                 </div>
                 @if($rmReceipts->hasPages())
                     <div class="bx-pagination-wrap">
-                        {{ $rmReceipts->links() }}
+                        {{
+                $rmReceipts->links('components.pagination')
+            }}
                     </div>
                 @endif
             </div>

@@ -34,7 +34,9 @@
             </tbody>
         </table>
     </div>
-    {{-- <div class="mt-4">{{ $productionEntries->links() }}</div> --}}
+    {{-- <div class="mt-4">{{
+                $productionEntries->links('components.pagination')
+            }}</div> --}}
 
     <!-- Modal -->
     <dialog id="production-modal" class="modal" @if ($showModal) open @endif>

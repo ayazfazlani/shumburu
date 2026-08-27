@@ -195,7 +195,9 @@
                 <strong>{{ $users->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $users->links() }}
+                {{
+                $users->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

@@ -173,7 +173,9 @@
                 of <strong>{{ $orders->total() }}</strong> orders
             </div>
             <div class="bx-pagination">
-                {{ $orders->links() }}
+                {{
+                $orders->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

@@ -307,7 +307,9 @@
                     of <strong>{{ $stockIns->total() }}</strong> entries
                 </div>
                 <div class="bx-pagination">
-                    {{ $stockIns->links() }}
+                    {{
+                $stockIns->links('components.pagination')
+            }}
                 </div>
             </div>
         @endif

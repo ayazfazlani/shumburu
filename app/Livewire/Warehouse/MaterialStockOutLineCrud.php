@@ -8,14 +8,17 @@ use App\Models\MaterialStockOut;
 use App\Models\ProductionLine;
 use Illuminate\Support\Facades\Auth;
 
+use Livewire\WithPagination;
+
 class MaterialStockOutLineCrud extends Component
 {
+    use WithPagination;
+
     public $lines;
     public $shift;
     public $production_line_id;
     public $materials = []; // holds multiple rows of [material_stock_out_id, quantity]
 
-    public $materialStockOutLines = [];
     public $isEdit = false;
     public $editLineId;
 
@@ -25,26 +28,13 @@ class MaterialStockOutLineCrud extends Component
     public $returnQuantity = '';
     public $returnNotes = '';
 
-    // protected $rules = [ ... ] - Removed to avoid conflict
-
     public function mount()
     {
         abort_unless(auth()->user()->can('warehouse.material-stock-out-line-crud'), 403);
-        $this->fetch();
+        $this->lines = ProductionLine::all();
         $this->materials = [
             ['material_stock_out_id' => '', 'quantity_consumed' => '']
         ];
-    }
-
-    public function fetch()
-    {
-        $this->materialStockOutLines = MaterialStockOutLine::with([
-            'materialStockOut.rawMaterial',
-            'productionLine',
-            'returnedBy'
-        ])->latest()->get();
-
-        $this->lines = ProductionLine::all();
     }
 
     public function addRow()
@@ -133,7 +123,6 @@ class MaterialStockOutLineCrud extends Component
 
         $this->reset(['shift', 'production_line_id', 'materials']);
         $this->materials = [['material_stock_out_id' => '', 'quantity_consumed' => '']];
-        $this->fetch();
         session()->flash('message', 'Material stock out line created successfully.');
     }
 
@@ -181,26 +170,29 @@ class MaterialStockOutLineCrud extends Component
         ]);
 
         $this->closeReturnModal();
-        $this->fetch();
         session()->flash('message', "Successfully returned {$returnQty} units.");
     }
 
     public function delete($id)
     {
         MaterialStockOutLine::destroy($id);
-        $this->fetch();
         session()->flash('message', 'Material stock out line deleted successfully.');
     }
 
     public function render()
     {
-        $this->fetch();
+        $materialStockOutLines = MaterialStockOutLine::with([
+            'materialStockOut.rawMaterial',
+            'productionLine',
+            'returnedBy'
+        ])->latest()->paginate(10);
+
         $stockOuts = MaterialStockOut::with('rawMaterial')->get();
 
         return view('livewire.warehouse.material-stock-out-line-crud', [
             'stockOuts' => $stockOuts,
             'lines' => $this->lines,
-            'materialStockOutLines' => $this->materialStockOutLines,
+            'materialStockOutLines' => $materialStockOutLines,
         ]);
     }
 }

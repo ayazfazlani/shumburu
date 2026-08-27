@@ -160,7 +160,9 @@
                         @endforeach
                     </tbody>
                 </table>
-                <div class="mt-4">{{ $movements->links() }}</div>
+                <div class="mt-4">{{
+                $movements->links('components.pagination')
+            }}</div>
             </div>
         </div>
 

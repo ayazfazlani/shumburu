@@ -170,7 +170,9 @@
             </div>
             @if($materialUsage->hasPages())
                 <div class="bx-pagination-wrap">
-                    {{ $materialUsage->links() }}
+                    {{
+                $materialUsage->links('components.pagination')
+            }}
                 </div>
             @endif
         </div>
@@ -249,7 +251,9 @@
             </div>
             @if($wasteRecords->hasPages())
                 <div class="bx-pagination-wrap">
-                    {{ $wasteRecords->links() }}
+                    {{
+                $wasteRecords->links('components.pagination')
+            }}
                 </div>
             @endif
         </div>
@@ -353,7 +357,9 @@
             </div>
             @if($finishedGoods->hasPages())
                 <div class="bx-pagination-wrap">
-                    {{ $finishedGoods->links() }}
+                    {{
+                $finishedGoods->links('components.pagination')
+            }}
                 </div>
             @endif
         </div>

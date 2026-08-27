@@ -148,7 +148,9 @@
                 of <strong>{{ $qualityReports->total() }}</strong> reports
             </div>
             <div class="bx-pagination">
-                {{ $qualityReports->links() }}
+                {{
+                $qualityReports->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

@@ -90,7 +90,9 @@
     </x-table>
 
     <div>
-        {{ $roles->links() }}
+        {{
+                $roles->links('components.pagination')
+            }}
     </div>
 
 </section>

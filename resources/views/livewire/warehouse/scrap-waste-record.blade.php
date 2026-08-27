@@ -361,7 +361,9 @@
                     of <strong>{{ $scrapWasteRecords->total() }}</strong> entries
                 </div>
                 <div class="bx-pagination">
-                    {{ $scrapWasteRecords->links() }}
+                    {{
+                $scrapWasteRecords->links('components.pagination')
+            }}
                 </div>
             </div>
         @endif

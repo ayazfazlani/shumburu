@@ -176,7 +176,9 @@
                 <strong>{{ $products->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $products->links() }}
+                {{
+                $products->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

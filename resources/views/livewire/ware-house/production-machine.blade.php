@@ -177,7 +177,9 @@
                 <strong>{{ $lines->total() }}</strong>
             </div>
             <div class="bx-pagination">
-                {{ $lines->links() }}
+                {{
+                $lines->links('components.pagination')
+            }}
             </div>
         </div>
     @endif

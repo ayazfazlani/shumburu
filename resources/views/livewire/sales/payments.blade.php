@@ -188,7 +188,9 @@
                 of <strong>{{ $payments->total() }}</strong> payments
             </div>
             <div class="bx-pagination">
-                {{ $payments->links() }}
+                {{
+                $payments->links('components.pagination')
+            }}
             </div>
         </div>
     @endif
