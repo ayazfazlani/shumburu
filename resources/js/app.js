@@ -47,3 +47,9 @@ window.enableWebPushNotifications = async () => {
 if ('serviceWorker' in navigator) {
 	window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
 }
+
+window.addEventListener('beforeinstallprompt', (event) => {
+	event.preventDefault();
+	window.deferredInstallPrompt = event;
+	window.dispatchEvent(new CustomEvent('pwa-install-available'));
+});

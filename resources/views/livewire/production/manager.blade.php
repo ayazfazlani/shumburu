@@ -441,34 +441,38 @@
                     </div>
 
                     <div class="bx-modal-body">
-                        @php $selectedMaterial = \App\Models\RawMaterial::find($warehouseRequestMaterialId); @endphp
-
-                        <div class="bx-warehouse-material">
-                            <span class="bx-warehouse-material-label">Input Catalog Entry</span>
-                            <div class="bx-warehouse-material-name">{{ $selectedMaterial?->name ?? 'Unidentified Material' }}</div>
-                            <div class="bx-warehouse-material-stock">
-                                <span class="bx-status-dot bx-status-dot-green"></span>
-                                Warehouse Depth: {{ number_format($selectedMaterial?->quantity ?? 0, 1) }}
-                                {{ $selectedMaterial?->unit ?? 'kg' }}
+                        <div class="space-y-4">
+                            <div>
+                                <span class="bx-warehouse-material-label">Input Catalog Entries</span>
+                                <p class="text-xs text-zinc-500 mt-1">Enter quantities for every material needed in this release.</p>
                             </div>
-                        </div>
-
-                        <div class="bx-form-group">
-                            <div class="bx-form-label-row">
-                                <label class="bx-form-label">Quantum for Shift</label>
-                                <span class="bx-form-hint-text">{{ $selectedMaterial?->unit ?? 'kg' }} Units</span>
-                            </div>
-                            <input type="number" wire:model="warehouseRequestQty"
-                                   class="bx-input bx-input-lg bx-input-centered @error('warehouseRequestQty') bx-input-error @enderror"
-                                   step="0.1" min="0.01" placeholder="0.0" />
-                            @error('warehouseRequestQty')
+                            @foreach($warehouseRequestItems as $index => $item)
+                                <div class="bx-warehouse-material flex items-center justify-between gap-4">
+                                    <div>
+                                        <div class="bx-warehouse-material-name">{{ $item['name'] }}</div>
+                                        <div class="bx-warehouse-material-stock">
+                                            Remaining: {{ number_format($item['remaining'], 2) }} {{ $item['unit'] }}
+                                        </div>
+                                    </div>
+                                    <div class="w-32 shrink-0">
+                                        <input type="number" wire:model="warehouseRequestItems.{{ $index }}.quantity"
+                                               class="bx-input @error('warehouseRequestItems.' . $index . '.quantity') bx-input-error @enderror"
+                                               step="0.01" min="0" max="{{ $item['remaining'] }}" placeholder="0.00" />
+                                        <span class="text-[10px] text-zinc-400">{{ $item['unit'] }}</span>
+                                    </div>
+                                </div>
+                                @error('warehouseRequestItems.' . $index . '.quantity')
+                                    <span class="bx-error">{{ $message }}</span>
+                                @enderror
+                            @endforeach
+                            @error('warehouseRequestItems')
                                 <span class="bx-error">{{ $message }}</span>
                             @enderror
                             <div class="bx-form-warning">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
-                                <p>This allocation is subtracted from the planned totals. Avoid over-requesting to prevent floor congestion.</p>
+                                <p>Blank and zero quantities are skipped. Avoid over-requesting to prevent floor congestion.</p>
                             </div>
                         </div>
                     </div>

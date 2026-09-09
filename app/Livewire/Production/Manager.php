@@ -26,8 +26,7 @@ class Manager extends Component
     // Daily warehouse request form (sent from Manager to Warehouse)
     public $showWarehouseRequestForm = false;
     public $warehouseRequestPlanId;   // The ProductionPlan id
-    public $warehouseRequestMaterialId;
-    public $warehouseRequestQty;
+    public $warehouseRequestItems = [];
     public $warehouseRequestProductionId; // The ProductionOrder id
 
     // Production execution
@@ -159,33 +158,67 @@ class Manager extends Component
 
     public function openWarehouseRequestForm($orderId, $materialId, $suggestedQty)
     {
-        $order = \App\Models\ProductionOrder::with('plan')->find($orderId);
+        $order = \App\Models\ProductionOrder::with('plan.items.rawMaterial')->findOrFail($orderId);
         $this->warehouseRequestProductionId = $orderId;
         $this->warehouseRequestPlanId = $order->plan->id;
-        $this->warehouseRequestMaterialId = $materialId;
-        $this->warehouseRequestQty = round($suggestedQty > 0 ? $suggestedQty : 0, 2);
+        $sentByMaterial = MaterialRequest::where('production_plan_id', $order->plan->id)
+            ->whereIn('status', ['pending', 'approved', 'issued', 'consumed', 'purchase_raised'])
+            ->get()
+            ->groupBy('raw_material_id')
+            ->map(fn ($requests) => $requests->sum('quantity'));
+
+        $this->warehouseRequestItems = $order->plan->items
+            ->groupBy('raw_material_id')
+            ->map(function ($items) use ($sentByMaterial, $materialId, $suggestedQty) {
+                $rawMaterialId = $items->first()->raw_material_id;
+                $remaining = max(0, $items->sum('planned_quantity') - $sentByMaterial->get($rawMaterialId, 0));
+
+                return [
+                    'material_id' => $rawMaterialId,
+                    'name' => $items->first()->rawMaterial->name,
+                    'unit' => $items->first()->rawMaterial->unit,
+                    'remaining' => round($remaining, 2),
+                    'quantity' => $rawMaterialId == $materialId
+                        ? round($suggestedQty > 0 ? $suggestedQty : 0, 2)
+                        : 0,
+                ];
+            })
+            ->filter(fn ($item) => $item['remaining'] > 0)
+            ->values()
+            ->toArray();
         $this->showWarehouseRequestForm = true;
     }
 
     public function sendWarehouseRequest()
     {
         $this->validate([
-            'warehouseRequestMaterialId' => 'required|exists:raw_materials,id',
-            'warehouseRequestQty' => 'required|numeric|min:0.01',
+            'warehouseRequestItems' => 'required|array|min:1',
+            'warehouseRequestItems.*.material_id' => 'required|exists:raw_materials,id',
+            'warehouseRequestItems.*.quantity' => 'nullable|numeric|min:0',
         ]);
 
-        MaterialRequest::create([
-            'production_plan_id' => $this->warehouseRequestPlanId,
-            'raw_material_id' => $this->warehouseRequestMaterialId,
-            'quantity' => $this->warehouseRequestQty,
-            'status' => 'pending',
-            'requested_by' => Auth::id(),
-            'notes' => 'Daily release by Manager — ' . now()->format('d M Y H:i'),
-        ]);
-        $msg = 'Request sent to warehouse!';
+        $items = collect($this->warehouseRequestItems)
+            ->filter(fn ($item) => (float) ($item['quantity'] ?? 0) > 0);
+
+        if ($items->isEmpty()) {
+            $this->addError('warehouseRequestItems', 'Enter a quantity for at least one material.');
+            return;
+        }
+
+        foreach ($items as $item) {
+            MaterialRequest::create([
+                'production_plan_id' => $this->warehouseRequestPlanId,
+                'raw_material_id' => $item['material_id'],
+                'quantity' => $item['quantity'],
+                'status' => 'pending',
+                'requested_by' => Auth::id(),
+                'notes' => 'Daily release by Manager - ' . now()->format('d M Y H:i'),
+            ]);
+        }
+        $msg = $items->count() . ' material request(s) sent to warehouse!';
 
         $this->showWarehouseRequestForm = false;
-        $this->reset(['warehouseRequestMaterialId', 'warehouseRequestQty', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
+        $this->reset(['warehouseRequestItems', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
         session()->flash('success', $msg);
 
         $this->selectPlan($this->activePlanRequestId);
@@ -194,7 +227,7 @@ class Manager extends Component
     public function cancelWarehouseRequest()
     {
         $this->showWarehouseRequestForm = false;
-        $this->reset(['warehouseRequestMaterialId', 'warehouseRequestQty', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
+        $this->reset(['warehouseRequestItems', 'warehouseRequestProductionId', 'warehouseRequestPlanId']);
     }
 
     // ── Production start ──────────────────────────────────────────────────
