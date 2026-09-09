@@ -34,7 +34,12 @@ class ProductionOrderStatusChangedNotification extends Notification implements S
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return $notifiable->notificationChannels($this->category());
+    }
+
+    public function category(): string
+    {
+        return 'production_order_status_changed';
     }
 
     /**

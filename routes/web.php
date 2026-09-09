@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ImpersonationController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Livewire\Admin\ProductsCrud;
 use App\Livewire\Admin\RawMaterialsCrud;
 use App\Livewire\FYA\Warehouse2;
@@ -39,6 +40,8 @@ Route::middleware(['auth'])->group(function (): void {
 
     // Notifications
     Route::get('/notifications', \App\Livewire\Notifications\Index::class)->name('notifications.index');
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
+    Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
 
     // Warehouse Management
     Route::prefix('warehouse')->as('warehouse.')->group(function (): void {

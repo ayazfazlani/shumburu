@@ -29,7 +29,12 @@ class OrderReadyNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return $notifiable->notificationChannels($this->category());
+    }
+
+    public function category(): string
+    {
+        return 'order_ready';
     }
 
     /**

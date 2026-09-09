@@ -29,7 +29,12 @@ class ProductionCompletedNotification extends Notification implements ShouldQueu
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return $notifiable->notificationChannels($this->category());
+    }
+
+    public function category(): string
+    {
+        return 'production_completed';
     }
 
     /**

@@ -38,7 +38,9 @@ class NotificationService
             
             // 1. Instant DB notification for UI feedback
             try {
-                $user->notifyNow($notification, ['database']);
+                if ($user->notificationEnabled($notification->category(), 'database')) {
+                    $user->notifyNow($notification, ['database']);
+                }
             } catch (\Throwable $e) {
                 \Log::error("Failed to send DB notification to {$user->email}: " . $e->getMessage());
             }
@@ -74,7 +76,9 @@ class NotificationService
             
             // 1. Instant DB notification
             try {
-                $user->notifyNow($notification, ['database']);
+                if ($user->notificationEnabled($notification->category(), 'database')) {
+                    $user->notifyNow($notification, ['database']);
+                }
             } catch (\Throwable $e) {
                 \Log::error("Failed to send DB notification to {$user->email}: " . $e->getMessage());
             }
@@ -113,7 +117,9 @@ class NotificationService
         foreach ($usersToNotify as $user) {
             $notification = new ProductionStartedNotification($productionOrder);
             try {
-                $user->notifyNow($notification, ['database']);
+                if ($user->notificationEnabled($notification->category(), 'database')) {
+                    $user->notifyNow($notification, ['database']);
+                }
                 $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for production started: " . $e->getMessage());
@@ -137,7 +143,9 @@ class NotificationService
         foreach ($usersToNotify as $user) {
             $notification = new OrderReadyNotification($productionOrder);
             try {
-                $user->notifyNow($notification, ['database']);
+                if ($user->notificationEnabled($notification->category(), 'database')) {
+                    $user->notifyNow($notification, ['database']);
+                }
                 $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for order ready: " . $e->getMessage());
@@ -161,7 +169,9 @@ class NotificationService
         foreach ($usersToNotify as $user) {
             $notification = new OrderDeliveredNotification($productionOrder);
             try {
-                $user->notifyNow($notification, ['database']);
+                if ($user->notificationEnabled($notification->category(), 'database')) {
+                    $user->notifyNow($notification, ['database']);
+                }
                 $user->notify($notification);
             } catch (\Throwable $e) {
                 \Log::warning("Failed to notify {$user->email} for order delivered: " . $e->getMessage());

@@ -14,20 +14,13 @@ I've created a comprehensive, intelligent notification system that will revoluti
 - **Finance Team**: Notified when orders are delivered for invoicing
 
 ### 📧 **Multi-Channel Delivery**
-- **Email Notifications**: Beautiful, branded email templates with order details
-- **In-App Notifications**: Real-time notifications in the dashboard
-- **Database Storage**: Persistent notification history
-- **Real-time Updates**: Live notifications without page refresh
+- **PWA Push Notifications**: Browser push notifications when the PWA is closed
 
 ### 🎨 **Beautiful User Experience**
-- **Notification Bell**: Animated bell icon with unread count badge
-- **Dropdown Center**: Elegant notification dropdown with filtering
-- **Toast Notifications**: Non-intrusive popup notifications
 - **Full Notification Page**: Comprehensive notification management
 - **Color-Coded Icons**: Visual indicators for different notification types
 
 ### 🔄 **Complete Order Lifecycle Coverage**
-
 ```
 📝 Order Created → Notify Plant Manager + Operations Team
 ✅ Order Approved → Notify Sales Team + Customer
@@ -175,7 +168,6 @@ $notificationService->notifyStatusChanged($order, $oldStatus, $status, auth()->i
 
 ### **Planned Features**
 - SMS notifications
-- Push notifications for mobile
 - Custom notification preferences
 - Advanced filtering options
 - Notification scheduling
@@ -215,6 +207,41 @@ CREATE TABLE notifications (
 event(new ProductionOrderCreated($productionOrder));
 event(new ProductionOrderStatusChanged($productionOrder, $oldStatus, $newStatus));
 ```
+
+## PWA Push Setup
+
+Push delivery uses the Web Push protocol with VAPID keys. No Firebase SDK is required.
+
+1. Generate keys:
+
+```bash
+php -r 'require "vendor/autoload.php"; print_r(Minishlink\\WebPush\\VAPID::createVapidKeys());'
+```
+
+2. Add the generated values to `.env`:
+
+```env
+VAPID_SUBJECT=mailto:admin@example.com
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+```
+
+3. Run migrations:
+
+```bash
+php artisan migrate
+```
+
+4. Build assets and run the queue worker:
+
+```bash
+npm run build
+php artisan queue:work
+```
+
+Users enable push from Settings > Profile. They can choose production, delivery,
+and other notification categories independently. Push requires HTTPS; on iPhone,
+the PWA must be installed to the Home Screen before permission can be granted.
 
 ### **Queue Configuration**
 ```php

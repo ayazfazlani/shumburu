@@ -154,4 +154,36 @@ class User extends Authenticatable // implements MustVerifyEmail
     {
         return $this->hasMany(Payment::class, 'recorded_by');
     }
+
+    public function pushSubscriptions(): HasMany
+    {
+        return $this->hasMany(PushSubscription::class);
+    }
+
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(NotificationPreference::class);
+    }
+
+    public function notificationChannels(string $category): array
+    {
+        $channels = [];
+
+        if ($this->notificationEnabled($category, 'email')) {
+            $channels[] = 'mail';
+        }
+
+        if ($this->notificationEnabled($category, 'push') && $this->pushSubscriptions()->exists()) {
+            $channels[] = \App\Notifications\Channels\WebPushChannel::class;
+        }
+
+        return $channels;
+    }
+
+    public function notificationEnabled(string $category, string $channel): bool
+    {
+        $preference = $this->notificationPreferences()->where('category', $category)->first();
+
+        return $preference?->{$channel.'_enabled'} ?? ($channel === 'email' || $channel === 'database');
+    }
 }

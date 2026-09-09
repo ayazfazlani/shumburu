@@ -76,6 +76,43 @@
             </div>
         </form>
 
+        <div class="bx-settings-delete mt-6" x-data>
+            <div class="bx-settings-delete-header">
+                <div class="bx-danger-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4.828 7l2.586 2.586a2 2 0 00 2.828 0L12.828 7H4.828zM4.828 17h8l-2.586-2.586a2 2 0 00-2.828 0L4.828 17z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3>Push notification preferences</h3>
+                    <p class="bx-settings-delete-subtitle">Choose which updates can appear on this device.</p>
+                </div>
+            </div>
+            <div class="bx-settings-delete-body">
+                <div class="grid gap-3 sm:grid-cols-2">
+                    @foreach($notificationCategories as $category)
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" wire:model="pushPreferences.{{ $category }}">
+                            <span>{{ str($category)->replace('_', ' ')->title() }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <button type="button"
+                            class="bx-btn bx-btn-primary"
+                            x-on:click="window.enableWebPushNotifications().then(() => $wire.enablePushNotifications())">
+                        Enable Push on This Device
+                    </button>
+                    <button type="button" wire:click="saveNotificationPreferences" class="bx-btn bx-btn-secondary">
+                        Save Preferences
+                    </button>
+                </div>
+                @if($pushStatus)
+                    <p class="bx-saved-message mt-3">{{ $pushStatus }}</p>
+                @endif
+            </div>
+        </div>
+
         <!-- Delete Account -->
         <div class="bx-settings-delete">
             <div class="bx-settings-delete-header">

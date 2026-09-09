@@ -13,6 +13,19 @@ use Livewire\Component;
 
 class Profile extends Component
 {
+    public array $notificationCategories = [
+        'production_order_created',
+        'production_order_status_changed',
+        'production_started',
+        'production_completed',
+        'order_ready',
+        'order_delivered',
+    ];
+
+    public array $pushPreferences = [];
+
+    public string $pushStatus = '';
+
     public string $name = '';
 
     public string $email = '';
@@ -28,6 +41,34 @@ class Profile extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->pushPreferences = Auth::user()->notificationPreferences()
+            ->whereIn('category', $this->notificationCategories)
+            ->pluck('push_enabled', 'category')
+            ->all();
+    }
+
+    public function saveNotificationPreferences(): void
+    {
+        $user = Auth::user();
+
+        foreach ($this->notificationCategories as $category) {
+            $user->notificationPreferences()->updateOrCreate(
+                ['category' => $category],
+                ['push_enabled' => (bool) ($this->pushPreferences[$category] ?? false)],
+            );
+        }
+
+        $this->pushStatus = 'Notification preferences saved.';
+    }
+
+    public function enablePushNotifications(): void
+    {
+        foreach ($this->notificationCategories as $category) {
+            $this->pushPreferences[$category] = true;
+        }
+
+        $this->saveNotificationPreferences();
+        $this->pushStatus = 'Push notifications enabled for selected categories.';
     }
 
     /**
