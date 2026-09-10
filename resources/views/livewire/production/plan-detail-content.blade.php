@@ -1,11 +1,18 @@
 <div>
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center justify-between mb-8 gap-4">
         <h4 class="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.3em] flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]"></div>
             Material Release Matrix
         </h4>
+        @if($activePlanRequest->status === 'approved' || $activePlanRequest->status === 'in_production')
+            <button type="button"
+                    wire:click="openWarehouseRequestForm({{ $activePlanRequest->id }}, null, 0)"
+                    class="btn btn-primary h-11 px-5 bg-zinc-900 dark:bg-white border-0 text-white dark:text-black font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl shadow-zinc-900/10 dark:shadow-none hover:scale-[1.02] active:scale-95 transition-all">
+                Request Materials
+            </button>
+        @endif
     </div>
-    
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         @php
             $planMaterialSummary = collect();
@@ -16,7 +23,7 @@
                         $alreadySent = \App\Models\MaterialRequest::where('production_plan_id', $activePlanRequest->plan->id)
                             ->where('raw_material_id', $group->first()->raw_material_id)
                             ->sum('quantity');
-                        
+
                         return [
                             'material_id' => $group->first()->raw_material_id,
                             'material_name' => $group->first()->rawMaterial->name,
@@ -74,12 +81,6 @@
                     </div>
                 </div>
 
-                @if($activePlanRequest->status === 'approved' || $activePlanRequest->status === 'in_production')
-                    <button wire:click="openWarehouseRequestForm({{ $activePlanRequest->id }}, {{ $material['material_id'] }}, {{ $material['remaining'] }})"
-                            class="btn btn-primary w-full h-11 bg-zinc-900 dark:bg-white border-0 text-white dark:text-black font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl shadow-zinc-900/10 dark:shadow-none hover:scale-[1.02] active:scale-95 transition-all outline-none focus:outline-none">
-                        Request Release Batch
-                    </button>
-                @endif
             </div>
         @empty
             <div class="md:col-span-2 text-center p-12 bg-white dark:bg-zinc-900 rounded-[2rem] border border-dashed border-zinc-200 dark:border-zinc-800">
@@ -153,7 +154,7 @@
             @php
                 $hasIssuedMaterials = $activePlanRequest->plan ? \App\Models\MaterialRequest::where('production_plan_id', $activePlanRequest->plan->id)->where('status', 'issued')->exists() : false;
             @endphp
-            
+
             @if($hasIssuedMaterials)
                 <div class="flex flex-col items-center gap-6 print:hidden">
                     <div class="w-16 h-16 bg-emerald-500 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-emerald-500/30 animate-bounce">
@@ -165,7 +166,7 @@
                         <h5 class="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Factory Floor Ready</h5>
                         <p class="text-xs font-bold text-zinc-500 mt-1 uppercase tracking-widest">Released materials arrived. Start live monitoring?</p>
                     </div>
-                    <button wire:click="startProduction({{ $activePlanRequest->id }})" 
+                    <button wire:click="startProduction({{ $activePlanRequest->id }})"
                             class="btn btn-primary h-14 px-16 bg-zinc-900 dark:bg-white border-0 text-white dark:text-black font-black uppercase text-xs tracking-[0.3em] rounded-3xl shadow-2xl shadow-zinc-900/40 dark:shadow-none hover:-translate-y-1 transition-all">
                         🏭 Initialize Factory Run
                     </button>

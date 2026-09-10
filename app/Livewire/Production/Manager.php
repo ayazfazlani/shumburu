@@ -178,6 +178,7 @@ class Manager extends Component
                     'name' => $items->first()->rawMaterial->name,
                     'unit' => $items->first()->rawMaterial->unit,
                     'remaining' => round($remaining, 2),
+                    'selected' => $rawMaterialId == $materialId,
                     'quantity' => $rawMaterialId == $materialId
                         ? round($suggestedQty > 0 ? $suggestedQty : 0, 2)
                         : 0,
@@ -198,7 +199,7 @@ class Manager extends Component
         ]);
 
         $items = collect($this->warehouseRequestItems)
-            ->filter(fn ($item) => (float) ($item['quantity'] ?? 0) > 0);
+            ->filter(fn ($item) => ($item['selected'] ?? false) && (float) ($item['quantity'] ?? 0) > 0);
 
         if ($items->isEmpty()) {
             $this->addError('warehouseRequestItems', 'Enter a quantity for at least one material.');

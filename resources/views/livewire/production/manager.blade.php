@@ -448,12 +448,16 @@
                             </div>
                             @foreach($warehouseRequestItems as $index => $item)
                                 <div class="bx-warehouse-material flex items-center justify-between gap-4">
-                                    <div>
+                                    <label class="flex items-start gap-3 min-w-0 cursor-pointer">
+                                        <input type="checkbox" wire:model="warehouseRequestItems.{{ $index }}.selected"
+                                               class="mt-1 h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500" />
+                                        <span>
                                         <div class="bx-warehouse-material-name">{{ $item['name'] }}</div>
                                         <div class="bx-warehouse-material-stock">
                                             Remaining: {{ number_format($item['remaining'], 2) }} {{ $item['unit'] }}
                                         </div>
-                                    </div>
+                                        </span>
+                                    </label>
                                     <div class="w-32 shrink-0">
                                         <input type="number" wire:model="warehouseRequestItems.{{ $index }}.quantity"
                                                class="bx-input @error('warehouseRequestItems.' . $index . '.quantity') bx-input-error @enderror"
@@ -472,7 +476,7 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
-                                <p>Blank and zero quantities are skipped. Avoid over-requesting to prevent floor congestion.</p>
+                                <p>Select the planned materials to release, then enter the quantity for each selected material.</p>
                             </div>
                         </div>
                     </div>
