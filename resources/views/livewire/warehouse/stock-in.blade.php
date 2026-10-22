@@ -104,7 +104,7 @@
 
                     <!-- Item Number -->
                     <div class="bx-form-group">
-                        <label class="bx-form-label required">Item Number</label>
+                        <label class="bx-form-label required">Item Code</label>
                         <input type="text" wire:model="batch_number"
                                class="bx-input w-full @error('batch_number') bx-input-error @enderror"
                                placeholder="Enter item code">
