@@ -93,7 +93,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/sales-reports-dashboard', \App\Livewire\Sales\SalesReportsDashboard::class)->name('sales-reports-dashboard');
     });
 
-    Route::get('/fya-warehouse', Warehouse2::class)->name('fya werehouse');
+    Route::get('/fya-warehouse', Warehouse2::class)->name('fya warehouse');
 
     // Finance Management
     Route::prefix('finance')->as('finance.')->group(function (): void {

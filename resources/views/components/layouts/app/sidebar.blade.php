@@ -124,6 +124,9 @@
                             class="{{ request()->routeIs('warehouse.fg-stock') ? 'active' : '' }}">FG Stock</flux:navlist.item>
                     @endcan
 
+<flux:navlist.item icon="table-cells" href="{{ route('fya warehouse') }}" wire:navigate
+                            class="{{ request()->routeIs('fya warehouse') ? 'active' : '' }}">FYA Warehouse</flux:navlist.item>
+
                     @can('warehouse.pending-receipts')
                         <!-- GRN Receipts Split -->
                         <flux:navlist.item icon="arrow-down-on-square-stack"

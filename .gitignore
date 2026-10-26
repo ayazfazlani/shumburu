@@ -20,8 +20,6 @@ _ide_helper.php
 /.fleet
 /.idea
 /.nova
-/.vscode
 /.zed
 config.bat
 node_modules
-.env
