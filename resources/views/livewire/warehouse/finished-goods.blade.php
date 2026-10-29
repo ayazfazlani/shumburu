@@ -362,101 +362,98 @@
             <span class="bx-badge bx-badge-secondary">{{ $finishedGoods->total() }} Records</span>
         </div>
 
-        <div class="bx-table-wrap">
-            <div class="bx-table-scroll">
-                <table class="bx-table">
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th class="hidden sm:table-cell">Type</th>
-                            <th class="hidden md:table-cell">Length</th>
-                            <th class="hidden lg:table-cell">Surface</th>
-                            <th class="hidden xl:table-cell">Quantity</th>
-                            <th class="hidden xl:table-cell">Total Weight</th>
-                            <th class="hidden 2xl:table-cell">Waste</th>
-                            <th>Batch</th>
-                            <th class="hidden lg:table-cell">Purpose</th>
-                            <th class="text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($finishedGoods as $item)
-                            <tr>
-                                <td>
-                                    <div class="bx-product-cell">
-                                        <span class="bx-product-name">{{ $item->product->name ?? 'N/A' }}</span>
-                                        <span class="bx-product-code">{{ $item->batch_number ?? '' }}</span>
-                                    </div>
-                                </td>
-                                <td class="hidden sm:table-cell">
-                                    <span class="bx-badge {{ $item->type == 'roll' ? 'bx-badge-primary' : 'bx-badge-secondary' }}">
-                                        {{ ucfirst($item->type ?? '-') }}
-                                    </span>
-                                </td>
-                                <td class="hidden md:table-cell">{{ number_format($item->length_m ?? 0, 2) }}m</td>
-                                <td class="hidden lg:table-cell">
-                                    @if($item->surface)
-                                        <span class="bx-code">{{ ucfirst($item->surface) }}</span>
-                                    @else
-                                        <span class="text-gray">—</span>
-                                    @endif
-                                </td>
-                                <td class="hidden xl:table-cell">{{ number_format($item->quantity ?? 0, 2) }}</td>
-                                <td class="hidden xl:table-cell">{{ number_format(($item->weight_per_meter ?? 0) * ($item->quantity ?? 0), 2) }} kg</td>
-                                <td class="hidden 2xl:table-cell">
-                                    <span class="bx-badge {{ ($item->waste_quantity ?? 0) > 0 ? 'bx-badge-danger' : 'bx-badge-success' }}">
-                                        {{ number_format($item->waste_quantity ?? 0, 2) }} kg
-                                    </span>
-                                </td>
-                                <td><span class="bx-code">{{ $item->batch_number ?? '-' }}</span></td>
-                                <td class="hidden lg:table-cell">
-                                    @if($item->purpose)
-                                        <span class="bx-badge {{ $item->purpose == 'for_stock' ? 'bx-badge-success' : 'bx-badge-warning' }}">
-                                            {{ str_replace('_', ' ', ucfirst($item->purpose)) }}
-                                        </span>
-                                    @else
-                                        <span class="text-gray">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="bx-actions">
-                                        <button wire:click="edit({{ $item->id }})"
-                                                class="bx-action bx-action-edit"
-                                                title="Edit">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                            </svg>
-                                        </button>
-                                        <button wire:click="delete({{ $item->id }})"
-                                                class="bx-action bx-action-delete"
-                                                onclick="return confirm('Are you sure?')"
-                                                title="Delete">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" class="bx-empty">
-                                    <div class="bx-empty-content">
-                                        <div class="bx-empty-icon">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                            </svg>
-                                        </div>
-                                        <h3>No finished goods records found</h3>
-                                        <p>Start recording your daily production output.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <div class="bx-table-wrap w-full">
+    <!-- The overflow-x-auto utility allows small screens to scroll horizontally while remaining clean on desktop -->
+    <div class="bx-table-scroll w-full overflow-x-auto whitespace-nowrap">
+        <table class="bx-table min-w-full divide-y divide-gray-200">
+            <thead>
+                <tr>
+                    <th class="text-left font-semibold px-4 py-2">Product</th>
+                    <th class="text-left font-semibold px-4 py-2">Type</th>
+                    <th class="text-left font-semibold px-4 py-2">Length</th>
+                    <th class="text-left font-semibold px-4 py-2">Surface</th>
+                    <th class="text-left font-semibold px-4 py-2">Quantity</th>
+                    <th class="text-left font-semibold px-4 py-2">Total Weight</th>
+                    <th class="text-left font-semibold px-4 py-2">Waste</th>
+                    <th class="text-left font-semibold px-4 py-2">Batch</th>
+                    <th class="text-left font-semibold px-4 py-2">Purpose</th>
+                    <th class="text-right font-semibold px-4 py-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse ($finishedGoods as $item)
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-4 py-3">
+                        <div class="bx-product-cell flex flex-col">
+                            <span class="bx-product-name font-medium">{{ $item->product->name ?? 'N/A' }}</span>
+                            <span class="bx-product-code text-xs text-gray-400">{{ $item->batch_number ?? '' }}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="bx-badge {{ $item->type == 'roll' ? 'bx-badge-primary' : 'bx-badge-secondary' }}">
+                            {{ ucfirst($item->type ?? '-') }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">{{ number_format($item->length_m ?? 0, 2) }}m</td>
+                    <td class="px-4 py-3">
+                        @if($item->surface)
+                        <span class="bx-code text-sm font-mono">{{ ucfirst($item->surface) }}</span>
+                        @else
+                        <span class="text-gray-400">—</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3">{{ number_format($item->quantity ?? 0, 2) }}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">{{ number_format(($item->weight_per_meter ?? 0) * ($item->quantity ?? 0), 2) }} kg</td>
+                    <td class="px-4 py-3">
+                        <span class="bx-badge {{ ($item->waste_quantity ?? 0) > 0 ? 'bx-badge-danger' : 'bx-badge-success' }}">
+                            {{ number_format($item->waste_quantity ?? 0, 2) }} kg
+                        </span>
+                    </td>
+                    <td class="px-4 py-3"><span class="bx-code font-mono text-sm">{{ $item->batch_number ?? '-' }}</span></td>
+                    <td class="px-4 py-3">
+                        @if($item->purpose)
+                        <span class="bx-badge {{ $item->purpose == 'for_stock' ? 'bx-badge-success' : 'bx-badge-warning' }}">
+                            {{ str_replace('_', ' ', ucfirst($item->purpose)) }}
+                        </span>
+                        @else
+                        <span class="text-gray-400">—</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        <div class="bx-actions inline-flex items-center gap-2">
+                            <button wire:click="edit({{ $item->id }})" class="bx-action bx-action-edit p-1 text-gray-500 hover:text-blue-600 transition-colors" title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </button>
+                            <button wire:click="delete({{ $item->id }})" class="bx-action bx-action-delete p-1 text-gray-500 hover:text-red-600 transition-colors" onclick="return confirm('Are you sure?')" title="Delete">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="10" class="bx-empty py-12 text-center">
+                        <div class="bx-empty-content flex flex-col items-center justify-center">
+                            <div class="bx-empty-icon text-gray-300 mb-3">
+                                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-base font-semibold text-gray-700">No finished goods records found</h3>
+                            <p class="text-sm text-gray-500">Start recording your daily production output.</p>
+                        </div>
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
         <!-- ─── PAGINATION ─── -->
         @if($finishedGoods->hasPages())

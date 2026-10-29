@@ -386,7 +386,7 @@
                                 class="{{ request()->routeIs('warehouse.lines') ? 'active' : '' }}">Lines
                             </flux:navlist.item>
                         @endcan
-                        @can('warehouse.pending-receipts')
+                       <!-- @can('warehouse.pending-receipts')
                             <flux:navlist.item icon="arrow-down-tray" href="{{ route('warehouse.stock-in') }}" wire:navigate
                                 class="{{ request()->routeIs('warehouse.stock-in') ? 'active' : '' }}">Stock In
                             </flux:navlist.item>
@@ -395,7 +395,13 @@
                             <flux:navlist.item icon="arrow-up-tray" href="{{ route('warehouse.stock-out') }}" wire:navigate
                                 class="{{ request()->routeIs('warehouse.stock-out') ? 'active' : '' }}">Stock Out
                             </flux:navlist.item>
+                        @endcan -->
+@can('warehouse.pending-receipts')
+                            <flux:navlist.item icon="arrow-path" href="{{ route('warehouse.raw-materials-movement') }}" wire:navigate
+                                class="{{ request()->routeIs('warehouse.raw-materials-movement') ? 'active' : '' }}">Stock Movements
+                            </flux:navlist.item>
                         @endcan
+
                         @can('warehouse.stock-overview')
                             <flux:navlist.item icon="table-cells" href="{{ route('warehouse.fg-stock') }}" wire:navigate
                                 class="{{ request()->routeIs('warehouse.fg-stock') ? 'active' : '' }}">FG Stock

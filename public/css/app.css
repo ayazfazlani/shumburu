@@ -8985,3 +8985,312 @@ textarea { min-height: 72px; resize: vertical; }
         padding: 1rem;
     }
 }
+/* Type toggle */
+.bx-type-toggle {
+    display: flex;
+    gap: 0.5rem;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 8px;
+}
+.bx-type-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all .15s;
+}
+.bx-type-btn:hover:not(:disabled) { background: #e5e7eb; }
+.bx-type-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+.bx-type-btn.active.bx-type-in {
+    background: #16a34a;
+    color: #fff;
+}
+.bx-type-btn.active.bx-type-out {
+    background: #dc2626;
+    color: #fff;
+}
+
+/* Status badges (reuse if not present) */
+.bx-badge-success { background:#dcfce7; color:#166534; }
+.bx-badge-danger  { background:#fee2e2; color:#991b1b; }
+
+/* Buttons */
+.bx-btn-success { background:#16a34a; color:#fff; }
+.bx-btn-success:hover { background:#15803d; }
+
+/* Filter group in section header */
+.bx-filter-group {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}/* ─── Materials panel header ─── */
+.bx-materials-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.bx-materials-header .bx-list-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* ─── Search ─── */
+.bx-materials-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    color: #6b7280;
+}
+.bx-materials-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.85rem;
+    color: #111827;
+}
+.bx-materials-search input::placeholder { color: #9ca3af; }
+
+/* ─── Grid of cards ─── */
+.bx-materials-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    max-height: 520px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+.bx-materials-grid::-webkit-scrollbar { width: 6px; }
+.bx-materials-grid::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+/* ─── Card ─── */
+.bx-material-card {
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+}
+.bx-material-card:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.08);
+    transform: translateY(-1px);
+}
+.bx-material-card.selected {
+    border-color: #3b82f6;
+    background: #eff6ff;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+/* head */
+.bx-material-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+.bx-material-card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bx-material-card-code {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* body / qty */
+.bx-material-card-body { margin-bottom: 0.35rem; }
+.bx-material-qty {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+.bx-material-qty-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.bx-material-qty-unit {
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+.bx-material-qty.text-success .bx-material-qty-value { color: #16a34a; }
+.bx-material-qty.text-warning .bx-material-qty-value { color: #d97706; }
+.bx-material-qty.text-danger  .bx-material-qty-value { color: #dc2626; }
+
+/* progress bar */
+.bx-material-bar {
+    height: 4px;
+    background: #f3f4f6;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.35rem;
+}
+.bx-material-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+}
+.bx-material-bar-fill.ok    { background: linear-gradient(90deg,#22c55e,#16a34a); }
+.bx-material-bar-fill.low   { background: linear-gradient(90deg,#fbbf24,#d97706); }
+.bx-material-bar-fill.empty { background: #e5e7eb; }
+
+/* status line */
+.bx-material-card-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+.bx-status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+.bx-status-dot.bx-status-ok    { background: #22c55e; }
+.bx-status-dot.bx-status-low   { background: #f59e0b; }
+.bx-status-dot.bx-status-empty { background: #ef4444; }
+
+/* empty state */
+.bx-materials-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #9ca3af;
+}
+.bx-materials-empty p {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+}
+
+
+/* ══════════════════════════════════════════════════════
+   ADDITIONS for unified movement / FYA warehouse page
+   ══════════════════════════════════════════════════════ */
+
+/* ─── Collapsible filter bar ─── */
+.bx-filter-bar {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin: 0 1.1rem 0.85rem;
+}
+.bx-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+}
+.bx-filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.bx-filter-item .bx-form-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    font-weight: 600;
+}
+.bx-filter-actions {
+    justify-content: flex-end;
+    align-self: end;
+}
+
+/* ─── Small button variant ─── */
+.bx-btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+}
+.bx-btn-sm svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
+/* ─── Material card sub-line (batch + customer) ─── */
+.bx-material-card-sub {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.7rem;
+    color: #6b7280;
+    min-width: 0;
+}
+.bx-material-card-cust {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55%;
+    color: #4b5563;
+    font-style: italic;
+}
+
+/* ─── Muted card (empty balance) ─── */
+.bx-material-card-muted {
+    opacity: 0.65;
+    background: #fafafa;
+}
+
+/* ─── Warning badge (used for ORDER purpose) ─── */
+.bx-badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* ─── Materials header row (title + count) ─── */
+.bx-materials-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}

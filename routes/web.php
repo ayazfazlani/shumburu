@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function (): void {
         Route::get('/products', ProductsCrud::class)->name('products');
         Route::get('/Lines', ProductionMachine::class)->name('lines');
         Route::get('/stock-in', \App\Livewire\Warehouse\StockIn::class)->name('stock-in');
+        Route::get('/raw-materials-movement', \App\Livewire\Warehouse\StockMovements::class)->name('raw-materials-movement');
         Route::get('/production', Production::class)->name('production.create');
         Route::get('/production/index', \App\Livewire\Warehouse\ProductionCrud::class)->name('production.index');
         Route::get('/production/{id}', \App\Livewire\Warehouse\ViewProduction::class)->name('production.view');
